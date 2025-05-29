@@ -1,7 +1,8 @@
 <template>
-  <HelloWorld />
+  <v-container>
+    <v-row><h1>hello</h1></v-row>
+  </v-container>
 
-  ffss
 </template>
 
 <script lang="ts" setup>
