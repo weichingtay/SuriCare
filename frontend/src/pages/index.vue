@@ -21,14 +21,30 @@
       <v-container fluid>
         <!-- Welcome and Alert section -->
         <v-row class="mb-4" align="center">
-          <v-col cols="6">
-            <div class="text-h5 font-weight-medium mb-2">Welcome, {{ caregiverName }}!</div>
-            <div>
-              <p class="text-subtitle-1 mb-0">{{ currentChild.name }}'s Important Alerts</p>
+          <v-col cols="12" md="2">
+            <div class="d-flex flex-column">
+
+              <div class="text-h5 font-weight-medium mb-2">Welcome, {{ caregiverName }}!</div>
+              <div>
+                <p class="text-subtitle-1 mb-0">{{ currentChild.name }}'s Important Alerts</p>
+              </div>
             </div>
           </v-col>
           
-          <v-col cols="6">
+          <v-col cols="12" md="4" class="d-flex align-center">
+            <v-btn
+              class="check-in-btn"
+              size="large"
+              block
+              elevation="1"
+              @click="handleCheckIn"
+            >
+              <v-icon start size="24" class="mr-2">mdi-plus-circle</v-icon>
+              New Check In
+            </v-btn>
+          </v-col>
+          
+          <v-col cols="12" md="6" class="d-flex align-right">
             <!-- Alert notification -->
             <AlertNotification 
               :alert="currentAlert"
@@ -37,8 +53,12 @@
           </v-col>
         </v-row>
 
-        <!-- Check-in prompt -->
-        <CheckInPrompt />
+        <!-- AI Assistant section -->
+        <v-row class="mb-4">
+          <v-col cols="12">
+            <AiAssistant />
+          </v-col>
+        </v-row>
 
         <!-- Today's Summary section -->
         <div class="mb-4">
@@ -89,11 +109,8 @@
           </v-row>
         </div>
 
-        <!-- AI Assistant -->
-        <AiAssistant />
-
-        <!-- Quick Actions -->
-        <!-- <QuickActions /> -->
+        <!-- Historical Overview -->
+        <HistoricalOverview />
       </v-container>
     </v-main>
   </v-app>
@@ -107,18 +124,19 @@ import { useAlertStore } from '../stores/alertStore'
 import { useSummaryStore } from '../stores/summaryStore'
 import { useDateFormatter } from '../composables/useDateFormatter'
 import { useSummaryCards } from '../composables/useSummaryCards'
+import { useRouter } from 'vue-router'
 
 // Import components
 import NavigationSidebar from '../components/NavigationSidebar.vue'
 import ChildSelector from '../components/ChildSelector.vue'
 import AlertNotification from '../components/AlertNotification.vue'
-import CheckInPrompt from '../components/CheckInPrompt.vue'
 import SummaryCard from '../components/SummaryCard.vue'
 import AiAssistant from '../components/AiAssistant.vue'
 import ChildStats from '../components/ChildStats.vue'
-import QuickActions from '../components/QuickActions.vue'
+import HistoricalOverview from '../components/HistoricalOverview.vue'
 
-// Initialize stores
+// Initialize stores and router
+const router = useRouter()
 const childStore = useChildStore()
 const alertStore = useAlertStore()
 const summaryStore = useSummaryStore()
@@ -139,6 +157,11 @@ const { transformedCards, cardTypes } = useSummaryCards(summaryData)
 const handleDateChange = (newDate) => {
   datePickerMenu.value = false
   summaryStore.loadDataForDate(newDate, currentChild.value.id)
+}
+
+// Handle check-in button click
+const handleCheckIn = () => {
+  router.push('/check-in')
 }
 </script>
 
@@ -164,5 +187,28 @@ const handleDateChange = (newDate) => {
 /* Rail width when drawer is minimized */
 :deep(.v-navigation-drawer--rail) {
   width: 90px !important;
+}
+
+/* Check-in button styling */
+.check-in-btn {
+  border-radius: 12px;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  padding: 20px 24px;
+  transition: all 0.2s ease;
+  background-color: #800020 !important; /* Maroon */
+  color: #F5E6D3 !important; /* Beige */
+}
+
+.check-in-btn:hover {
+  transform: translateY(-2px);
+  background-color: #9A0025 !important; /* Slightly lighter maroon on hover */
+}
+
+/* Override Vuetify's default button styles */
+:deep(.check-in-btn .v-btn__content),
+:deep(.check-in-btn .v-icon) {
+  color: #F5E6D3 !important;
 }
 </style>

@@ -16,6 +16,7 @@ declare module 'vue' {
     ChildStats: typeof import('./components/ChildStats.vue')['default']
     FoodCard: typeof import('./components/FoodCard.vue')['default']
     HealthSummaryCard: typeof import('./components/HealthSummaryCard.vue')['default']
+    HistoricalOverview: typeof import('./components/HistoricalOverview.vue')['default']
     MealsSummaryCard: typeof import('./components/MealsSummaryCard.vue')['default']
     MoodCard: typeof import('./components/MoodCard.vue')['default']
     NavigationSidebar: typeof import('./components/NavigationSidebar.vue')['default']

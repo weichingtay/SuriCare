@@ -1,7 +1,7 @@
 <!-- ChildStats.vue -->
 <template>
   <div class="d-flex align-center child-stats">
-    <div class="d-flex gap-6">
+    <div class="d-flex align-center">
       <div class="stat-item">
         <div class="text-caption text-medium-emphasis">Height</div>
         <div class="d-flex align-center stat-value">
@@ -9,6 +9,9 @@
           <span class="text-caption text-medium-emphasis ml-1">cm</span>
         </div>
       </div>
+      
+      <v-divider vertical class="mx-4" style="height: 24px" />
+      
       <div class="stat-item">
         <div class="text-caption text-medium-emphasis">Weight</div>
         <div class="d-flex align-center stat-value">
@@ -16,6 +19,9 @@
           <span class="text-caption text-medium-emphasis ml-1">kg</span>
         </div>
       </div>
+      
+      <v-divider vertical class="mx-4" style="height: 24px" />
+      
       <div class="stat-item">
         <div class="text-caption text-medium-emphasis">Age</div>
         <div class="d-flex align-center stat-value">
@@ -27,6 +33,7 @@
     
     <div class="d-flex align-center ml-6">
       <!-- Last update indicator -->
+      <!-- TO DO: Add last update time -->
       <div class="last-update-indicator mr-3" :class="updateStatus">
         <span class="text-caption">Last update: 2w ago</span>
         <v-tooltip activator="parent" location="bottom">
@@ -87,17 +94,9 @@ const handleUpdate = () => {
 
 .stat-item {
   min-width: 70px;
-  position: relative;
-}
-
-.stat-item:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  right: -1.5rem;
-  top: 25%;
-  height: 50%;
-  width: 1px;
-  background: rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .stat-value {
