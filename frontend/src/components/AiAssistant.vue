@@ -32,8 +32,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import meerkatIcon from '../assets/Meerkat_Mascot.svg'
 
-const aiAvatarUrl = "https://uceadaa513ecb56fd2611040f0d8.previews.dropboxusercontent.com/p/thumb/ACo1DUHf751zfAZxyz0qT1KOEa_AJGEMPb_b4b_Ig4QsJVht7ny7fCUB7v2ZNMkL2Si5TEhWpX6X0wo_oIVfEbyotojkgbsDvjtkV-WT2BWxKpkPm4HgQJaEz3a-yPN7Ga0RARrMS7pQmCtLCPlJshg9GG-3knZ8UlwKWTzdA5ZCeJDcp2BCsXUX7cPrlVH1ADUV6gjAlgXjQCicO_vxkiPbU4in2fSMBSytcQVu5g4OHvMOZmyGU6I_l1chCo7yDG7vofBtuCkNBWaf636ljMrTylXiMenHEotc_v77JWbDgabQdwURSTilq5v0PysTHb2JQafzpaIhMae-VcfcspQczNukeSLVstel4t8fgMgZ2_7qf8ZQrbGxcioIZyTlFgU/p.png"
+const aiAvatarUrl = meerkatIcon
 
 const question = ref('')
 

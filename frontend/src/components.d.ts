@@ -13,6 +13,7 @@ declare module 'vue' {
     AppFooter: typeof import('./components/vue-default/AppFooter.vue')['default']
     CheckInPrompt: typeof import('./components/CheckInPrompt.vue')['default']
     ChildSelector: typeof import('./components/ChildSelector.vue')['default']
+    ChildStats: typeof import('./components/ChildStats.vue')['default']
     FoodCard: typeof import('./components/FoodCard.vue')['default']
     HealthSummaryCard: typeof import('./components/HealthSummaryCard.vue')['default']
     MealsSummaryCard: typeof import('./components/MealsSummaryCard.vue')['default']

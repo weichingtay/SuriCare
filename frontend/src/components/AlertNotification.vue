@@ -6,7 +6,7 @@
     :icon="alertIcon"
     variant="tonal"
     closable
-    class="mb-4"
+    class="alert-notification"
   >
     <!-- Alert content with icon and message -->
     <div class="d-flex align-center">
@@ -95,23 +95,19 @@ const handleClose = () => {
 
 <style scoped>
 /* Component-specific styles */
-.v-alert {
-  /* Ensure consistent spacing and appearance */
+.alert-notification {
   border: none;
+  max-width: 100%;
+  animation: slideInFromRight 0.5s ease-out;
 }
 
-/* Add animation for alert appearance */
-.v-alert {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
+@keyframes slideInFromRight {
   from {
-    transform: translateY(-20px);
+    transform: translateX(100%);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: translateX(0);
     opacity: 1;
   }
 }

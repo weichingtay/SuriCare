@@ -8,25 +8,34 @@
     <!-- Top navigation bar with child selector -->
     <v-toolbar class="fixed-tabs-bar">
       <v-app-bar elevation="1" color="grey-lighten-5" style="padding-left: 20px;">
-        <ChildSelector />
+        <div class="d-flex align-center" style="width: 100%">
+          <ChildSelector />
+          <v-divider vertical class="mx-4" />
+          <ChildStats :child="currentChild" />
+        </div>
       </v-app-bar>
     </v-toolbar>
 
     <!-- Main content area -->
     <v-main style="background-color: #FAF9F5; padding-left: 90px !important; margin-top: -70px">
       <v-container fluid>
-        <!-- Welcome section -->
-        <div class="text-h5 font-weight-medium mb-2">Welcome, {{ caregiverName }}!</div>
-        
-        <div class="mb-4">
-          <p class="text-subtitle-1 mb-0">{{ currentChild.name }}'s Important Alerts</p>
-        </div>
-
-        <!-- Alert notification -->
-        <AlertNotification 
-          :alert="currentAlert"
-          class="mb-4"
-        />
+        <!-- Welcome and Alert section -->
+        <v-row class="mb-4" align="center">
+          <v-col cols="6">
+            <div class="text-h5 font-weight-medium mb-2">Welcome, {{ caregiverName }}!</div>
+            <div>
+              <p class="text-subtitle-1 mb-0">{{ currentChild.name }}'s Important Alerts</p>
+            </div>
+          </v-col>
+          
+          <v-col cols="6">
+            <!-- Alert notification -->
+            <AlertNotification 
+              :alert="currentAlert"
+              class="ml-auto"
+            />
+          </v-col>
+        </v-row>
 
         <!-- Check-in prompt -->
         <CheckInPrompt />
@@ -84,7 +93,7 @@
         <AiAssistant />
 
         <!-- Quick Actions -->
-        <QuickActions />
+        <!-- <QuickActions /> -->
       </v-container>
     </v-main>
   </v-app>
@@ -106,6 +115,7 @@ import AlertNotification from '../components/AlertNotification.vue'
 import CheckInPrompt from '../components/CheckInPrompt.vue'
 import SummaryCard from '../components/SummaryCard.vue'
 import AiAssistant from '../components/AiAssistant.vue'
+import ChildStats from '../components/ChildStats.vue'
 import QuickActions from '../components/QuickActions.vue'
 
 // Initialize stores
