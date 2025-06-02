@@ -49,6 +49,7 @@ const cardConfigs = {
       ]
     })
   },
+  // TODO: need to consider what makes "healthy?", what kind of information does this get
   health: {
     title: 'Health',
     icon: 'mdi-heart-pulse',

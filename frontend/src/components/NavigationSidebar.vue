@@ -12,13 +12,14 @@
       <div class="pa-2 text-center">
         <v-img 
           :src="logoUrl"
-          height="40"
+          height="80"
           class="mb-2"
           contain
         />
       </div>
     </template>
 
+    <!-- TODO: Make this navigation menu items nicer, it looks very flat and simple-->
     <!-- Navigation menu items -->
     <v-list density="compact" nav>
       <v-list-item

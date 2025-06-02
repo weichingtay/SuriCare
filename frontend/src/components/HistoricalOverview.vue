@@ -93,6 +93,7 @@
                 </div>
 
                 <!-- X-axis dates -->
+                <!-- TODO: need to make the dates more readable -->
                 <div class="x-axis">
                   <span 
                     v-for="(point, index) in getDataPoints(metric.id)" 

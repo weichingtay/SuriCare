@@ -24,6 +24,8 @@
           <v-col cols="12" md="2">
             <div class="d-flex flex-column">
 
+              <!-- TODO: Make this welcome section nicer 
+              maybe can make all the fonts different? -->
               <div class="text-h5 font-weight-medium mb-2">Welcome, {{ caregiverName }}!</div>
               <div>
                 <p class="text-subtitle-1 mb-0">{{ currentChild.name }}'s Important Alerts</p>
