@@ -12,8 +12,12 @@ declare module 'vue' {
     AppFooter: typeof import('./components/vue-default/AppFooter.vue')['default']
     FoodCard: typeof import('./components/FoodCard.vue')['default']
     MoodCard: typeof import('./components/MoodCard.vue')['default']
+    PoopSummaryCard: typeof import('./components/PoopSummaryCard.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SleepCard: typeof import('./components/SleepCard.vue')['default']
+    SleepSummaryCard: typeof import('./components/SleepSummaryCard.vue')['default']
+    MealsSummaryCard: typeof import('./components/MealsSummaryCard.vue')['default']
+    HealthSummaryCard: typeof import('./components/HealthSummaryCard.vue')['default']
   }
 }
