@@ -8,14 +8,17 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AlertCard: typeof import('./components/AlertCard.vue')['default']
     AlertNotification: typeof import('./components/AlertNotification.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     FoodCard: typeof import('./components/FoodCard.vue')['default']
+    HealthSummaryCard: typeof import('./components/HealthSummaryCard.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
+    MealsSummaryCard: typeof import('./components/MealsSummaryCard.vue')['default']
     MoodCard: typeof import('./components/MoodCard.vue')['default']
+    PoopSummaryCard: typeof import('./components/PoopSummaryCard.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SleepCard: typeof import('./components/SleepCard.vue')['default']
+    SleepSummaryCard: typeof import('./components/SleepSummaryCard.vue')['default']
   }
 }
