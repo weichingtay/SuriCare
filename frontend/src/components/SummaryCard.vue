@@ -17,9 +17,9 @@
         <!-- Data Content -->
         <div v-else class="flex-grow-1">
           <!-- Main Metrics -->
-          <div class="d-flex flex-wrap gap-4 mb-4">
-            <div 
-              v-for="(metric, index) in primaryMetrics" 
+          <div class="d-flex flex-wrap gap-4 mb-4 justify-center" >
+            <div
+              v-for="(metric, index) in primaryMetrics"
               :key="index"
               class="metric-item text-center"
             >
@@ -30,10 +30,12 @@
             </div>
           </div>
 
+          <!-- <v-divider class="justify-center " width="200"  ></v-divider> -->
+
           <!-- Secondary Metrics -->
           <div v-if="secondaryMetrics?.length" class="d-flex flex-wrap gap-3 mb-4">
-            <div 
-              v-for="(metric, index) in secondaryMetrics" 
+            <div
+              v-for="(metric, index) in secondaryMetrics"
               :key="index"
               class="secondary-metric d-flex align-center"
             >
@@ -118,6 +120,7 @@ const secondaryMetrics = computed(() => {
   if (props.title === 'Meals') {
     return [] // Meals will use progress circles instead
   }
+  // takes the second element from the summaryData
   return props.metrics.slice(2)
 })
 
@@ -201,4 +204,4 @@ const getProgressColor = (value) => {
 .text-error {
   color: rgb(var(--v-theme-error));
 }
-</style> 
+</style>

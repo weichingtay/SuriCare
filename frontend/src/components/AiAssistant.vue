@@ -4,7 +4,7 @@
     <v-card-text class="pa-6">
       <div class="d-flex align-start mb-4">
         <v-avatar size="48" rounded="lg" class="mr-4 assistant-avatar">
-          <v-img 
+          <v-img
             :src="aiAvatarUrl"
             height="100%"
             cover
@@ -64,6 +64,7 @@ import meerkatIcon from '../assets/Meerkat_Mascot.svg'
 const aiAvatarUrl = meerkatIcon
 const question = ref('')
 
+// TODO: should this be hardcoded or dynamic?
 const suggestedQuestions = [
   "Sleep schedule advice?",
   "Meal planning tips",
@@ -94,7 +95,7 @@ const handleSendQuestion = () => {
   :deep(.v-field__outline) {
     --v-field-border-opacity: 0.1;
   }
-  
+
   :deep(.v-field__overlay) {
     opacity: 0;
   }
@@ -103,7 +104,7 @@ const handleSendQuestion = () => {
 .suggestion-chip {
   background-color: white !important;
   font-size: 0.875rem;
-  
+
   &:hover {
     background-color: #FAF0DE !important;
   }
@@ -112,4 +113,4 @@ const handleSendQuestion = () => {
 :deep(.v-card-text) {
   position: relative;
 }
-</style> 
+</style>
