@@ -20,41 +20,31 @@
     <v-main style="background-color: #FAF9F5; padding-left: 90px !important; margin-top: -70px">
       <v-container fluid>
         <!-- Welcome and Alert section -->
-        <v-row class="mb-4" align="center">
-          <v-col cols="12" md="2">
-            <div class="d-flex flex-column">
+        <v-row class="mb-2" align="center">
+          <v-col cols="4">
+            <!-- <div class="d-flex flex-column"> -->
 
-              <!-- TODO: Make this welcome section nicer 
+              <!-- TODO: Make this welcome section nicer
               maybe can make all the fonts different? -->
               <div class="text-h5 font-weight-medium mb-2">Welcome, {{ caregiverName }}!</div>
               <div>
                 <p class="text-subtitle-1 mb-0">{{ currentChild.name }}'s Important Alerts</p>
               </div>
-            </div>
+            <!-- </div> -->
           </v-col>
-          
-          <v-col cols="12" md="4" class="d-flex align-center">
-            <v-btn
-              class="check-in-btn"
-              size="large"
-              block
-              elevation="1"
-              @click="handleCheckIn"
-            >
-              <v-icon start size="24" class="mr-2">mdi-plus-circle</v-icon>
-              New Check In
-            </v-btn>
-          </v-col>
-          
-          <v-col cols="12" md="6" class="d-flex align-right">
+
+        </v-row>
+
+        <v-row>
+          <v-col cols="12"  class="d-flex align-right">
             <!-- Alert notification -->
-            <AlertNotification 
+            <AlertNotification
               :alert="currentAlert"
               class="ml-auto"
             />
           </v-col>
-        </v-row>
 
+        </v-row>
         <!-- AI Assistant section -->
         <v-row class="mb-4">
           <v-col cols="12">
@@ -66,7 +56,7 @@
         <div class="mb-4">
           <div class="d-flex align-center mb-3">
             <h2 class="text-h6">Today's Summary</h2>
-            
+
             <!-- Date picker -->
             <v-menu
               v-model="datePickerMenu"
@@ -85,7 +75,7 @@
                   <v-icon size="small">mdi-chevron-down</v-icon>
                 </v-btn>
               </template>
-              
+
               <v-card>
                 <v-date-picker
                   v-model="selectedDate"
@@ -99,11 +89,11 @@
 
           <!-- Summary cards grid -->
           <v-row>
-            <v-col 
-              v-for="type in cardTypes" 
+            <v-col
+              v-for="type in cardTypes"
               :key="type"
-              cols="12" 
-              sm="6" 
+              cols="12"
+              sm="6"
               md="3"
             >
               <SummaryCard v-bind="transformedCards[type]" />

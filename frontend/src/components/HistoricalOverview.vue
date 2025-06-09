@@ -3,11 +3,11 @@
   <div class="historical-overview mb-6">
     <div class="d-flex align-center justify-space-between mb-4">
       <h2 class="text-h6">Historical Overview</h2>
-      
+
       <!-- Time range selector -->
       <v-btn-group rounded="pill" variant="outlined" density="comfortable">
-        <v-btn 
-          v-for="range in timeRanges" 
+        <v-btn
+          v-for="range in timeRanges"
           :key="range.value"
           :color="selectedRange === range.value ? 'primary' : undefined"
           :variant="selectedRange === range.value ? 'tonal' : 'outlined'"
@@ -39,7 +39,7 @@
                 {{ getTrendLabel(metric) }}
               </v-chip>
             </div>
-            
+
             <!-- Enhanced graph visualization -->
             <div class="graph-container" :style="{ '--graph-color': metric.color }">
               <!-- Y-axis labels -->
@@ -74,8 +74,8 @@
                   </svg>
 
                   <!-- Data points -->
-                  <div 
-                    v-for="(point, index) in getDataPoints(metric.id)" 
+                  <div
+                    v-for="(point, index) in getDataPoints(metric.id)"
                     :key="index"
                     class="data-point"
                     :style="{
@@ -95,8 +95,8 @@
                 <!-- X-axis dates -->
                 <!-- TODO: need to make the dates more readable -->
                 <div class="x-axis">
-                  <span 
-                    v-for="(point, index) in getDataPoints(metric.id)" 
+                  <span
+                    v-for="(point, index) in getDataPoints(metric.id)"
                     :key="index"
                     :style="{ '--x': `${(index / (getDataPoints(metric.id).length - 1)) * 100}%` }"
                   >
@@ -186,8 +186,8 @@ const getYPosition = (value, metric) => {
 // Get trend information
 const getTrendIcon = (metric) => {
   const trend = trends.value[metric.id]
-  return trend.direction === 'up' ? 'mdi-trending-up' 
-       : trend.direction === 'down' ? 'mdi-trending-down' 
+  return trend.direction === 'up' ? 'mdi-trending-up'
+       : trend.direction === 'down' ? 'mdi-trending-down'
        : 'mdi-trending-neutral'
 }
 
@@ -196,16 +196,16 @@ const getTrendColor = (metric) => {
   if (metric.id === 'health') {
     return trend.value < 1 ? 'success' : trend.value < 1.5 ? 'warning' : 'error'
   }
-  return trend.direction === 'up' ? 'success' 
-       : trend.direction === 'down' ? 'error' 
+  return trend.direction === 'up' ? 'success'
+       : trend.direction === 'down' ? 'error'
        : 'info'
 }
 
 const getTrendLabel = (metric) => {
   const trend = trends.value[metric.id]
   if (metric.id === 'health') {
-    return trend.value < 1 ? 'All good' 
-         : trend.value < 1.5 ? 'Minor issues' 
+    return trend.value < 1 ? 'All good'
+         : trend.value < 1.5 ? 'Minor issues'
          : 'Needs attention'
   }
   return trend.direction === 'neutral' ? `${trend.value}% avg`
@@ -215,16 +215,16 @@ const getTrendLabel = (metric) => {
 // Format date for x-axis
 const formatDate = (dateStr) => {
   const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
   })
 }
 
 // Format tooltip content
 const formatTooltip = (point, metric) => {
-  const date = new Date(point.date).toLocaleDateString('en-US', { 
-    month: 'short', 
+  const date = new Date(point.date).toLocaleDateString('en-US', {
+    month: 'short',
     day: 'numeric',
     year: 'numeric'
   })
@@ -367,4 +367,4 @@ onMounted(() => {
 .v-card {
   height: 100%;
 }
-</style> 
+</style>

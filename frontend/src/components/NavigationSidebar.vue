@@ -10,7 +10,7 @@
     <!-- Logo section -->
     <template v-slot:prepend>
       <div class="pa-2 text-center">
-        <v-img 
+        <v-img
           :src="logoUrl"
           height="80"
           class="mb-2"
@@ -36,6 +36,18 @@
         </template>
       </v-list-item>
     </v-list>
+
+    <div class="pt-10 pa-2 text-center">
+      <v-img
+        :src="logoUrl"
+        height="80"
+        class="mb-2"
+        contain
+      />
+      <h3>Account</h3>
+    </div>
+
+
   </v-navigation-drawer>
 </template>
 
@@ -65,4 +77,4 @@ const navigationItems = [
 :deep(.v-navigation-drawer--rail) {
   width: 90px !important;
 }
-</style> 
+</style>
