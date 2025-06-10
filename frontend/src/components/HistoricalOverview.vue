@@ -119,7 +119,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useHistoricalStore } from '../stores/historicalStore'
+import { useHistoricalStore } from '@/stores/historicalStore'
 
 const selectedRange = ref('1w')
 const historicalStore = useHistoricalStore()

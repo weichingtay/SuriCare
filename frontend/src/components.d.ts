@@ -11,10 +11,13 @@ declare module 'vue' {
     AiAssistant: typeof import('./components/AiAssistant.vue')['default']
     AlertNotification: typeof import('./components/AlertNotification.vue')['default']
     AppFooter: typeof import('./components/vue-default/AppFooter.vue')['default']
+    ChatInput: typeof import('./components/ChatInput.vue')['default']
     CheckInPrompt: typeof import('./components/CheckInPrompt.vue')['default']
     ChildSelector: typeof import('./components/ChildSelector.vue')['default']
     ChildStats: typeof import('./components/ChildStats.vue')['default']
+    EditProfileDialog: typeof import('./components/EditProfileDialog.vue')['default']
     FoodCard: typeof import('./components/FoodCard.vue')['default']
+    HealthAlert: typeof import('./components/HealthAlert.vue')['default']
     HealthSummaryCard: typeof import('./components/HealthSummaryCard.vue')['default']
     HistoricalOverview: typeof import('./components/HistoricalOverview.vue')['default']
     MealsSummaryCard: typeof import('./components/MealsSummaryCard.vue')['default']
@@ -26,6 +29,8 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SleepCard: typeof import('./components/SleepCard.vue')['default']
     SleepSummaryCard: typeof import('./components/SleepSummaryCard.vue')['default']
+    StatsCard: typeof import('./components/StatsCard.vue')['default']
     SummaryCard: typeof import('./components/SummaryCard.vue')['default']
+    TopBar: typeof import('./components/TopBar.vue')['default']
   }
 }

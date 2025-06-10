@@ -81,7 +81,7 @@ const alertIcon = computed(() => {
 const viewMore = () => {
   // Emit event to parent component
   emit('view-more', props.alert)
-  
+
   // Parent can handle this event to show more details
   console.log('Viewing more details for alert:', props.alert)
 }
@@ -114,7 +114,7 @@ const handleClose = () => {
 
 /* Style adjustments based on alert type */
 .v-alert--success {
-  background-color: rgba(76, 175, 80, 0.1);
+  background-color: rgba(76,175,80,0.1);
 }
 
 .v-alert--warning {

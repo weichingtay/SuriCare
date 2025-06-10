@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import logoImage from '../assets/suricare-full-logo.jpg'
+import logoImage from '@/assets/suricare-full-logo.jpg'
 
 const logoUrl = logoImage
 

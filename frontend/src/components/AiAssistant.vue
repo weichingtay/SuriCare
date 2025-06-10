@@ -20,7 +20,7 @@
 
       <v-text-field
         v-model="question"
-        placeholder="Type your questions here..."
+        placeholder="Type your questions heregc | update | bd."
         variant="outlined"
         density="comfortable"
         hide-details
@@ -59,7 +59,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import meerkatIcon from '../assets/Meerkat_Mascot.svg'
+import meerkatIcon from '@/assets/Meerkat_Mascot.svg'
 
 const aiAvatarUrl = meerkatIcon
 const question = ref('')

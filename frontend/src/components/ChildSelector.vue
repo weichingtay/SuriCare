@@ -36,9 +36,9 @@
 </template>
 
 <script setup>
-import { useChildStore } from '../stores/childStore'
-import { useAlertStore } from '../stores/alertStore'
-import { useSummaryStore } from '../stores/summaryStore'
+import { useChildStore } from '@/stores/childStore'
+import { useAlertStore } from '@/stores/alertStore'
+import { useSummaryStore } from '@/stores/summaryStore'
 import { storeToRefs } from 'pinia'
 
 const childStore = useChildStore()
@@ -53,4 +53,4 @@ const handleChildSelect = (child) => {
   alertStore.updateAlertForChild(child.id)
   summaryStore.loadDataForDate(selectedDate.value, child.id)
 }
-</script> 
+</script>
