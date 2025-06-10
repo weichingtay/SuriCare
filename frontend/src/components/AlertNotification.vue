@@ -1,11 +1,13 @@
 <!-- components/AlertNotification.vue -->
 <template>
   <!-- Alert container that changes color based on alert type -->
+
+  <!-- Removed closable banner----2/6/25-->
   <v-alert
     :color="alertColor"
     :icon="alertIcon"
     variant="tonal"
-    closable
+
     class="mb-4"
   >
     <!-- Alert content with icon and message -->
@@ -14,7 +16,7 @@
         <!-- Main alert message -->
         <div class="font-weight-medium">{{ alert.message }}</div>
         <!-- Additional details if provided -->
-        <div v-if="alert.details" class="text-body-2 mt-1">
+        <div v-if="alert.details" class="text-body-2">
           {{ alert.details }}
         </div>
       </div>
