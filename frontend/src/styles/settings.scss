@@ -1,10 +1,44 @@
-/**
- * src/styles/settings.scss
- *
- * Configures SASS variables and Vuetify overwrites
- */
 
-// https://vuetifyjs.com/features/sass-variables/`
-// @use 'vuetify/settings' with (
-//   $color-pack: false
-// );
+// ===== CUSTOM ADDITIONS (add to end of existing file) =====
+
+// Custom color variables for your app
+$app-primary: #f44336;
+$app-grey: #666666;
+$app-grey-light: #999999;
+$app-grey-lightest: #f5f5f5;
+
+// Custom utility classes
+.text-pink { 
+  color: $app-primary !important; 
+}
+
+.text-grey { 
+  color: $app-grey !important; 
+}
+
+.text-grey-light { 
+  color: $app-grey-light !important; 
+}
+
+// Navigation item styles (so you can remove from individual components)
+.nav-item {
+  min-height: 60px !important;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.nav-item-active {
+  background-color: rgba(244, 67, 54, 0.1) !important;
+}
+
+// Growth value styling
+.growth-value {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: $app-grey-lightest;
+  border-radius: 6px;
+}
