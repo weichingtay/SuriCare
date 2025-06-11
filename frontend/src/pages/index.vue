@@ -9,11 +9,11 @@
         class="pa-1 pt-2"
       >
         <!-- Welcome section -->
-        <div class="mb-6">
+        <!-- <div class="mb-6">
           <h1 class="text-h5 font-weight-medium mb-1 text-warm">
             Welcome, {{ caregiverName }}
           </h1>
-        </div>
+        </div> -->
 
         <!-- Health Issue Alert -->
         <HealthAlert

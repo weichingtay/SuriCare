@@ -27,11 +27,12 @@
                 variant="elevated"
                 class="child-selector-btn"
                 height="48"
+                style="justify-content: flex-start"
               >
-                <v-avatar size="32" class="child-avatar">
+                <v-avatar size="32" class="child-avatar" style="margin-right: 12px">
                   <v-img :src="currentChild.avatar"></v-img>
                 </v-avatar>
-                <div class="child-info">
+                <div class="child-info" style="flex: 1; text-align: left">
                   <span class="child-name">{{ currentChild.name }}</span>
                   <span class="child-age">{{ currentChild.age }} years old</span>
                 </div>
