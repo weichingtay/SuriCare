@@ -1,11 +1,83 @@
-
 // ===== CUSTOM ADDITIONS (add to end of existing file) =====
 
-// Custom color variables for your app
-$app-primary: #f44336;
-$app-grey: #666666;
-$app-grey-light: #999999;
-$app-grey-lightest: #f5f5f5;
+// Custom color variables for your app - Soft pink meerkat theme
+$app-primary: #d87179;          // Soft pink
+$app-primary-light: #f0c6c9;    // Very light pink variant
+$app-primary-dark: #c85862;     // Slightly darker pink variant
+$app-beige: #faf7f2;            // Soft beige background
+$app-beige-light: #fcfaf7;      // Lighter beige
+$app-grey: #8b7765;             // Warm grey
+$app-grey-light: #a69589;       // Light warm grey
+$app-grey-lightest: #f5f2ed;    // Very light warm grey
+
+// Modern text colors - warm and sophisticated instead of harsh black
+$app-text-primary: #2c1810;     // Warm dark brown instead of black
+$app-text-secondary: #5d4037;   // Medium warm brown
+$app-text-muted: #8d6e63;       // Light warm brown
+
+// Dialog and modal colors
+$dialog-background: $app-beige-light;
+$dialog-text: #4a3728;
+$dialog-text-secondary: $app-grey;
+$dialog-border: #e8ddd4;
+$dialog-overlay: rgba(75, 55, 40, 0.4);
+
+// Dropdown menu colors
+$dropdown-background: $app-beige-light;
+$dropdown-text: #4a3728;
+$dropdown-text-secondary: $app-grey;
+$dropdown-hover: $app-grey-lightest;
+$dropdown-active: $app-primary-light;
+$dropdown-active-text: $app-primary-dark;
+
+// Form field colors
+$field-background: $app-beige-light;
+$field-border: #e8ddd4;
+$field-border-hover: #d4c4b8;
+$field-border-focus: $app-primary;
+$field-text: #4a3728;
+$field-label: $app-grey;
+
+// Alert colors
+$alert-background: rgba(232, 165, 196, 0.15);
+$alert-text: #4a3728;
+
+// Import fonts for hierarchy
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@200..800&family=Fredoka:wght@300..700&display=swap');
+
+// Font hierarchy - different fonts for different purposes
+body {
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+// App-wide elements
+.v-application {
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif !important;
+  color: $app-text-primary !important;
+}
+
+// Global text color improvements - replace boring black with warm colors
+body, .v-application {
+  color: $app-text-primary !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  font-family: 'Manrope', 'Helvetica Neue', sans-serif !important;
+  color: $app-text-primary !important;
+}
+
+// Child-related elements get playful font
+.child-name, .child-label, .child-selector-btn {
+  font-family: 'Fredoka', 'Comic Sans MS', cursive !important;
+  
+  // Ensure all text elements within child selector use Fredoka
+  .text-body-1, .text-caption, .v-list-item-title, .v-list-item-subtitle {
+    font-family: 'Fredoka', 'Comic Sans MS', cursive !important;
+  }
+}
+
+
 
 // Custom utility classes
 .text-pink { 
@@ -20,6 +92,106 @@ $app-grey-lightest: #f5f5f5;
   color: $app-grey-light !important; 
 }
 
+// New modern text utilities
+.text-warm { 
+  color: $app-text-primary !important; 
+}
+
+.text-warm-secondary { 
+  color: $app-text-secondary !important; 
+}
+
+.text-warm-muted { 
+  color: $app-text-muted !important; 
+}
+
+// Border utility classes
+.border-e {
+  border-right: 1px solid #e0e0e0 !important;
+}
+
+// Alert styling classes
+.health-alert {
+  border-radius: 12px !important;
+  padding: 16px !important;
+}
+
+// Button styling classes
+.date-picker-btn {
+  border-color: #e8ddd4 !important;
+  color: $app-grey !important;
+}
+
+// Global button overrides for consistent theming
+:deep(.v-btn) {
+  &.v-btn--variant-flat {
+    background-color: $app-primary !important;
+    color: white !important;
+    
+    &:hover {
+      background-color: $app-primary-dark !important;
+    }
+  }
+  
+  &.v-btn--variant-outlined {
+    border-color: $app-primary !important;
+    color: $app-primary !important;
+    
+    &:hover {
+      background-color: $app-primary-light !important;
+      color: $app-primary-dark !important;
+    }
+  }
+}
+
+// Typography improvements with font hierarchy
+h1, h2, h3, h4, h5, h6,
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  font-weight: 600 !important;
+  letter-spacing: -0.025em !important;
+  color: $app-text-primary !important;
+}
+
+.text-h5 {
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+  color: $app-text-primary !important;
+}
+
+.text-body-1 {
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  color: $app-text-primary !important;
+}
+
+.text-body-2 {
+  color: $app-text-secondary !important;
+}
+
+.text-caption {
+  font-weight: 400 !important;
+  letter-spacing: 0.025em !important;
+  color: $app-text-muted !important;
+}
+
+// Button improvements
+.v-btn {
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+}
+
+// Child-specific styling
+.child-name {
+  font-weight: 500 !important;
+  color: $app-primary !important;
+}
+
+.child-label {
+  font-weight: 400 !important;
+  color: $app-grey !important;
+}
+
 // Navigation item styles (so you can remove from individual components)
 .nav-item {
   min-height: 60px !important;
@@ -31,7 +203,7 @@ $app-grey-lightest: #f5f5f5;
 }
 
 .nav-item-active {
-  background-color: rgba(244, 67, 54, 0.1) !important;
+  background-color: $app-primary-light !important;
 }
 
 // Growth value styling
@@ -41,4 +213,105 @@ $app-grey-lightest: #f5f5f5;
   padding: 4px 8px;
   background-color: $app-grey-lightest;
   border-radius: 6px;
+}
+
+// Growth value header styling (for AppHeader component)
+.growth-value-header {
+  .text-body-1, .text-body-2 {
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+  }
+}
+
+// Growth data labels
+.text-body-2.text-grey {
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.01em !important;
+}
+
+// Dropdown menu styling classes
+.dropdown-menu {
+  :deep(.v-list) {
+    background-color: $dropdown-background !important;
+  }
+
+  :deep(.v-list-item) {
+    color: $dropdown-text !important;
+  }
+
+  :deep(.v-list-item-title) {
+    color: $dropdown-text !important;
+    font-family: 'Fredoka', 'Comic Sans MS', cursive !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  :deep(.v-list-item-subtitle) {
+    color: $dropdown-text-secondary !important;
+    font-family: 'Fredoka', 'Comic Sans MS', cursive !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.025em !important;
+  }
+
+  :deep(.v-list-item:hover) {
+    background-color: $dropdown-hover !important;
+  }
+
+  :deep(.v-list-item--active) {
+    background-color: $dropdown-active !important;
+    color: $dropdown-active-text !important;
+  }
+
+  :deep(.v-list-item--active .v-list-item-title) {
+    color: $dropdown-active-text !important;
+  }
+}
+
+// Dialog styling classes
+.dialog-card {
+  background-color: $dialog-background !important;
+  color: $dialog-text !important;
+}
+
+.dialog-title {
+  background-color: $dialog-background !important;
+  color: $dialog-text !important;
+  border-bottom: 1px solid $dialog-border;
+}
+
+.dialog-content {
+  background-color: $dialog-background !important;
+  color: $dialog-text !important;
+}
+
+.dialog-field {
+  .v-field__input {
+    color: $field-text !important;
+  }
+  
+  .v-label {
+    color: $field-label !important;
+  }
+  
+  .v-field__outline {
+    border-color: $field-border !important;
+  }
+  
+  &:hover .v-field__outline {
+    border-color: $field-border-hover !important;
+  }
+  
+  &.v-field--focused .v-field__outline {
+    border-color: $field-border-focus !important;
+  }
+}
+
+.dialog-alert {
+  background-color: $alert-background !important;
+  
+  .text-caption {
+    color: $alert-text !important;
+  }
 }
