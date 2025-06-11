@@ -4,6 +4,7 @@
   <v-app theme="light">
     <!-- Fixed sidebar navigation -->
     <v-navigation-drawer
+      app
       permanent
       rail
       rail-width="160"
@@ -84,8 +85,8 @@
     </v-navigation-drawer>
 
     <!-- Main content area -->
-    <v-main style="background-color: #f8f9fa; padding-left: 80px;">
-      <v-container fluid class="pa-6">
+    <v-main style="background-color: #f8f9fa; ">
+      <v-container fluid class="pa-2 pt-4">
         <!-- Top section with child selector and growth data -->
         <div class="d-flex align-center justify-space-between mb-6">
           <!-- Child selector -->
