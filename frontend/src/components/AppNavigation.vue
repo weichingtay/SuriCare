@@ -264,7 +264,7 @@ const handleNavClick = (tabName) => {
 
 .brand-name {
   font-family: 'Fredoka', cursive !important;
-  font-size: 11px !important;
+  font-size: 2.0vh !important;
   font-weight: 600 !important;
   color: #2c1810 !important;
   letter-spacing: 0.5px !important;
