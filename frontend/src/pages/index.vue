@@ -3,145 +3,14 @@
   <!-- Main application container with light theme -->
   <v-app theme="light">
     <!-- Fixed sidebar navigation -->
-    <v-navigation-drawer
-      app
-      permanent
-      rail
-      rail-width="160"
-      color="white"
-      elevation="0"
-
-    >
-      <!-- Logo section at top of sidebar -->
-      <template v-slot:prepend>
-        <div class="pa-3 text-center">
-          <v-avatar size="80" rounded="lg">
-            <v-img
-              src="@/assets/logo.jpg"
-            />
-          </v-avatar>
-        </div>
-      </template>
-
-      <!-- Navigation menu items -->
-      <v-list density="compact" nav>
-        <!-- Home -->
-        <v-list-item value="home" class="nav-item" :class="{ 'nav-item-active': activeTab === 'home' }">
-          <template v-slot:default>
-            <div class="text-center">
-              <v-icon size="24" :color="activeTab === 'home' ? 'pink' : 'grey'">mdi-home</v-icon>
-              <div class="text-caption mt-1" :class="activeTab === 'home' ? 'text-pink' : 'text-grey'">Home</div>
-            </div>
-          </template>
-        </v-list-item>
-
-        <!-- Check-in -->
-        <v-list-item value="checkin" class="nav-item" :class="{ 'nav-item-active': activeTab === 'checkin' }">
-          <template v-slot:default>
-            <div class="text-center">
-              <v-icon size="24" :color="activeTab === 'checkin' ? 'pink' : 'grey'">mdi-clipboard-check</v-icon>
-              <div class="text-caption mt-1" :class="activeTab === 'checkin' ? 'text-pink' : 'text-grey'">Check-in</div>
-            </div>
-          </template>
-        </v-list-item>
-
-        <!-- Dashboard -->
-        <v-list-item value="dashboard" class="nav-item" :class="{ 'nav-item-active': activeTab === 'dashboard' }">
-          <template v-slot:default>
-            <div class="text-center">
-              <v-icon size="24" :color="activeTab === 'dashboard' ? 'pink' : 'grey'">mdi-chart-line</v-icon>
-              <div class="text-caption mt-1" :class="activeTab === 'dashboard' ? 'text-pink' : 'text-grey'">Dashboard</div>
-            </div>
-          </template>
-        </v-list-item>
-
-        <!-- Chatbot -->
-        <v-list-item value="chatbot" class="nav-item" :class="{ 'nav-item-active': activeTab === 'chatbot' }">
-          <template v-slot:default>
-            <div class="text-center">
-              <v-icon size="24" :color="activeTab === 'chatbot' ? 'pink' : 'grey'">mdi-chat</v-icon>
-              <div class="text-caption mt-1" :class="activeTab === 'chatbot' ? 'text-pink' : 'text-grey'">Chatbot</div>
-            </div>
-          </template>
-        </v-list-item>
-
-        <!-- Guidance -->
-        <v-list-item value="guidance" class="nav-item" :class="{ 'nav-item-active': activeTab === 'guidance' }">
-          <template v-slot:default>
-            <div class="text-center">
-              <v-icon size="24" :color="activeTab === 'guidance' ? 'pink' : 'grey'">mdi-book-open-variant</v-icon>
-              <div class="text-caption mt-1" :class="activeTab === 'guidance' ? 'text-pink' : 'text-grey'">Guidance</div>
-            </div>
-          </template>
-        </v-list-item>
-      </v-list>
-
-      <template v-slot:append>
-        <div class="pa-2 text-center">
-          <v-icon icon="mdi-account" size="24" color="grey"></v-icon>
-          <div class="text-caption mt-1 text-grey">Account</div>
-        </div>
-      </template>
-    </v-navigation-drawer>
+    <AppNavigation :active-tab="activeTab" @nav-change="handleNavChange" />
+    <!-- Top Header Bar -->
+    <AppHeader :current-child="currentChild" :children="children" @child-selected="selectChild"
+      @open-growth-dialog="openGrowthDialog" />
 
     <!-- Main content area -->
     <v-main style="background-color: #f8f9fa; ">
-      <v-container fluid class="pa-2 pt-4">
-        <!-- Top section with child selector and growth data -->
-        <div class="d-flex align-center justify-space-between mb-6">
-          <!-- Child selector -->
-          <div class="d-flex align-center">
-            <v-menu>
-              <template v-slot:activator="{ props }">
-                <v-btn v-bind="props" variant="text" class="text-none pa-0 mr-4">
-                  <v-avatar size="32" class="mr-2">
-                    <v-img :src="currentChild.avatar"></v-img>
-                  </v-avatar>
-                  <div class="d-flex flex-column align-start mr-2">
-                    <span class="text-body-1 font-weight-medium">{{ currentChild.name }}</span>
-                    <span class="text-caption text-grey">{{ currentChild.age }} years old</span>
-                  </div>
-                  <v-icon size="16">mdi-chevron-down</v-icon>
-                </v-btn>
-              </template>
-
-              <v-list>
-                <v-list-item
-                  v-for="child in children"
-                  :key="child.id"
-                  @click="selectChild(child)"
-                >
-                  <template v-slot:prepend>
-                    <v-avatar size="32">
-                      <v-img :src="child.avatar"></v-img>
-                    </v-avatar>
-                  </template>
-                  <v-list-item-title>{{ child.name }}</v-list-item-title>
-                  <v-list-item-subtitle>{{ child.age }} years old</v-list-item-subtitle>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-
-          <!-- Growth data display -->
-          <div class="d-flex align-center">
-            <div class="d-flex align-center mr-6">
-              <span class="text-body-2 text-grey mr-2">Height</span>
-              <div class="growth-value">
-                <span class="text-body-1 font-weight-medium">{{ currentChild.growth?.height || '100' }}cm</span>
-                <v-icon size="16" class="ml-1" @click="openGrowthDialog">mdi-pencil</v-icon>
-              </div>
-            </div>
-
-            <div class="d-flex align-center">
-              <span class="text-body-2 text-grey mr-2">Weight</span>
-              <div class="growth-value">
-                <span class="text-body-1 font-weight-medium">{{ currentChild.growth?.weight || '20' }}kg</span>
-                <v-icon size="16" class="ml-1" @click="openGrowthDialog">mdi-pencil</v-icon>
-              </div>
-            </div>
-          </div>
-        </div>
+      <v-container fluid class="pa-4 pt-4">
 
         <!-- Welcome section -->
         <div class="mb-6">
@@ -152,11 +21,7 @@
         <div class="mb-6">
           <h2 class="text-body-1 font-weight-medium mb-3">{{ currentChild.name }}'s Health Issue</h2>
 
-          <v-alert
-            color="error"
-            variant="tonal"
-            class="health-alert"
-          >
+          <v-alert color="error" variant="tonal" class="health-alert">
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
                 <v-icon color="error" class="mr-3">mdi-alert-circle</v-icon>
@@ -165,12 +30,7 @@
                   <div class="text-body-2 text-grey-darken-1">Your child has low levels of vitamin D.</div>
                 </div>
               </div>
-              <v-btn
-                size="small"
-                variant="flat"
-                color="error"
-                class="text-white"
-              >
+              <v-btn size="small" variant="flat" color="error" class="text-white">
                 View More
               </v-btn>
             </div>
@@ -186,12 +46,7 @@
                 View {{ currentChild.name }}'s check-ins including meal, sleep, poop, growth, and symptoms.
               </p>
             </div>
-            <v-btn
-              size="small"
-              variant="flat"
-              color="error"
-              class="text-white"
-            >
+            <v-btn size="small" variant="flat" color="error" class="text-white">
               View Check-ins History
             </v-btn>
           </div>
@@ -203,18 +58,9 @@
             <h2 class="text-body-1 font-weight-medium mr-3">Today's Summary</h2>
 
             <!-- Date picker -->
-            <v-menu
-              v-model="datePickerMenu"
-              :close-on-content-click="false"
-              location="bottom"
-            >
+            <v-menu v-model="datePickerMenu" :close-on-content-click="false" location="bottom">
               <template v-slot:activator="{ props }">
-                <v-btn
-                  v-bind="props"
-                  variant="outlined"
-                  size="small"
-                  class="date-picker-btn"
-                >
+                <v-btn v-bind="props" variant="outlined" size="small" class="date-picker-btn">
                   <v-icon size="16" class="mr-1">mdi-calendar</v-icon>
                   <span>{{ formattedSelectedDate }}</span>
                   <v-icon size="16" class="ml-1">mdi-chevron-down</v-icon>
@@ -222,12 +68,8 @@
               </template>
 
               <v-card>
-                <v-date-picker
-                  v-model="selectedDate"
-                  @update:model-value="handleDateChange"
-                  :max="new Date()"
-                  color="error"
-                ></v-date-picker>
+                <v-date-picker v-model="selectedDate" @update:model-value="handleDateChange" :max="new Date()"
+                  color="error"></v-date-picker>
               </v-card>
             </v-menu>
           </div>
@@ -264,32 +106,23 @@
             <div class="d-flex mb-4">
               <v-avatar size="40" class="mr-3 flex-shrink-0">
                 <v-img
-                  src="https://uceadaa513ecb56fd2611040f0d8.previews.dropboxusercontent.com/p/thumb/ACqSqElu-pUi5wEKjLZT3l94kSOTM8Gk84s0Wl-F5R_O4f0zVm34z2cflNf2bHxud64VL-QY2L7S7SBWkETEhBksqJIRC6K7OVzP70_x_kMOVO7n7kZde3vFyPJULsAyhT0zk_efZ7TE2ez5aV1lsjFBrxfNLrpW-0zIXCjW1wRIk9lwmcT6244b_Ugyxm0PH9S_syKBbqgLf-BhH2UeihCmHy48TG6-kFJKWc18wR22QyTT3jwFcniylBOSbsuDix3IPWiuJEZl_rDfz3sWtnv1GXk6U1hXjAr6lASWfbizWJeLhdT-ZEPE_Id9A3ldDz4V4oD5q6mbpF0R4I_s7lUoHTtIfBv29bmrxJRgI-nMdggZUiQpESdGByErcgXUfGI/p.png?is_prewarmed=true"
-                />
+                  src="https://uceadaa513ecb56fd2611040f0d8.previews.dropboxusercontent.com/p/thumb/ACqSqElu-pUi5wEKjLZT3l94kSOTM8Gk84s0Wl-F5R_O4f0zVm34z2cflNf2bHxud64VL-QY2L7S7SBWkETEhBksqJIRC6K7OVzP70_x_kMOVO7n7kZde3vFyPJULsAyhT0zk_efZ7TE2ez5aV1lsjFBrxfNLrpW-0zIXCjW1wRIk9lwmcT6244b_Ugyxm0PH9S_syKBbqgLf-BhH2UeihCmHy48TG6-kFJKWc18wR22QyTT3jwFcniylBOSbsuDix3IPWiuJEZl_rDfz3sWtnv1GXk6U1hXjAr6lASWfbizWJeLhdT-ZEPE_Id9A3ldDz4V4oD5q6mbpF0R4I_s7lUoHTtIfBv29bmrxJRgI-nMdggZUiQpESdGByErcgXUfGI/p.png?is_prewarmed=true" />
               </v-avatar>
               <div class="flex-grow-1">
                 <div class="text-body-1 font-weight-medium mb-1">SuriAI</div>
                 <div class="text-body-2 text-grey suriai-description">
-                  Powered by AI for childcare guidance. SuriAI can help with sleep patterns, meal suggestions, development milestones, and more.
+                  Powered by AI for childcare guidance. SuriAI can help with sleep patterns, meal suggestions,
+                  development
+                  milestones, and more.
                 </div>
               </div>
             </div>
 
             <div class="suriai-input-container">
-              <v-text-field
-                placeholder="Type your questions here"
-                variant="outlined"
-                density="comfortable"
-                hide-details
-                class="suriai-input"
-              >
+              <v-text-field placeholder="Type your questions here" variant="outlined" density="comfortable" hide-details
+                class="suriai-input">
                 <template v-slot:append-inner>
-                  <v-btn
-                    icon
-                    size="small"
-                    color="red"
-                    variant="flat"
-                  >
+                  <v-btn icon size="small" color="red" variant="flat">
                     <v-icon>mdi-send</v-icon>
                   </v-btn>
                 </template>
@@ -312,25 +145,12 @@
           <v-form ref="growthForm">
             <v-row>
               <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="growthFormData.height"
-                  label="Height (cm)"
-                  type="number"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-human-male-height"
-                ></v-text-field>
+                <v-text-field v-model="growthFormData.height" label="Height (cm)" type="number" variant="outlined"
+                  density="compact" prepend-inner-icon="mdi-human-male-height"></v-text-field>
               </v-col>
               <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="growthFormData.weight"
-                  label="Weight (kg)"
-                  type="number"
-                  step="0.1"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-weight-kilogram"
-                ></v-text-field>
+                <v-text-field v-model="growthFormData.weight" label="Weight (kg)" type="number" step="0.1"
+                  variant="outlined" density="compact" prepend-inner-icon="mdi-weight-kilogram"></v-text-field>
               </v-col>
             </v-row>
 
@@ -527,35 +347,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Navigation styling */
-.nav-item {
-  min-height: 60px !important;
-  margin-bottom: 8px;
-  border-radius: 12px;
-  margin-left: 8px;
-  margin-right: 8px;
-}
-
-.nav-item-active {
-  background-color: rgba(244, 67, 54, 0.1) !important;
-}
-
-.text-pink {
-  color: #f44336 !important;
-}
-
 /* Border styling */
 .border-e {
   border-right: 1px solid #e0e0e0 !important;
-}
-
-/* Growth value styling */
-.growth-value {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
-  background-color: #f5f5f5;
-  border-radius: 6px;
 }
 
 /* Health alert styling */
@@ -646,19 +440,4 @@ onMounted(() => {
 .suriai-input :deep(.v-field__outline--focused) {
   border-color: #f44336 !important;
 }
-
-/* Navigation drawer positioning */
-:deep(.v-navigation-drawer) {
-  position: fixed !important;
-}
-
-:deep(.v-navigation-drawer--rail) {
-  width: 130px !important;
-}
-
-/* General text colors */
-.text-grey {
-  color: #666 !important;
-}
-
 </style>
