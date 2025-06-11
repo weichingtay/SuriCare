@@ -6,7 +6,7 @@
     <v-main style="background-color: #faf7f2">
       <v-container
         fluid
-        class="pa-4 pt-4"
+        class="pa-1 pt-2"
       >
         <!-- Welcome section -->
         <div class="mb-6">

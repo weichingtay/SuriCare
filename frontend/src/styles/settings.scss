@@ -192,6 +192,63 @@ h1, h2, h3, h4, h5, h6,
   color: $app-grey !important;
 }
 
+// Modern background for the entire app
+body, .v-application {
+  background: linear-gradient(135deg, 
+    #faf7f2 0%,
+    #f8f4ef 25%,
+    #fcfaf7 50%,
+    #f5f2ed 75%,
+    #faf7f2 100%
+  ) !important;
+}
+
+// Enhanced button styles for modern look
+.v-btn {
+  border-radius: 12px !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.v-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+
+// Card styles for modern glassmorphism effect
+.v-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+}
+
+// Enhanced form field styles
+.v-field {
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.v-field--focused {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+// Chip enhancements
+.v-chip {
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+}
+
+// Alert enhancements  
+.v-alert {
+  border-radius: 16px !important;
+  backdrop-filter: blur(10px) !important;
+}
+
 // Navigation item styles (so you can remove from individual components)
 .nav-item {
   min-height: 60px !important;
