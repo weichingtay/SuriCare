@@ -6,10 +6,11 @@
     color="white"
     elevation="0"
     app
+    style="height: 100vh; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 1000;"
   >
     <!-- Logo section at top of sidebar -->
     <template v-slot:prepend>
-      <div class="pa-3 text-center">
+      <div class="pa-3 text-center" style="flex-shrink: 0;">
         <v-avatar size="80" rounded="lg">
           <v-img src="@/assets/logo.jpg" />
         </v-avatar>
@@ -17,7 +18,7 @@
     </template>
 
     <!-- Navigation menu items -->
-    <v-list density="compact" nav>
+    <v-list density="compact" nav style="flex: 1; overflow-y: auto; min-height: 0;">
       <!-- Home -->
       <v-list-item
         value="home"
@@ -116,7 +117,7 @@
 
     <!-- Account section at bottom -->
     <template v-slot:append>
-      <div class="pa-2 text-center">
+      <div class="pa-2 text-center" style="flex-shrink: 0;">
         <v-icon icon="mdi-account" size="24" color="grey"></v-icon>
         <div class="text-caption mt-1 text-grey">Account</div>
       </div>
@@ -125,7 +126,6 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
 
 // Props
 const props = defineProps({

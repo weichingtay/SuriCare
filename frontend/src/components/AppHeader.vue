@@ -9,7 +9,7 @@
     <v-container fluid class="d-flex align-center justify-space-between pa-0">
       <!-- Child selector section -->
       <div class="d-flex align-center">
-        <v-menu>
+        <v-menu class="dropdown-menu">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
@@ -117,7 +117,9 @@ const openGrowthDialog = () => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '@/styles/settings.scss';
+
 .app-header {
   border-bottom: 1px solid #e0e0e0;
 }
@@ -144,4 +146,6 @@ const openGrowthDialog = () => {
 .growth-value-header:hover {
   background-color: #e9ecef;
 }
+
+
 </style>
