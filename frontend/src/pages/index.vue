@@ -6,17 +6,17 @@
     <v-navigation-drawer
       permanent
       rail
-      rail-width="80"
+      rail-width="160"
       color="white"
       elevation="0"
-      
+
     >
       <!-- Logo section at top of sidebar -->
       <template v-slot:prepend>
         <div class="pa-3 text-center">
-          <v-avatar size="40" rounded="lg">
-            <v-img 
-              src="https://uccb0214b5a8c4d3dfa90c64ab26.previews.dropboxusercontent.com/p/thumb/ACrOe3_DrJ1cwNxA3AD9pdhTUVbvPLhaavkY114wKWApZzD-LW7Xr7tAtoTRAGpo6OblVMTAc9Vg70-18mlXMXESnClylzP6XbCSzihZpJaMSQxw4wKO0jB8JSIWY1doPe8ztk8FK0ehMhEy-bqPequjh030VrWvA67LyNXbBM8TyyAewn6clpc9Y6E9WoLXAkTaRKQ2KLNUZJutViP74130f68qjpMWSDFcEQfzaxsaViVKC0fgYS2nfMkACNBOQU_q0fLjukhKZA929nwrpPspDIf264LTnJgbpDlAiGFlwAGBmb9vO5zOKDd3Uigi4vmy88TBvnWpeIiwiDwKteIMGIOFWDvdqhlU0IEDOFZuAeP_ylkmGbta07iH8G41bLQE-eefyDlLSdAG-j8GhCuI/p.jpeg?is_prewarmed=true"
+          <v-avatar size="80" rounded="lg">
+            <v-img
+              src="@/assets/logo.jpg"
             />
           </v-avatar>
         </div>
@@ -77,7 +77,7 @@
 
       <template v-slot:append>
         <div class="pa-2 text-center">
-          <v-icon icon="mdi-account" size="24" color="grey"></v-icon>   
+          <v-icon icon="mdi-account" size="24" color="grey"></v-icon>
           <div class="text-caption mt-1 text-grey">Account</div>
         </div>
       </template>
@@ -131,7 +131,7 @@
                 <v-icon size="16" class="ml-1" @click="openGrowthDialog">mdi-pencil</v-icon>
               </div>
             </div>
-            
+
             <div class="d-flex align-center">
               <span class="text-body-2 text-grey mr-2">Weight</span>
               <div class="growth-value">
@@ -150,7 +150,7 @@
         <!-- Health Issue Alert -->
         <div class="mb-6">
           <h2 class="text-body-1 font-weight-medium mb-3">{{ currentChild.name }}'s Health Issue</h2>
-          
+
           <v-alert
             color="error"
             variant="tonal"
@@ -200,7 +200,7 @@
         <div class="mb-6">
           <div class="d-flex align-center mb-4">
             <h2 class="text-body-1 font-weight-medium mr-3">Today's Summary</h2>
-            
+
             <!-- Date picker -->
             <v-menu
               v-model="datePickerMenu"
@@ -219,7 +219,7 @@
                   <v-icon size="16" class="ml-1">mdi-chevron-down</v-icon>
                 </v-btn>
               </template>
-              
+
               <v-card>
                 <v-date-picker
                   v-model="selectedDate"
@@ -258,11 +258,11 @@
         <!-- AI Assistant section -->
         <div class="mb-6">
           <h2 class="text-body-1 font-weight-medium mb-4">Ask SuriAI Anything</h2>
-          
+
           <div class="suriai-section">
             <div class="d-flex mb-4">
               <v-avatar size="40" class="mr-3 flex-shrink-0">
-                <v-img 
+                <v-img
                   src="https://uceadaa513ecb56fd2611040f0d8.previews.dropboxusercontent.com/p/thumb/ACqSqElu-pUi5wEKjLZT3l94kSOTM8Gk84s0Wl-F5R_O4f0zVm34z2cflNf2bHxud64VL-QY2L7S7SBWkETEhBksqJIRC6K7OVzP70_x_kMOVO7n7kZde3vFyPJULsAyhT0zk_efZ7TE2ez5aV1lsjFBrxfNLrpW-0zIXCjW1wRIk9lwmcT6244b_Ugyxm0PH9S_syKBbqgLf-BhH2UeihCmHy48TG6-kFJKWc18wR22QyTT3jwFcniylBOSbsuDix3IPWiuJEZl_rDfz3sWtnv1GXk6U1hXjAr6lASWfbizWJeLhdT-ZEPE_Id9A3ldDz4V4oD5q6mbpF0R4I_s7lUoHTtIfBv29bmrxJRgI-nMdggZUiQpESdGByErcgXUfGI/p.png?is_prewarmed=true"
                 />
               </v-avatar>
@@ -273,7 +273,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="suriai-input-container">
               <v-text-field
                 placeholder="Type your questions here"
@@ -306,7 +306,7 @@
           Update Growth Details
           <v-chip size="small" class="ml-2">{{ currentChild.name }}</v-chip>
         </v-card-title>
-        
+
         <v-card-text>
           <v-form ref="growthForm">
             <v-row>
@@ -332,7 +332,7 @@
                 ></v-text-field>
               </v-col>
             </v-row>
-            
+
             <v-alert type="info" variant="tonal" density="compact" class="mt-2" color="pink">
               <div class="text-caption">
                 Last updated: {{ formatGrowthUpdate(currentChild.growth?.lastUpdated) }}
@@ -343,7 +343,7 @@
             </v-alert>
           </v-form>
         </v-card-text>
-        
+
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn variant="text" @click="growthDialog = false">Cancel</v-btn>
@@ -458,12 +458,12 @@ const formattedSelectedDate = computed(() => {
 // Format growth update date
 const formatGrowthUpdate = (date) => {
   if (!date) return 'Never'
-  
+
   const now = new Date()
   const updated = new Date(date)
   const diffTime = Math.abs(now - updated)
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) return 'Today'
   if (diffDays === 1) return 'Yesterday'
   if (diffDays < 7) return `${diffDays}d ago`
@@ -507,12 +507,12 @@ const saveGrowthData = () => {
     weight: parseFloat(growthFormData.value.weight),
     lastUpdated: new Date()
   }
-  
+
   const childIndex = children.value.findIndex(c => c.id === currentChild.value.id)
   if (childIndex !== -1) {
     children.value[childIndex].growth = currentChild.value.growth
   }
-  
+
   growthDialog.value = false
   console.log('Growth data updated:', currentChild.value.growth)
 }
@@ -652,7 +652,7 @@ onMounted(() => {
 }
 
 :deep(.v-navigation-drawer--rail) {
-  width: 80px !important;
+  width: 130px !important;
 }
 
 /* General text colors */
