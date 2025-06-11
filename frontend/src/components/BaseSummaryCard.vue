@@ -1,59 +1,67 @@
 <template>
-    <v-card
-        class="summary-card"
-        elevation="0"
+    <v-col
+        cols="12"
+        sm="6"
+        md="3"
     >
-        <!-- Card Header -->
-        <div class="card-header">
-            <div class="d-flex align-center">
-                <v-icon
+        <v-card
+            class="summary-card"
+            elevation="0"
+        >
+            <!-- Card Header -->
+            <div class="card-header">
+                <div class="d-flex align-center">
+                    <v-icon
+                        color="error"
+                        size="20"
+                        class="mr-2"
+                        >{{ icon }}</v-icon
+                    >
+                    <span class="card-title">{{ title }}</span>
+                </div>
+                <v-btn
+                    size="x-small"
+                    variant="flat"
                     color="error"
-                    size="20"
-                    class="mr-2"
-                    >{{ icon }}</v-icon
+                    class="check-in-btn"
+                    @click="$emit('check-in')"
                 >
-                <span class="card-title">{{ title }}</span>
+                    Check In
+                </v-btn>
             </div>
-            <v-btn
-                size="x-small"
-                variant="flat"
-                color="error"
-                class="check-in-btn"
-                @click="$emit('check-in')"
-            >
-                Check In
-            </v-btn>
-        </div>
 
-        <!-- Card Content -->
-        <v-card-text class="card-content pa-0">
-            <!-- Main Value -->
-            <div class="main-value">
-                {{ mainValue }}
-                <span
-                    v-if="unit"
-                    class="unit"
-                    >{{ unit }}</span
+            <!-- Card Content -->
+            <v-card-text class="card-content pa-0">
+                <div class="content-wrapper">
+                    <!-- Main Value -->
+                    <div class="main-value">
+                        {{ mainValue }}
+                        <span
+                            v-if="unit"
+                            class="unit"
+                            >{{ unit }}</span
+                        >
+                    </div>
+
+                    <!-- Custom Content Slot -->
+                    <div
+                        v-if="$slots.breakdown"
+                        class="breakdown-section"
+                    >
+                        <slot name="breakdown"></slot>
+                    </div>
+                </div>
+
+                <!-- Status Note -->
+                <div
+                    class="status-note"
+                    :class="statusClass"
                 >
-            </div>
-
-            <!-- Custom Content Slot -->
-            <div
-                v-if="$slots.breakdown"
-                class="breakdown-section"
-            >
-                <slot name="breakdown"></slot>
-            </div>
-
-            <!-- Status Note -->
-            <div
-                class="status-note"
-                :class="statusClass"
-            >
-                {{ statusNote }}
-            </div>
-        </v-card-text>
-    </v-card>
+                    {{ statusNote }}
+                </div>
+            </v-card-text>
+        </v-card>
+    </v-col>
 </template>
 
 <script setup>
@@ -94,6 +102,7 @@
         border-radius: 12px;
         padding: 16px;
         height: 100%;
+        min-height: 200px;
     }
 
     .card-header {
@@ -119,6 +128,14 @@
 
     .card-content {
         padding: 0 !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 120px;
+    }
+
+    .content-wrapper {
+        flex: 0 1 auto;
     }
 
     .main-value {
@@ -141,8 +158,9 @@
 
     .status-note {
         font-size: 12px;
-        margin-top: 8px;
+        margin-top: auto;
         line-height: 1.3;
+        padding-top: 8px;
     }
 
     .status-positive {
