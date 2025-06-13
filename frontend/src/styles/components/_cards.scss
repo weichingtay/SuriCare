@@ -30,11 +30,37 @@
     opacity: 0;
     transition: opacity 0.3s ease;
     border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
   }
 
-  &:hover {
-    .growth-edit-btn {
+  &.growth-edit-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    &:hover {
       opacity: 1;
     }
   }
+  &:hover {
+    &::before {
+      opacity: 1;
+    }
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+
+  }
+}
+
+.height-card {
+&::before {
+  background: linear-gradient(135deg, rgba(102, 187, 255, 0.15), rgba(102, 187, 255, 0.08));
+}
+}
+
+.weight-card {
+&::before {
+  background: linear-gradient(135deg, rgba(255, 142, 198, 0.15), rgba(255, 142, 198, 0.08));
+}
 }
