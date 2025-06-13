@@ -180,7 +180,6 @@ const saveGrowthData = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/settings.scss';
 
 .modern-app {
   position: relative;

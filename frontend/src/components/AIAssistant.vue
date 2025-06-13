@@ -70,28 +70,5 @@ const sendMessage = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/settings.scss';
 
-.suriai-section {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #f0f0f0;
-}
-
-.suriai-description {
-  line-height: 1.4;
-}
-
-.suriai-input-container {
-  margin-top: 16px;
-}
-
-.suriai-input :deep(.v-field__outline) {
-  border-color: #e0e0e0 !important;
-}
-
-.suriai-input :deep(.v-field__outline--focused) {
-  border-color: #f44336 !important;
-}
 </style> 

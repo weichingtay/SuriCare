@@ -1,0 +1,117 @@
+@use 'variables' as *;
+
+// App Header
+
+.right-section {
+  display: flex;
+  align-items: center;
+}
+
+// Navigation Drawer
+.navigation-drawer {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.navigation-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 4px 8px;
+  position: relative;
+  z-index: 2;
+}
+
+// Dialog Layout
+.dialog-card {
+  background-color: $dialog-background;
+  color: $dialog-text;
+}
+
+.dialog-title {
+  background-color: $dialog-background;
+  color: $dialog-text;
+  border-bottom: 1px solid $dialog-border;
+}
+
+.dialog-content {
+  background-color: $dialog-background;
+  color: $dialog-text;
+  padding: 24px;
+}
+
+.dialog-actions {
+  padding: 16px 24px 24px 24px;
+  gap: 12px;
+}
+
+// Summary Card Layout
+.summary-card {
+  background: white;
+  border: 1px solid #f0f0f0;
+  padding: $spacing-md;
+  height: 100%;
+  min-height: 200px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.card-content {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 120px;
+}
+
+.content-wrapper {
+  flex: 0 1 auto;
+}
+
+// Growth Cards Layout
+.growth-cards {
+  display: flex;
+  gap: 12px;
+}
+
+.growth-card {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  min-width: 120px;
+  height: 48px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+// Breakdown Layout
+.meal-breakdown,
+.sleep-breakdown {
+  display: flex;
+  gap: 24px;
+}
+
+.breakdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.meal-icon-group {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-xs;
+} 

@@ -172,7 +172,6 @@ const handleNavClick = (tabName) => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/settings.scss';
 
 .navigation-drawer {
   height: 100vh !important;

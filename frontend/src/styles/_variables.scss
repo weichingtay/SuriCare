@@ -1,0 +1,67 @@
+// Color variables
+$app-primary: #d87179;          // Soft pink
+$app-primary-light: #f0c6c9;    // Very light pink variant
+$app-primary-dark: #c85862;     // Slightly darker pink variant
+$app-beige: #faf7f2;            // Soft beige background
+$app-beige-light: #fcfaf7;      // Lighter beige
+$app-grey: #8b7765;             // Warm grey
+$app-grey-light: #a69589;       // Light warm grey
+$app-grey-lightest: #f5f2ed;    // Very light warm grey
+
+// Text colors
+$app-text-primary: #2c1810;     // Warm dark brown instead of black
+$app-text-secondary: #5d4037;   // Medium warm brown
+$app-text-muted: #8d6e63;       // Light warm brown
+
+// Dialog colors
+$dialog-background: $app-beige-light;
+$dialog-text: #4a3728;
+$dialog-text-secondary: $app-grey;
+$dialog-border: #e8ddd4;
+$dialog-overlay: rgba(75, 55, 40, 0.4);
+
+// Dropdown colors
+$dropdown-background: $app-beige-light;
+$dropdown-text: #4a3728;
+$dropdown-text-secondary: $app-grey;
+$dropdown-hover: $app-grey-lightest;
+$dropdown-active: $app-primary-light;
+$dropdown-active-text: $app-primary-dark;
+
+// Form field colors
+$field-background: $app-beige-light;
+$field-border: #e8ddd4;
+$field-border-hover: #d4c4b8;
+$field-border-focus: $app-primary;
+$field-text: #4a3728;
+$field-label: $app-grey;
+
+// Alert colors
+$alert-background: rgba(232, 165, 196, 0.15);
+$alert-text: #4a3728;
+
+// Font families
+$font-primary: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+$font-heading: 'Manrope', 'Helvetica Neue', sans-serif;
+$font-child: 'Inter', 'Comic Sans MS', cursive;
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// Border radius
+$border-radius-sm: 6px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+
+// Shadows
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+// Transitions
+$transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 

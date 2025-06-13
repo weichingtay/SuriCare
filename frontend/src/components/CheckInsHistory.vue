@@ -42,5 +42,4 @@ const handleViewHistory = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/settings.scss';
 </style> 
