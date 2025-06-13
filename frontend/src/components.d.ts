@@ -10,12 +10,20 @@ declare module 'vue' {
   export interface GlobalComponents {
     AlertCard: typeof import('./components/AlertCard.vue')['default']
     AlertNotification: typeof import('./components/AlertNotification.vue')['default']
+    AlertsView: typeof import('./components/AlertsView.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
+    AppHeader: typeof import('./components/AppHeader.vue')['default']
+    ArticleCard: typeof import('./components/ArticleCard.vue')['default']
+    ArticleGrid: typeof import('./components/ArticleGrid.vue')['default']
+    ChatContent: typeof import('./components/ChatContent.vue')['default']
+    ChatSidebar: typeof import('./components/ChatSidebar.vue')['default']
     FoodCard: typeof import('./components/FoodCard.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     MoodCard: typeof import('./components/MoodCard.vue')['default']
+    NavigationTabs: typeof import('./components/NavigationTabs.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SavedView: typeof import('./components/SavedView.vue')['default']
     SleepCard: typeof import('./components/SleepCard.vue')['default']
   }
 }
