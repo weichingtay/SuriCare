@@ -1,0 +1,108 @@
+@use '../variables' as *;
+
+// Form field styles
+.dialog-field {
+  margin-bottom: 8px;
+  
+  .v-field__input {
+    color: $field-text;
+  }
+  
+  .v-label {
+    color: $field-label;
+  }
+  
+  .v-field__outline {
+    border-color: $field-border;
+  }
+  
+  &:hover .v-field__outline {
+    border-color: $field-border-hover;
+  }
+  
+  &.v-field--focused .v-field__outline {
+    border-color: $field-border-focus;
+  }
+}
+
+// Alert styles
+.dialog-alert {
+  border-radius: $border-radius-xl;
+  margin-top: $spacing-md;
+  background-color: $alert-background;
+  
+  .text-caption {
+    color: $alert-text;
+  }
+}
+
+// Account section styles
+.account-section {
+  padding: $spacing-sm $spacing-sm 20px $spacing-sm;
+  position: relative;
+  z-index: 2;
+}
+
+.account-item {
+  min-height: 56px;
+  margin-bottom: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.account-icon {
+  background: rgba($app-text-primary, 0.05);
+}
+
+// AI Assistant styles
+.suriai-section {
+  background: white;
+  border-radius: $border-radius-lg;
+  padding: 20px;
+  border: 1px solid #f0f0f0;
+}
+
+.suriai-description {
+  line-height: 1.4;
+}
+
+.suriai-input-container {
+  margin-top: $spacing-md;
+}
+
+.suriai-input {
+  :deep(.v-field__outline) {
+    border-color: #e0e0e0;
+  }
+
+  :deep(.v-field__outline--focused) {
+    border-color: $app-primary;
+  }
+} 
+
+// Dialog Layout
+.dialog-card {
+  background-color: $dialog-background;
+  color: $dialog-text;
+}
+
+.dialog-title {
+  background-color: $dialog-background;
+  color: $dialog-text;
+  border-bottom: 1px solid $dialog-border;
+}
+
+.dialog-content {
+  background-color: $dialog-background;
+  color: $dialog-text;
+  padding: 24px;
+}
+
+.dialog-actions {
+  padding: 16px 24px 24px 24px;
+  gap: 12px;
+}
