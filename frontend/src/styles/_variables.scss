@@ -8,10 +8,17 @@ $app-grey: #8b7765;             // Warm grey
 $app-grey-light: #a69589;       // Light warm grey
 $app-grey-lightest: #f5f2ed;    // Very light warm grey
 
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
 // Text colors
 $app-text-primary: #2c1810;     // Warm dark brown instead of black
 $app-text-secondary: #5d4037;   // Medium warm brown
 $app-text-muted: #8d6e63;       // Light warm brown
+
 
 // Dialog colors
 $dialog-background: $app-beige-light;
@@ -45,12 +52,18 @@ $font-primary: 'Inter', 'Helvetica Neue', Arial, sans-serif;
 $font-heading: 'Inter', 'Helvetica Neue', sans-serif;
 $font-child: 'Inter', 'Comic Sans MS', cursive;
 
-// Spacing
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 16px;
-$spacing-lg: 24px;
-$spacing-xl: 32px;
+
+// Navigation specific
+$nav-icon-size: 30px;
+$nav-icon-wrapper-size: 44px;
+$nav-icon-active-color: $app-text-primary;
+$nav-icon-inactive-color: rgba($app-text-primary, 0.6);
+$nav-item-height: 60px;
+$nav-item-margin: $spacing-sm;
+$nav-label-font-size: 10px;
+$nav-label-max-width: 102px;
+// Logo sizes
+$logo-size: 80px;
 
 // Border radius
 $border-radius-sm: 6px;

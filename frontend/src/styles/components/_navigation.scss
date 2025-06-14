@@ -1,9 +1,120 @@
 @use '../variables' as *;
 
-// Navigation Item styles
+:root {
+  --nav-icon-size: #{$nav-icon-size};
+  --nav-icon-wrapper-size: #{$nav-icon-wrapper-size};
+  --nav-icon-active-color: #{$nav-icon-active-color};
+  --nav-icon-inactive-color: #{$nav-icon-inactive-color};
+  --nav-item-height: #{$nav-item-height};
+  --nav-item-margin: #{$nav-item-margin};
+  --nav-label-font-size: #{$nav-label-font-size};
+  --nav-label-max-width: #{$nav-label-max-width};
+}
+
+// Navigation Drawer
+.navigation-drawer {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+// Background
+.nav-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba($app-primary, 0.1);
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg,
+      rgba($app-primary, 0.03) 0%,
+      rgba($app-primary-light, 0.02) 50%,
+      rgba($app-primary-dark, 0.03) 100%
+    );
+  }
+}
+
+// Logo Section
+.logo-section {
+  padding: $spacing-lg $spacing-sm;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-avatar {
+  position: relative;
+  // border: 2px solid rgba(255, 182, 193, 0.2);
+  margin-bottom: $spacing-sm;
+  transition: $transition-base;
+  // has to have important if not it can't override the size
+  width: $logo-size !important;
+  height: $logo-size !important;
+
+  &:hover {
+    transform: scale(1.05);
+    border-color: rgba($app-primary, 0.4);
+  }
+}
+
+.logo-glow {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: $border-radius-lg;
+  background: linear-gradient(45deg, rgba($app-primary, 0.2), rgba($app-primary-light, 0.3));
+  z-index: -1;
+  animation: logoGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes logoGlow {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 0.8; transform: scale(1.02); }
+}
+
+// Navigation List
+.navigation-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: $spacing-xs $spacing-sm;
+  position: relative;
+  z-index: 2;
+}
+
+// Navigation Items
 .nav-item {
-  min-height: 60px;
-  margin: 0 $spacing-sm $spacing-sm;
+  min-height: $nav-item-height;
+  margin: 0 $nav-item-margin $nav-item-margin;
   border-radius: $border-radius-lg;
   cursor: pointer;
   transition: $transition-base;
@@ -18,8 +129,8 @@
     right: 0;
     bottom: 0;
     background: linear-gradient(135deg,
-      rgba(255, 182, 193, 0.1) 0%,
-      rgba(255, 160, 180, 0.05) 100%
+      rgba($app-primary, 0.1) 0%,
+      rgba($app-primary-light, 0.05) 100%
     );
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -31,9 +142,9 @@
   }
 
   &-active {
-    background: rgba(255, 182, 193, 0.2);
-    border: 2px solid rgba(255, 182, 193, 0.4);
-    box-shadow: 0 4px 15px rgba(255, 182, 193, 0.2);
+    background: rgba($app-primary, 0.2);
+    border: 2px solid rgba($app-primary, 0.4);
+    box-shadow: $shadow-md;
 
     &::before {
       opacity: 0;
@@ -46,16 +157,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
+  padding: $spacing-sm $spacing-xs;
   position: relative;
   z-index: 2;
   width: 100%;
 }
 
 .nav-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: $nav-icon-wrapper-size;
+  height: $nav-icon-wrapper-size;
+  border-radius: $border-radius-md;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,8 +177,8 @@
 
   &.nav-icon-active {
     background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: 2px solid rgba(255, 182, 193, 0.3);
+    box-shadow: $shadow-sm;
+    border: 2px solid rgba($app-primary, 0.3);
     transform: scale(1.05);
   }
 }
@@ -75,6 +186,68 @@
 .nav-item:hover .nav-icon-wrapper:not(.nav-icon-active) {
   background: rgba(255, 255, 255, 0.6);
   transform: scale(1.02);
+}
+
+.nav-label {
+  font-family: $font-primary;
+  font-size: $nav-label-font-size;
+  font-weight: 500;
+  text-align: center;
+  letter-spacing: 0.2px;
+  transition: $transition-base;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: $nav-label-max-width;
+  padding: 0 2px;
+}
+
+.nav-label-active {
+  color: $app-text-primary;
+  font-weight: 600;
+}
+
+.nav-label-inactive {
+  color: rgba($app-text-primary, 0.7);
+}
+
+.nav-item:hover .nav-label-inactive {
+  color: rgba($app-text-primary, 0.9);
+}
+
+// Account Section
+.account-section {
+  padding: $spacing-sm $spacing-sm $spacing-lg;
+  position: relative;
+  z-index: 2;
+}
+
+.account-item {
+  min-height: 56px;
+  margin-bottom: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.account-icon {
+  background: rgba($app-text-primary, 0.05);
+}
+
+// Vuetify overrides
+:deep(.v-list-item__content) {
+  padding: 0;
+}
+
+:deep(.v-list-item__prepend) {
+  width: auto;
+}
+
+:deep(.v-list-item--density-compact.v-list-item--one-line) {
+  min-height: auto;
 }
 
 // App Header styles
@@ -124,91 +297,6 @@
   justify-content: center;
 }
 
-// Navigation Drawer styles
-.navigation-drawer {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-  overflow: hidden;
-}
-
-.nav-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(180deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 255, 255, 0.9) 50%,
-    rgba(255, 255, 255, 0.95) 100%
-  );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 182, 193, 0.1);
-  z-index: 1;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg,
-      rgba(255, 182, 193, 0.03) 0%,
-      rgba(255, 160, 180, 0.02) 50%,
-      rgba(255, 140, 165, 0.03) 100%
-    );
-  }
-}
-
-.logo-section {
-  padding: 20px 12px;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-}
-
-.logo-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.logo-avatar {
-  position: relative;
-  border: 2px solid rgba(255, 182, 193, 0.2);
-  margin-bottom: $spacing-sm;
-  transition: $transition-base;
-
-  &:hover {
-    transform: scale(1.05);
-    border-color: rgba(255, 182, 193, 0.4);
-  }
-}
-
-.logo-glow {
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  border-radius: $border-radius-lg;
-  background: linear-gradient(45deg, rgba(255, 182, 193, 0.2), rgba(255, 160, 180, 0.3));
-  z-index: -1;
-  animation: logoGlow 3s ease-in-out infinite alternate;
-}
-
-@keyframes logoGlow {
-  0% { opacity: 0.5; transform: scale(1); }
-  100% { opacity: 0.8; transform: scale(1.02); }
-}
-
 .brand-text {
   text-align: center;
 }
@@ -219,53 +307,4 @@
   font-weight: 600;
   color: $app-text-primary;
   letter-spacing: 0.5px;
-}
-
-.navigation-list {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  padding: $spacing-xs $spacing-sm;
-  position: relative;
-  z-index: 2;
-}
-
-.nav-label {
-  font-family: $font-primary;
-  font-size: 10px;
-  font-weight: 500;
-  text-align: center;
-  letter-spacing: 0.2px;
-  transition: $transition-base;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 102px;
-  padding: 0 2px;
-}
-
-.nav-label-active {
-  color: $app-text-primary;
-  font-weight: 600;
-}
-
-.nav-label-inactive {
-  color: rgba($app-text-primary, 0.7);
-}
-
-.nav-item:hover .nav-label-inactive {
-  color: rgba($app-text-primary, 0.9);
-}
-
-// Remove default Vuetify list item styles
-:deep(.v-list-item__content) {
-  padding: 0;
-}
-
-:deep(.v-list-item__prepend) {
-  width: auto;
-}
-
-:deep(.v-list-item--density-compact.v-list-item--one-line) {
-  min-height: auto;
 } 
