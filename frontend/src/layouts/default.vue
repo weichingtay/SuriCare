@@ -1,5 +1,5 @@
 <template>
-  <v-app class="modern-app">
+  <v-app class="custom-app">
     <!-- Background -->
     <div class="app-background"></div>
     
@@ -17,8 +17,8 @@
       @open-growth-dialog="handleOpenGrowthDialog"
     />
     
-    <v-main class="modern-main">
-      <div class="main-content">
+    <v-main class="custom-main">
+      <div class="custom-main-content">
         <router-view />
       </div>
     </v-main>
@@ -123,211 +123,30 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import AppHeader from '@/components/AppHeader.vue'
-import AppNavigation from '@/components/AppNavigation.vue'
+// import AppHeader from '@/components/AppHeader.vue'
+// import AppNavigation from '@/components/AppNavigation.vue'
 import { useChildrenStore } from '@/stores/children'
+import { useGrowthDialog } from '@/composables/useGrowthDialog'
 
 // Use the children store
 const childrenStore = useChildrenStore()
 
 const activeTab = ref('home')
 
-// Growth dialog data
-const growthDialog = ref(false)
-const growthFormData = ref({
-  height: '',
-  weight: '',
-})
-
-// Format growth update date
-const formatGrowthUpdate = (date: Date | undefined) => {
-  if (!date) return 'Never'
-
-  const now = new Date()
-  const updated = new Date(date)
-  const diffTime = Math.abs(now.getTime() - updated.getTime())
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays < 7) return `${diffDays}d ago`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
-  return `${Math.floor(diffDays / 30)}m ago`
-}
+// Use growth dialog composable
+const {
+  growthDialog,
+  growthFormData,
+  formatGrowthUpdate,
+  handleOpenGrowthDialog,
+  saveGrowthData
+} = useGrowthDialog()
 
 const handleNavChange = (tabName: string) => {
   activeTab.value = tabName
-}
-
-const handleOpenGrowthDialog = () => {
-  growthFormData.value = {
-    height: childrenStore.currentChild.growth?.height?.toString() || '',
-    weight: childrenStore.currentChild.growth?.weight?.toString() || '',
-  }
-  growthDialog.value = true
-}
-
-// Save growth data using the store
-const saveGrowthData = () => {
-  const height = parseFloat(growthFormData.value.height)
-  const weight = parseFloat(growthFormData.value.weight)
-  
-  childrenStore.updateChildGrowth(childrenStore.currentChild.id, height, weight)
-  
-  growthDialog.value = false
-  console.log('Growth data updated:', childrenStore.currentChild.growth)
 }
 </script>
 
 <style lang="scss" scoped>
 
-.modern-app {
-  position: relative;
-  overflow: hidden;
-}
-
-.app-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, 
-    #faf7f2 0%,
-    #f8f4ef 25%,
-    #fcfaf7 50%,
-    #f5f2ed 75%,
-    #faf7f2 100%
-  );
-  z-index: 0;
-}
-
-.app-background::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23FFB6C1' fill-opacity='0.02'%3E%3Cpolygon points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.6;
-}
-
-.modern-main {
-  padding-left: 110px !important;
-  padding-top: 72px !important;
-  position: relative;
-  z-index: 1;
-}
-
-.main-content {
-  min-height: calc(100vh - 72px);
-  padding: 24px;
-  position: relative;
-}
-
-// Dialog styling
-.modern-dialog {
-  :deep(.v-overlay__content) {
-    background: transparent;
-  }
-}
-
-.dialog-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 182, 193, 0.1) !important;
-  border-radius: 24px !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
-  overflow: hidden !important;
-}
-
-.dialog-title {
-  background: linear-gradient(135deg, 
-    rgba(255, 182, 193, 0.1) 0%,
-    rgba(255, 160, 180, 0.05) 100%
-  ) !important;
-  border-bottom: 1px solid rgba(255, 182, 193, 0.1) !important;
-  padding: 24px !important;
-}
-
-.dialog-title-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
-
-.dialog-title h3 {
-  font-family: 'Manrope', sans-serif !important;
-  font-size: 20px !important;
-  font-weight: 600 !important;
-  color: #2c1810 !important;
-  margin: 0 !important;
-}
-
-.child-chip {
-  font-family: 'Fredoka', cursive !important;
-  font-weight: 500 !important;
-}
-
-.dialog-content {
-  padding: 24px !important;
-}
-
-.dialog-field {
-  margin-bottom: 8px;
-  
-  :deep(.v-field) {
-    background: rgba(255, 255, 255, 0.8) !important;
-    border-radius: 12px !important;
-  }
-  
-  :deep(.v-field--focused) {
-    background: rgba(255, 255, 255, 0.95) !important;
-  }
-}
-
-.dialog-alert {
-  border-radius: 16px !important;
-  margin-top: 16px !important;
-}
-
-.alert-content {
-  font-family: 'Inter', sans-serif !important;
-}
-
-.alert-line {
-  font-size: 14px !important;
-  line-height: 1.4 !important;
-  margin-bottom: 4px;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.dialog-actions {
-  padding: 16px 24px 24px 24px !important;
-  gap: 12px;
-}
-
-.cancel-btn {
-  color: rgba(44, 24, 16, 0.7) !important;
-  font-weight: 500 !important;
-}
-
-.save-btn {
-  font-weight: 600 !important;
-  border-radius: 12px !important;
-  text-transform: none !important;
-  letter-spacing: -0.01em !important;
-}
-
-// Additional component-specific styling if needed
-:deep(.v-dialog) {
-  .v-overlay__content {
-    background-color: transparent;
-  }
-}
 </style>
