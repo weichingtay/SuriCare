@@ -21,6 +21,20 @@ body, .v-application {
   backdrop-filter: blur($glass-blur-md);
   -webkit-backdrop-filter: blur($glass-blur-md);
   border-bottom: 1px solid $glass-pink-border;
+
+  // &::before {
+  //   content: '';
+  //   position: absolute;
+  //   top: 0;
+  //   left: 0;
+  //   right: 0;
+  //   bottom: 0;
+  //   background: linear-gradient(45deg,
+  //     $glass-pink-very-light 0%,
+  //     $glass-pink-very-light-alt 50%,
+  //     $glass-pink-very-light-alt2 100%
+  //   );
+  // }
 }
 
 // Navigation background
@@ -34,19 +48,19 @@ body, .v-application {
   -webkit-backdrop-filter: blur($glass-blur-md);
   border-right: 1px solid $glass-pink-border;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg,
-      $glass-pink-very-light 0%,
-      $glass-pink-very-light-alt 50%,
-      $glass-pink-very-light-alt2 100%
-    );
-  }
+  // &::before {
+  //   content: '';
+  //   position: absolute;
+  //   top: 0;
+  //   left: 0;
+  //   right: 0;
+  //   bottom: 0;
+  //   background: linear-gradient(45deg,
+  //     $glass-pink-very-light 0%,
+  //     $glass-pink-very-light-alt 50%,
+  //     $glass-pink-very-light-alt2 100%
+  //   );
+  // }
 }
 
 // Card glassmorphism effect

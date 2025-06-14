@@ -126,7 +126,3 @@ const handleNavClick = (tabName) => {
   emit('nav-change', tabName)
 }
 </script>
-
-<style lang="scss">
-</style>
-

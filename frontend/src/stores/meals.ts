@@ -9,7 +9,7 @@ interface MealPercentages {
   dinner: number
 }
 
-interface MealsData {
+export interface MealsData {
   percentages: MealPercentages
   refusedItems: string[]
   preferences: string[]
@@ -26,6 +26,7 @@ interface MealsStore {
   getMealsForDate: ComputedRef<(date: string) => MealsData>
   fetchMealsForDate: (date: string) => Promise<void>
   updateMealsForDate: (date: string, mealsData: MealsData) => Promise<void>
+  getMealCount: ComputedRef<(date: string) => number>
 }
 
 export const useMealsStore = defineStore('meals', (): MealsStore => {
@@ -48,6 +49,12 @@ export const useMealsStore = defineStore('meals', (): MealsStore => {
   // Getters
   const getMealsForDate = computed(() => (date: string): MealsData => {
     return mealsByDate.value[date] || generateMockMealsData(date)
+  })
+
+  // Add a computed property for meal count
+  const getMealCount = computed(() => (date: string): number => {
+    const meals = getMealsForDate.value(date)
+    return Object.values(meals.percentages).filter(p => p > 0).length
   })
 
   // Actions
@@ -95,6 +102,7 @@ export const useMealsStore = defineStore('meals', (): MealsStore => {
     error,
     getMealsForDate,
     fetchMealsForDate,
-    updateMealsForDate
+    updateMealsForDate,
+    getMealCount,
   }
 }) 

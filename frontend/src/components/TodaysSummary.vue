@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import {  computed } from 'vue'
 import { useDatePicker } from '@/composables/useDatePicker'
 import SleepSummaryCard from '@/components/SleepSummaryCard.vue'
 import PoopSummaryCard from '@/components/PoopSummaryCard.vue'
