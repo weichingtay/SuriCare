@@ -24,61 +24,36 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import BaseSummaryCard from './BaseSummaryCard.vue'
+  import { computed } from 'vue'
+  import BaseSummaryCard from './BaseSummaryCard.vue'
 
-const props = defineProps({
-  sleepData: {
-    type: Object,
-    default: () => ({
-      nightHours: 7,
-      napHours: 5,
-      wakeCount: 0
-    })
+  const props = defineProps({
+    sleepData: {
+      type: Object,
+      default: () => ({
+        nightHours: 7,
+        napHours: 5,
+        wakeCount: 0,
+      }),
+    },
+  })
+
+  const totalHours = computed(() => {
+    const total =
+      (props.sleepData?.nightHours || 0) + (props.sleepData?.napHours || 0)
+    return total % 1 === 0 ? total : total.toFixed(1)
+  })
+
+  const statusNote = computed(() => {
+    if (props.sleepData?.wakeCount > 2) {
+      return 'Restless night with multiple wake-ups'
+    } else if (props.sleepData?.wakeCount > 0) {
+      return 'Some interruptions during sleep'
+    }
+    return 'Jennie slept well through today'
+  })
+
+  const handleCheckIn = () => {
+    console.log('Sleep check-in clicked')
   }
-})
-
-const totalHours = computed(() => {
-  const total = (props.sleepData?.nightHours || 0) + (props.sleepData?.napHours || 0)
-  return total % 1 === 0 ? total : total.toFixed(1)
-})
-
-const statusNote = computed(() => {
-  if (props.sleepData?.wakeCount > 2) {
-    return "Restless night with multiple wake-ups"
-  } else if (props.sleepData?.wakeCount > 0) {
-    return "Some interruptions during sleep"
-  }
-  return "Jennie slept well through today"
-})
-
-const handleCheckIn = () => {
-  console.log('Sleep check-in clicked')
-}
 </script>
-
-<style scoped>
-.sleep-breakdown {
-  display: flex;
-  gap: 24px;
-}
-
-.breakdown-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.breakdown-value {
-  font-size: 12px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 2px;
-}
-
-.breakdown-label {
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-}
-</style>

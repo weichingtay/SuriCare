@@ -1,11 +1,11 @@
 <template>
-  <div class="mb-6">
-    <div class="d-flex align-center justify-space-between mb-3">
+  <div class="check-ins-history">
+    <div class="check-ins-header">
       <div>
-        <h2 class="text-body-1 font-weight-medium mb-1">
+        <h2 class="check-ins-title text-body-1 font-weight-medium">
           Check-ins History
         </h2>
-        <p class="text-body-2 text-grey mb-0">
+        <p class="check-ins-description text-body-2 text-grey">
           View {{ currentChild.name }}'s check-ins
           including meal, sleep, poop, growth, and
           symptoms.
@@ -14,8 +14,6 @@
       <v-btn
         size="small"
         variant="flat"
-        color="error"
-        class="text-white"
         @click="handleViewHistory"
       >
         View Check-ins History
@@ -40,6 +38,3 @@ const handleViewHistory = () => {
   emit('view-history', props.currentChild)
 }
 </script>
-
-<style lang="scss" scoped>
-</style> 

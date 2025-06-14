@@ -285,6 +285,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  // border: 1px solid $app-primary;
   height: 100%;
   padding: 0 20px;
   position: relative;
@@ -295,6 +296,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  margin-bottom: $spacing-md;
 }
 
 .brand-text {

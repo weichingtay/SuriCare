@@ -12,11 +12,7 @@
     <v-container fluid class="header-container">
       <!-- Left section: Welcome message and child selector in one row -->
       <div class="left-section">
-        <!-- Welcome text -->
-        <div class="welcome-content">
-          <h1 class="welcome-text">Welcome, Wei Ching</h1>
-          <p class="welcome-subtitle">Let's check on your little one today</p>
-        </div>
+        
         
         <!-- Child selector -->
         <div >

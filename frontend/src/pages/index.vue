@@ -2,6 +2,11 @@
 <template>
   <!-- Main application container with light theme -->
   <v-app theme="light">
+    <!-- Welcome text -->
+    <div class="welcome-content">
+      <h1 class="welcome-text">Welcome, Wei Ching</h1>
+      <p class="welcome-subtitle">Let's check on your little one today</p>
+    </div>
     <!-- Main content area -->
     <v-main style="background-color: #faf7f2">
       <v-container
@@ -87,5 +92,4 @@
   })
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

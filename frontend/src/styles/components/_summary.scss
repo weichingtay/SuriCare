@@ -60,7 +60,25 @@
   margin-bottom: 12px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.breakdown-item {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-xs;
+
+  &:not(.meal-icon-group) {
+    flex-direction: column;
+  }
+}
+
+.breakdown-label {
+  font-size: 12px;
+  color: $app-text-secondary;
   text-align: center;
 }
 
@@ -78,10 +96,25 @@
   gap: 24px;
 }
 
-
+// Special case for meals breakdown
+.meal-breakdown {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
 
 // Status styles
-.status-positive { color: $status-positive; }
-.status-negative { color: $status-negative; }
-.status-warning { color: $status-warning; }
-.status-neutral { color: $status-neutral; } 
+.status-positive {
+  color: $status-positive;
+}
+.status-negative {
+  color: $status-negative;
+}
+.status-warning {
+  color: $status-warning;
+}
+.status-neutral {
+  color: $status-neutral;
+}

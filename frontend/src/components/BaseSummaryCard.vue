@@ -22,7 +22,6 @@
                 <v-btn
                     size="x-small"
                     variant="flat"
-                    color="error"
                     class="check-in-btn"
                     @click="$emit('check-in')"
                 >

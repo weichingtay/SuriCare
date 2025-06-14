@@ -128,6 +128,5 @@ const handleNavClick = (tabName) => {
 </script>
 
 <style lang="scss">
-@use '@/styles/components/navigation';
 </style>
 

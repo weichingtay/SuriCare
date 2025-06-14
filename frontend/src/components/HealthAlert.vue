@@ -27,7 +27,6 @@
         <v-btn
           size="small"
           variant="flat"
-          color="error"
           class="text-white"
           @click="handleViewMore"
         >
