@@ -2,22 +2,22 @@
 
 // Child Selector styles
 .child-selector-btn {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 14px;
-  min-width: 180px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: $glass-white-light;
+  backdrop-filter: blur($glass-blur-md);
+  border: 1px solid $glass-border;
+  border-radius: $child-border-radius;
+  min-width: $child-min-width;
+  box-shadow: $child-shadow-base;
   transition: $transition-base;
-  padding: 0 16px;
+  padding: 0 $spacing-md;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: center; 
+  gap: $spacing-md;
 
   &:hover {
-    background: rgba(255, 255, 255, 1);
+    background: $glass-white;
     transform: translateY(-1px);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+    box-shadow: $child-shadow-hover;
 
     .dropdown-icon {
       transform: rotate(180deg);
@@ -26,55 +26,55 @@
 }
 
 .child-dropdown {
-  background: rgba(255, 255, 255, 0.98) !important;
-  backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  border-radius: 14px !important;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12) !important;
-  min-width: 200px !important;
-  margin-top: 4px !important;
+  background: $glass-white-light !important;
+  backdrop-filter: blur($glass-blur-md) !important;
+  border: 1px solid $glass-border !important;
+  border-radius: $child-border-radius !important;
+  box-shadow: $child-shadow-dropdown !important;
+  min-width: $child-dropdown-min-width !important;
+  margin-top: $spacing-xs !important;
 }
 
 .child-dropdown-item {
-  border-radius: 10px !important;
-  margin: 4px 6px !important;
-  transition: all 0.2s ease !important;
+  border-radius: $child-border-radius-sm;
+  margin: $spacing-xs $spacing-sm;
+  transition: $transition-base;
 
   &:hover {
-    background: rgba(255, 182, 193, 0.1) !important;
+    background: $glass-pink-very-light;
   }
 
   &.v-list-item--active {
-    background: rgba(255, 182, 193, 0.2) !important;
-    color: #d87179 !important;
+    background: $glass-pink-very-light-alt;
+    color: $app-primary;
   }
 }
 
 .dropdown-avatar {
-  border: 2px solid rgba(255, 182, 193, 0.3);
+  border: $child-avatar-border;
 }
 
 .dropdown-name {
-  font-family: 'Fredoka', cursive !important;
-  font-weight: 500 !important;
-  color: #2c1810 !important;
+  font-family: $font-child;
+  font-weight: 500;
+  color: $app-text-primary;
 }
 
 .dropdown-age {
-  font-family: 'Inter', sans-serif !important;
-  color: rgba(44, 24, 16, 0.6) !important;
+  font-family: $font-primary;
+  color: rgba($app-text-primary, 0.6);
 }
 
 .dropdown-icon {
-  color: rgba(44, 24, 16, 0.5);
+  color: rgba($app-text-primary, 0.5);
   transition: transform 0.2s ease;
   flex-shrink: 0;
   margin-left: auto;
-  padding-left: 8px;
+  padding-left: $spacing-sm;
 }
 
 .child-avatar {
-  border: 2px solid rgba(255, 182, 193, 0.3);
+  border: $child-avatar-border;
   flex-shrink: 0;
 }
 
@@ -83,30 +83,30 @@
   flex-direction: column;
   align-items: flex-start;
   flex: 1;
-  margin-right: 8px;
+  margin-right: $spacing-sm;
 }
 
 // Growth Card styles
 .growth-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: $child-icon-size;
+  height: $child-icon-size;
+  border-radius: $child-border-radius-sm;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 10px;
+  margin-right: $spacing-md;
   position: relative;
   z-index: 1;
   flex-shrink: 0;
 
   &.height-icon {
     background: linear-gradient(135deg, #66BBFF, #4FA8E8);
-    box-shadow: 0 4px 15px rgba(102, 187, 255, 0.3);
+    box-shadow: 0 4px 15px $child-icon-shadow-height;
   }
 
   &.weight-icon {
     background: linear-gradient(135deg, #FF8EC6, #E574B0);
-    box-shadow: 0 4px 15px rgba(255, 142, 198, 0.3);
+    box-shadow: 0 4px 15px $child-icon-shadow-weight;
   }
 }
 

@@ -12,25 +12,27 @@ body, .v-application {
 
 // Header background
 .header-background {
-  background: linear-gradient(135deg, 
-    rgba(255, 182, 193, 0.9) 0%,
-    rgba(255, 160, 180, 0.7) 50%,
-    rgba(255, 140, 165, 0.5) 100%
+  background: linear-gradient(180deg, 
+    $glass-white 0%,
+    $glass-white-lighter 50%,
+    $glass-white 100%
   );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+
+  backdrop-filter: blur($glass-blur-md);
+  -webkit-backdrop-filter: blur($glass-blur-md);
+  border-bottom: 1px solid $glass-pink-border;
 }
 
 // Navigation background
 .nav-background {
   background: linear-gradient(180deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 255, 255, 0.9) 50%,
-    rgba(255, 255, 255, 0.95) 100%
+    $glass-white 0%,
+    $glass-white-lighter 50%,
+    $glass-white 100%
   );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 182, 193, 0.1);
+  backdrop-filter: blur($glass-blur-md);
+  -webkit-backdrop-filter: blur($glass-blur-md);
+  border-right: 1px solid $glass-pink-border;
 
   &::before {
     content: '';
@@ -40,32 +42,32 @@ body, .v-application {
     right: 0;
     bottom: 0;
     background: linear-gradient(45deg,
-      rgba(255, 182, 193, 0.03) 0%,
-      rgba(255, 160, 180, 0.02) 50%,
-      rgba(255, 140, 165, 0.03) 100%
+      $glass-pink-very-light 0%,
+      $glass-pink-very-light-alt 50%,
+      $glass-pink-very-light-alt2 100%
     );
   }
 }
 
 // Card glassmorphism effect
 .v-card {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: $glass-white;
+  backdrop-filter: blur($glass-blur-md);
+  border: 1px solid $glass-border;
   box-shadow: $shadow-sm;
 }
 
 // Form field glassmorphism
 .v-field {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  background: $glass-white-lighter;
+  backdrop-filter: blur($glass-blur-sm);
 
   &--focused {
-    background: rgba(255, 255, 255, 0.95);
+    background: $glass-white-light;
   }
 }
 
 // Alert glassmorphism
 .v-alert {
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur($glass-blur-sm);
 } 

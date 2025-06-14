@@ -8,6 +8,23 @@ $app-grey: #8b7765;             // Warm grey
 $app-grey-light: #a69589;       // Light warm grey
 $app-grey-lightest: #f5f2ed;    // Very light warm grey
 
+// Glassmorphism colors
+$glass-white: rgba(255, 255, 255, 0.9);
+$glass-white-light: rgba(255, 255, 255, 0.95);
+$glass-white-lighter: rgba(255, 255, 255, 0.8);
+$glass-pink-light: rgba(255, 182, 193, 0.9);
+$glass-pink-medium: rgba(255, 160, 180, 0.7);
+$glass-pink-dark: rgba(255, 140, 165, 0.5);
+$glass-pink-very-light: rgba(255, 182, 193, 0.03);
+$glass-pink-very-light-alt: rgba(255, 160, 180, 0.02);
+$glass-pink-very-light-alt2: rgba(255, 140, 165, 0.03);
+$glass-border: rgba(255, 255, 255, 0.2);
+$glass-pink-border: rgba(255, 182, 193, 0.1);
+
+// Glassmorphism properties
+$glass-blur-sm: 10px;
+$glass-blur-md: 20px;
+
 // Spacing
 $spacing-xs: 4px;
 $spacing-sm: 8px;
@@ -54,7 +71,7 @@ $font-child: 'Inter', 'Comic Sans MS', cursive;
 
 
 // Navigation specific
-$nav-icon-size: 30px;
+$nav-icon-size: 35px;
 $nav-icon-wrapper-size: 44px;
 $nav-icon-active-color: $app-text-primary;
 $nav-icon-inactive-color: rgba($app-text-primary, 0.6);
@@ -77,4 +94,23 @@ $shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
 $shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 // Transitions
-$transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+$transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Child component specific
+$child-border-radius: 14px;
+$child-border-radius-sm: 10px;
+$child-min-width: 180px;
+$child-dropdown-min-width: 200px;
+$child-avatar-border: 2px solid rgba(255, 182, 193, 0.3);
+$child-shadow-hover: 0 6px 25px rgba(0, 0, 0, 0.12);
+$child-shadow-base: 0 4px 20px rgba(0, 0, 0, 0.08);
+$child-shadow-dropdown: 0 15px 35px rgba(0, 0, 0, 0.12);
+$child-icon-size: 32px;
+$child-icon-shadow-height: rgba(102, 187, 255, 0.3);
+$child-icon-shadow-weight: rgba(255, 142, 198, 0.3);
+
+// Status colors
+$status-positive: #4caf50;
+$status-negative: #f44336;
+$status-warning: #ff9800;
+$status-neutral: $app-text-secondary; 

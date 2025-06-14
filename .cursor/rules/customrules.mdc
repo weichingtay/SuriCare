@@ -1,0 +1,129 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Cursor Custom Rules for ParentPal
+
+## 💡 Project Overview
+ParentPal is a full-stack AI-powered childcare assistant. It integrates:
+- Vue 3 + Vuetify (frontend)
+- FastAPI (backend)
+- Gemini (via Vertex AI for chatbot and multimodal capabilities)
+- Google Cloud (Firestore for profiles, Cloud Storage for media, Cloud Run for hosting)
+
+It supports collaborative caregiving by enabling shared check-ins, personalized insights, and AI-guided support tailored to each child's profile.
+
+---
+
+## 🔒 Rule 1: Understand Project Domain and Architecture
+Cursor must always operate with awareness of:
+- Childcare and health-related sensitivity
+- Gemini chatbot uses a personalized child profile and conversation history
+- Backend is FastAPI in a Docker container for GCP Cloud Run
+- Frontend is modular Vue 3 with Vuetify, following best practices
+
+Before making changes, Cursor must consider:
+- Which part of the child profile or chat logic is involved
+- Whether the change fits within GCP-native, containerized, privacy-respecting architecture
+
+---
+
+## 🔁 Rule 2: Always Confirm Plans Before Execution
+Cursor must:
+- Clearly explain **what it plans to do** before modifying files
+- Ask for confirmation before:
+  - Refactoring code
+  - Creating/modifying components
+  - Changing project structure or API shape
+- Justify decisions (e.g., component design pattern, caching method, deployment strategy)
+
+---
+
+<!-- ## 📦 Rule 3: Containerization Is Mandatory
+All major services (frontend + backend) must be Dockerized:
+- FastAPI must include a `Dockerfile` for Cloud Run
+- Vue app must include a `Dockerfile` (or Vite preview) for container deployment
+- `docker-compose.yml` must support full local dev environment
+
+Cursor must:
+- Verify containers exist and are correct
+- Suggest Docker support when adding new services
+- Avoid monolithic assumptions—frontend and backend are deployed separately -->
+
+---
+
+## 🧩 Rule 4: Modular, Composable Vue Architecture Only
+Vue code must:
+- Follow single-responsibility principles
+- Offload logic to `/composables` (e.g. child switcher, chat control)
+- Use `Pinia` for state (e.g. active child profile, auth state)
+- Avoid bloated `.vue` files mixing logic, state, and layout
+
+Cursor must:
+- Warn if component is too large
+- Recommend composables and scoped structure
+- Never insert logic directly into `.vue` if a reusable pattern exists
+
+---
+
+## 🎨 Rule 5: Centralize SCSS in `styles/`
+All shared CSS and SCSS must live in `frontend/src/styles/`:
+- Use `@use` (not `@import`) for shared variables, mixins, utilities
+- Avoid repeating scoped styles or duplicating rules across components
+
+Cursor must:
+- Suggest `@use "styles/main.scss"` where applicable
+- Never inline styles that could be centralized
+- Validate centralized design tokens exist and are reused
+
+---
+
+## 🧠 Rule 6: Respect Chatbot Context and Profile Use
+LLM prompts must:
+- Always include system message with child profile details
+- Include conversation history (recent N messages)
+- Use `conversationId` and `childId` as anchors for context
+
+Cursor must:
+- Explicitly show how context is passed to Gemini
+- Never remove or truncate system messages without confirmation
+
+---
+
+## 🛡️ Rule 7: Privacy, Safety, and Compliance
+Cursor must:
+- Default to signed URLs for Cloud Storage images
+- Never suggest exposing sensitive data in logs or UI
+- Validate storage access is private and governed by IAM
+- Comply with child data sensitivity (e.g., data minimization, pseudonymization)
+
+---
+
+## 🛠️ Rule 8: Clarify Third-Party API Use
+When proposing use of:
+- Gemini (Vertex AI)
+- Cloud Vision
+- Firestore or GCS
+
+Cursor must:
+- Justify the use of the API
+- List latency, security, cost implications
+- Confirm required IAM or API enablement steps
+
+---
+
+## ✨ Rule 9: UX Should Be Friendly and Accessible
+Cursor should:
+- Use Vuetify components appropriately
+- Prefer language that is friendly, judgment-free, and clear
+- Encourage responsiveness, accessibility, and personalization (e.g. show child’s name or avatar)
+
+---
+
+## ✅ Rule 10: Preserve My Intent and Output Format
+Cursor **may rewrite** my code if needed, but:
+- The **result must look, behave, and be structured identically** to what I originally provided
+- Do **not** change naming conventions, component layout, or logic flow unless **explicitly instructed**
+- If unsure whether something is a stylistic preference or a functional choice, **ask first**
+

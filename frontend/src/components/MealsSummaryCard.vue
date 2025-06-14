@@ -15,12 +15,9 @@
             <span class="breakdown-value">{{ meal.percentage }}%</span>
             <div class="pie-chart-icon">
               <svg width="12" height="12" viewBox="0 0 16 16">
-                <circle cx="8" cy="8" r="6" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="2"/>
+                <circle cx="8" cy="8" r="6"/>
                 <path
                   :d="getPieSlicePath(meal.percentage)"
-                  fill="#333"
-                  stroke="#333"
-                  stroke-width="1"
                   :class="{ 'filled': meal.percentage > 0 }"
                 />
               </svg>
@@ -92,44 +89,8 @@ const handleCheckIn = () => {
 </script>
 
 <style scoped>
-.meal-breakdown {
-  display: flex;
-  gap: 24px;
-}
 
-.breakdown-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
-.meal-icon-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 4px;
-}
 
-.pie-chart-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pie-chart-icon .filled {
-  fill: #333 !important;
-}
-
-.breakdown-value {
-  font-size: 12px;
-  font-weight: 500;
-  color: #333;
-}
-
-.breakdown-label {
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-}
 </style>
 
