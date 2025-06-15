@@ -57,10 +57,11 @@
 
 // Combined Growth Card (Height, Weight, Head Circ.)
 .combined-card {
-  min-width: 280px;
+  // Wider base to accommodate three metric pairs plus edit button
+  min-width: 340px;
   padding: $spacing-xs $spacing-md;
   display: grid;
-  grid-auto-flow: column;
+  grid-template-columns: repeat(3, auto) auto; // 3 metric pairs + edit icon column
   align-items: center;
   column-gap: $spacing-md;
 

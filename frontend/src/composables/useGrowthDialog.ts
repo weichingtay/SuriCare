@@ -7,6 +7,7 @@ export function useGrowthDialog() {
   const growthFormData = ref({
     height: '',
     weight: '',
+    headCircumference: '',
   })
 
   const formatGrowthUpdate = (date: Date | undefined) => {
@@ -28,6 +29,7 @@ export function useGrowthDialog() {
     growthFormData.value = {
       height: childrenStore.currentChild.growth?.height?.toString() || '',
       weight: childrenStore.currentChild.growth?.weight?.toString() || '',
+      headCircumference: childrenStore.currentChild.growth?.headCircumference?.toString() || '',
     }
     growthDialog.value = true
   }
@@ -35,8 +37,9 @@ export function useGrowthDialog() {
   const saveGrowthData = () => {
     const height = parseFloat(growthFormData.value.height)
     const weight = parseFloat(growthFormData.value.weight)
+    const headCircumference = parseFloat(growthFormData.value.headCircumference)
     
-    childrenStore.updateChildGrowth(childrenStore.currentChild.id, height, weight)
+    childrenStore.updateChildGrowth(childrenStore.currentChild.id, height, weight, headCircumference)
     
     growthDialog.value = false
     console.log('Growth data updated:', childrenStore.currentChild.growth)

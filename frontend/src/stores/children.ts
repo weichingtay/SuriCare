@@ -9,6 +9,7 @@ export interface Child {
   growth: {
     height: number
     weight: number
+    headCircumference: number
     lastUpdated: Date
   }
 }
@@ -24,6 +25,7 @@ export const useChildrenStore = defineStore('children', () => {
       growth: {
         height: 100,
         weight: 20,
+        headCircumference: 45,
         lastUpdated: new Date('2025-05-15'),
       },
     },
@@ -35,6 +37,7 @@ export const useChildrenStore = defineStore('children', () => {
       growth: {
         height: 110,
         weight: 20.2,
+        headCircumference: 47,
         lastUpdated: new Date('2025-04-20'),
       },
     },
@@ -52,12 +55,13 @@ export const useChildrenStore = defineStore('children', () => {
     currentChildId.value = child.id
   }
 
-  const updateChildGrowth = (childId: number, height: number, weight: number) => {
+  const updateChildGrowth = (childId: number, height: number, weight: number, headCircumference: number) => {
     const child = children.value.find(c => c.id === childId)
     if (child) {
       child.growth = {
         height,
         weight,
+        headCircumference,
         lastUpdated: new Date(),
       }
     }
