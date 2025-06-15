@@ -58,33 +58,32 @@
         
         <!-- Growth data cards moved here -->
         <div class="growth-cards">
-          <div class="growth-card height-card" @click="openGrowthDialog">
-            <div class="growth-icon height-icon">
-              <v-icon size="20" color="white">mdi-human-male-height</v-icon>
+          <div class="growth-card combined-card" @click="openGrowthDialog">
+            <!-- Metric Pairs: icon + (label+value) -->
+            <div class="metric-pair height-pair">
+              <v-icon size="20">mdi-human-male-height</v-icon>
+              <div class="metric-info">
+                <span class="growth-label">Height</span>
+                <span class="growth-value">{{ currentChild.growth?.height || '100' }}cm</span>
+              </div>
             </div>
-            <div class="growth-content">
-              <span class="growth-label">Height</span>
-              <span class="growth-value">{{ currentChild.growth?.height || '100' }}cm</span>
-            </div>
-            <v-btn
-              icon
-              size="x-small"
-              variant="text"
-              class="growth-edit-btn"
-              @click.stop="openGrowthDialog"
-            >
-              <v-icon size="14" color="rgba(255,255,255,0.8)">mdi-pencil</v-icon>
-            </v-btn>
-          </div>
 
-          <div class="growth-card weight-card" @click="openGrowthDialog">
-            <div class="growth-icon weight-icon">
-              <v-icon size="20" color="white">mdi-weight-kilogram</v-icon>
+            <div class="metric-pair weight-pair">
+              <v-icon size="20">mdi-weight-kilogram</v-icon>
+              <div class="metric-info">
+                <span class="growth-label">Weight</span>
+                <span class="growth-value">{{ currentChild.growth?.weight || '20' }}kg</span>
+              </div>
             </div>
-            <div class="growth-content">
-              <span class="growth-label">Weight</span>
-              <span class="growth-value">{{ currentChild.growth?.weight || '20' }}kg</span>
+
+            <div class="metric-pair head-pair">
+              <v-icon size="20">mdi-head</v-icon>
+              <div class="metric-info">
+                <span class="growth-label">Head Circ.</span>
+                <span class="growth-value">{{ currentChild.growth?.headCircumference || '45' }}cm</span>
+              </div>
             </div>
+
             <v-btn
               icon
               size="x-small"
@@ -92,7 +91,7 @@
               class="growth-edit-btn"
               @click.stop="openGrowthDialog"
             >
-              <v-icon size="14" color="rgba(255,255,255,0.8)">mdi-pencil</v-icon>
+              <v-icon size="14" color="rgba(0,0,0,0.6)">mdi-pencil</v-icon>
             </v-btn>
           </div>
         </div>
@@ -132,6 +131,3 @@ const openGrowthDialog = () => {
 }
 </script>
 
-<!-- STYLES -->
-<style lang="scss" scoped>
-</style>

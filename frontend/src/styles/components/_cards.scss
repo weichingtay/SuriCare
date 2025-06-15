@@ -65,3 +65,81 @@
   background: linear-gradient(135deg, rgba(255, 142, 198, 0.15), rgba(255, 142, 198, 0.08));
 }
 }
+
+// Combined Growth Card (Height, Weight, Head Circ.)
+.combined-card {
+  min-width: 280px;
+  padding: $spacing-xs $spacing-md;
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  column-gap: $spacing-md;
+
+  &::before {
+    background: $glass-white; // subtle white overlay not fully opaque
+  }
+
+  &:hover {
+    &::before {
+      opacity: 0.4; // subtle highlight not masking content
+    }
+  }
+}
+
+.metric-pair {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: $spacing-xs;
+
+  // bring pair contents to midline for vertical centering
+  height: 100%;
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  justify-content: center;
+}
+
+.metric-info .growth-label {
+  font-size: 9px;
+  color: $app-text-secondary;
+  text-transform: uppercase;
+}
+
+.metric-info .growth-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: $app-text-primary;
+}
+
+// Icon theme colours
+.height-pair .v-icon {
+  color: rgb(102, 187, 255); // light blue
+}
+.weight-pair .v-icon {
+  color: rgb(255, 142, 198); // pink
+}
+.head-pair .v-icon {
+  color: #cba8ff; // violet-lavender
+}
+
+.combined-card .growth-edit-btn {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background: $app-primary-light;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 1 !important; // override any hidden state
+
+  .v-icon {
+    color: $app-primary-dark;
+    font-size: 16px;
+  }
+}

@@ -56,7 +56,7 @@ body, .v-application {
   height: calc(100vh - 72px);
   padding: 23px;
   position: relative;
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 
 .left-section {
