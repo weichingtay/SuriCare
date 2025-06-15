@@ -3,24 +3,18 @@ import { ref, computed } from 'vue'
 import { useChildrenStore } from './children'
 import { useMealsStore } from './meals'
 import { useHealthStore } from './health'
-import type { MealsData } from './meals'
+import { usePoopStore } from './poop'
+import { useSleepStore } from './sleep'
+// import type { MealsData } from './meals'
+// import type { PoopData } from './poop'
+// import type { SleepData } from './sleep'
 
 export interface SummaryData {
-  sleep: {
-    nightHours: number
-    napHours: number
-    wakeCount: number
-    childAge: number
-  }
-  poop: {
-    count: number
-    unusual: number
-    normal: number
-  }
+  childAge: number
 }
 
 export const useSummaryStore = defineStore('summary', () => {
-  // TODO: This will eventually be connected to our database
+  // HACK: This will eventually be connected to our database
   // The data should be fetched based on:
   // - Current selected child ID
   // - Selected date
@@ -29,31 +23,31 @@ export const useSummaryStore = defineStore('summary', () => {
   const childrenStore = useChildrenStore()
   const mealsStore = useMealsStore()
   const healthStore = useHealthStore()
+  const poopStore = usePoopStore()
+  const sleepStore = useSleepStore()
   
   // Mock summary data - replace with API calls
   const summaryData = ref<SummaryData>({
-    sleep: {
-      nightHours: 5,
-      napHours: 7,
-      wakeCount: 1,
-      childAge: childrenStore.currentChild.age,
-    },
-    poop: {
-      count: 2,
-      unusual: 0,
-      normal: 1,
-    }
+    childAge: childrenStore.currentChild.age,
   })
+
+  const currentDate = new Date().toISOString().split('T')[0]
 
   // Computed properties to get data from individual stores
   const mealsData = computed(() => {
-    const currentDate = new Date().toISOString().split('T')[0]
     return mealsStore.getMealsForDate(currentDate)
   })
 
   const healthData = computed(() => {
-    const currentDate = new Date().toISOString().split('T')[0]
     return healthStore.getHealthForDate(currentDate)
+  })
+
+  const poopData = computed(() => {
+    return poopStore.getPoopForDate(currentDate)
+  })
+
+  const sleepData = computed(() => {
+    return sleepStore.getSleepForDate(currentDate)
   })
 
   // Actions
@@ -63,30 +57,13 @@ export const useSummaryStore = defineStore('summary', () => {
     // Load data from individual stores
     await Promise.all([
       mealsStore.fetchMealsForDate(dateStr),
-      healthStore.fetchHealthForDate(dateStr)
+      healthStore.fetchHealthForDate(dateStr),
+      poopStore.fetchPoopForDate(dateStr),
+      sleepStore.fetchSleepForDate(dateStr)
     ])
     
     // Update other summary data
-    summaryData.value.sleep.childAge = childrenStore.currentChild.age
-  }
-
-  const updateSleepData = (nightHours: number, napHours: number, wakeCount: number) => {
-    // TODO: Send to database
-    summaryData.value.sleep = {
-      ...summaryData.value.sleep,
-      nightHours,
-      napHours,
-      wakeCount,
-    }
-  }
-
-  const updatePoopData = (count: number, unusual: number) => {
-    // TODO: Send to database
-    summaryData.value.poop = {
-      count,
-      unusual,
-      normal: count - unusual,
-    }
+    summaryData.value.childAge = childrenStore.currentChild.age
   }
 
   return {
@@ -94,10 +71,10 @@ export const useSummaryStore = defineStore('summary', () => {
     summaryData,
     mealsData,
     healthData,
+    poopData,
+    sleepData,
     
     // Actions
     loadSummaryForDate,
-    updateSleepData,
-    updatePoopData,
   }
 }) 

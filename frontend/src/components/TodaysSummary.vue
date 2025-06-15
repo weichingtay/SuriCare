@@ -41,6 +41,7 @@
       </v-menu>
     </div>
 
+    <!-- TODO: Make every summary card highlight a unique color? -->
     <!-- Summary cards grid -->
     <v-row>
       <!-- Meal Card -->

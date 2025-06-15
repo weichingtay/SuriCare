@@ -62,8 +62,3 @@ const handleViewMore = () => {
 }
 </script>
 
-<style lang="scss" scoped>
-.health-alert {
-  border-radius: 8px;
-}
-</style> 

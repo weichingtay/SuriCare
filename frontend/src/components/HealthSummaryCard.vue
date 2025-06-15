@@ -49,7 +49,7 @@ const handleCheckIn = () => {
 </script>
 
 <style scoped>
-/* Health card has larger main value */
+/* NOTE: Health card has larger main value */
 :deep(.main-value) {
   font-size: 20px !important;
 }

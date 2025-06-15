@@ -11,11 +11,11 @@
     <template #breakdown>
       <div class="sleep-breakdown">
         <div class="breakdown-item">
-          <span class="breakdown-value">{{ sleepData?.napHours || 7 }}h</span>
+          <span class="breakdown-value">{{ sleepData?.napHours || 0 }}h</span>
           <span class="breakdown-label">Nap</span>
         </div>
         <div class="breakdown-item">
-          <span class="breakdown-value">{{ sleepData?.nightHours || 5 }}h</span>
+          <span class="breakdown-value">{{ sleepData?.nightHours || 0 }}h</span>
           <span class="breakdown-label">Night</span>
         </div>
       </div>
@@ -24,36 +24,30 @@
 </template>
 
 <script setup>
-  import { computed } from 'vue'
-  import BaseSummaryCard from './BaseSummaryCard.vue'
+import { computed } from 'vue'
+import { useSleepStore } from '../stores/sleep'
+import BaseSummaryCard from './BaseSummaryCard.vue'
 
-  const props = defineProps({
-    sleepData: {
-      type: Object,
-      default: () => ({
-        nightHours: 7,
-        napHours: 5,
-        wakeCount: 0,
-      }),
-    },
-  })
+const sleepStore = useSleepStore()
+const currentDate = new Date().toISOString().split('T')[0]
+const sleepData = computed(() => sleepStore.getSleepForDate(currentDate))
 
-  const totalHours = computed(() => {
-    const total =
-      (props.sleepData?.nightHours || 0) + (props.sleepData?.napHours || 0)
-    return total % 1 === 0 ? total : total.toFixed(1)
-  })
+const totalHours = computed(() => {
+  const total = (sleepData.value?.nightHours || 0) + (sleepData.value?.napHours || 0)
+  return total % 1 === 0 ? total : total.toFixed(1)
+})
 
-  const statusNote = computed(() => {
-    if (props.sleepData?.wakeCount > 2) {
-      return 'Restless night with multiple wake-ups'
-    } else if (props.sleepData?.wakeCount > 0) {
-      return 'Some interruptions during sleep'
-    }
-    return 'Jennie slept well through today'
-  })
-
-  const handleCheckIn = () => {
-    console.log('Sleep check-in clicked')
+const statusNote = computed(() => {
+  if (sleepData.value?.wakeCount > 2) {
+    return 'Restless night with multiple wake-ups'
+  } else if (sleepData.value?.wakeCount > 0) {
+    return 'Some interruptions during sleep'
   }
+  return 'Jennie slept well through today'
+})
+
+const handleCheckIn = () => {
+  console.log('Sleep check-in clicked')
+  // TODO: Implement check-in functionality using sleepStore.updateSleepForDate
+}
 </script>
