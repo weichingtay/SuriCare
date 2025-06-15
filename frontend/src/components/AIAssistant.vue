@@ -6,10 +6,11 @@
 
     <div class="suriai-section">
       <div class="d-flex mb-4">
-        <div style="width: 90px; height: 90px; border-radius: 16px; overflow: hidden;" class="mr-3">
-          <v-img
+        <div class="logo-container mr-3">
+          <img
             src="@/assets/logo.svg"
-            contain
+            alt="SuriAI Logo"
+            style="width: 70px; height: 70px; overflow: hidden; border-radius: 15px;it: cover;"
           />
         </div>
         <div class="d-flex flex-column flex-grow-1">
@@ -67,34 +68,31 @@ const sendMessage = () => {
 </script>
 
 <style lang="scss" scoped>
-// .suriai-input :deep(.v-field__outline) {
-//   border-color: #f0c6c9 !important;
-// }
+@use '@/styles/variables' as *;
 
-// .suriai-input :deep(.v-field__outline--focused) {
-//   border-color: #d87179 !important;
-// }
+.logo-container {
+  width: 110px;
+  height: 110px;
+  border-radius: 80%;
+  overflow: hidden;
+  background-color: $app-beige;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid $app-primary-light;
+}
 
 /* Try targeting the field outline start/end */
 .suriai-input :deep(.v-field__outline__start),
 .suriai-input :deep(.v-field__outline__notch),
 .suriai-input :deep(.v-field__outline__end) 
 {
-  border-color: #f0c6c9 !important;
+  border-color: $app-primary-light !important;
 }
 
 .suriai-input :deep(.v-field--focused .v-field__outline__start),
 .suriai-input :deep(.v-field--focused .v-field__outline__notch),
 .suriai-input :deep(.v-field--focused .v-field__outline__end) {
-  border-color: #d87179 !important;
+  border-color: $app-primary !important;
 }
-
-// /* Try targeting the field itself */
-// .suriai-input :deep(.v-field) {
-//   border: 2px solid #f0c6c9 !important;
-// }
-
-// .suriai-input :deep(.v-field--focused) {
-//   border: 2px solid #d87179 !important;
-// }
 </style> 
