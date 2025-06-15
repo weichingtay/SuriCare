@@ -84,13 +84,15 @@
 }
 
 .suriai-input {
-  :deep(.v-field__outline) {
-    border-color: #e0e0e0;
+  .v-field__outline {
+    border-color: $app-primary-light !important;
   }
 
-  :deep(.v-field__outline--focused) {
-    border-color: $app-primary;
+  .v-field__outline--focused {
+    border-color: $app-primary !important;
   }
+
+
 } 
 
 // Dialog Layout

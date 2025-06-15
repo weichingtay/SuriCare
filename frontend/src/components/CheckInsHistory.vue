@@ -7,7 +7,7 @@
         </h2>
         <p class="check-ins-description text-body-2 text-grey">
           View {{ currentChild.name }}'s check-ins
-          including meal, sleep, poop, growth, and
+          including meal, sleep, bowel movements, growth, and
           symptoms.
         </p>
       </div>

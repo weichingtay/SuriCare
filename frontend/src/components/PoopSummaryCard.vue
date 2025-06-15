@@ -1,6 +1,6 @@
 <template>
   <BaseSummaryCard
-    title="Poop"
+    title="Bowel Movements"
     icon="mdi-emoticon-poop"
     :main-value="poopData?.count || 0"
     unit="times"
