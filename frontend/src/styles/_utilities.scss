@@ -22,3 +22,13 @@
   border-color: #e8ddd4;
   color: $app-grey;
 } 
+
+.share-child-btn {
+  background: $app-primary;
+  color: white;
+}
+
+.error-btn {
+  background: green !important;
+  color: black !important;
+}

@@ -97,14 +97,79 @@
         </div>
       </div>
 
-      <!-- Right section: Now empty -->
-      <div class="right-section">
+      <!-- Right section: Share functionality -->
+      <div class="right-section" style="display: flex; align-items: center; gap: 8px">
+        <!-- Share button -->
+        <v-btn
+          variant="elevated"
+          class="share-child-btn"
+          height="40"
+          @click="openShareDialog"
+        >
+          Share Child Info
+        </v-btn>
       </div>
     </v-container>
+
+    <!-- Share dialog -->
+    <v-dialog v-model="showShareDialog" width="420">
+      <v-card style="background-color: #fdf9f7; color: #000">
+        <v-card-title class="headline">Share Child Info</v-card-title>
+        <v-card-text>
+          <!-- Access type selector inside dialog -->
+          <v-select
+            v-model="shareAccessType"
+            :items="accessOptions"
+            label="Access Level"
+            density="comfortable"
+            variant="outlined"
+            style="margin-bottom: 16px"
+          ></v-select>
+
+          <!-- Modern code field -->
+          <v-text-field
+            :model-value="shareCode"
+            label="Share Code"
+            prepend-inner-icon="mdi-account-key"
+            append-inner-icon="mdi-content-copy"
+            readonly
+            hide-details
+            density="comfortable"
+            variant="outlined"
+            style="margin-bottom: 16px"
+            @click:append-inner="copyToClipboard(shareCode)"
+          ></v-text-field>
+
+          <!-- Modern URL field -->
+          <v-text-field
+            :model-value="shareUrl"
+            label="Share URL"
+            prepend-inner-icon="mdi-link"
+            append-inner-icon="mdi-content-copy"
+            readonly
+            hide-details
+            density="comfortable"
+            variant="outlined"
+            style="margin-bottom: 8px"
+            @click:append-inner="copyToClipboard(shareUrl)"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn variant="text" @click="closeDialog">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Copy feedback snackbar -->
+    <v-snackbar v-model="showCopySnackbar" location="bottom" timeout="2000">
+      {{ copyMessage }}
+    </v-snackbar>
   </v-app-bar>
 </template>
 
 <script setup>
+import { useShareChild } from '@/composables/useShareChild'
 
 // Props
 const props = defineProps({
@@ -128,6 +193,25 @@ const selectChild = (child) => {
 
 const openGrowthDialog = () => {
   emit('open-growth-dialog')
+}
+
+// Share Child Info logic – handled by composable
+const {
+  showShareDialog,
+  shareAccessType,
+  accessOptions,
+  shareCode,
+  shareUrl,
+  showCopySnackbar,
+  copyMessage,
+  copyToClipboard,
+  openShareDialog: _openShareDialog,
+  closeDialog
+} = useShareChild()
+
+// Wrapper to supply the current child id when opening the dialog
+const openShareDialog = () => {
+  _openShareDialog(props.currentChild.id)
 }
 </script>
 

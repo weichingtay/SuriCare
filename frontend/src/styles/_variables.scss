@@ -9,17 +9,17 @@ $app-grey-light: #a69589;       // Light warm grey
 $app-grey-lightest: #f5f2ed;    // Very light warm grey
 
 // Glassmorphism colors
-$glass-white: rgba(255, 255, 255, 0.9);
-$glass-white-light: rgba(255, 255, 255, 0.95);
-$glass-white-lighter: rgba(255, 255, 255, 0.8);
-$glass-pink-light: rgba(255, 182, 193, 0.9);
-$glass-pink-medium: rgba(255, 160, 180, 0.7);
-$glass-pink-dark: rgba(255, 140, 165, 0.5);
-$glass-pink-very-light: rgba(255, 182, 193, 0.03);
-$glass-pink-very-light-alt: rgba(255, 160, 180, 0.02);
-$glass-pink-very-light-alt2: rgba(255, 140, 165, 0.03);
-$glass-border: rgba(255, 255, 255, 0.2);
-$glass-pink-border: rgba(255, 182, 193, 0.1);
+$glass-white: #ffffffe6;
+$glass-white-light: #fffffff2;
+$glass-white-lighter: #ffffffcc;
+$glass-pink-light: #ffb8c2e6;
+$glass-pink-medium: #ffa0b4b3;
+$glass-pink-dark: #ff8ca580;
+$glass-pink-very-light: #ffb6c108;
+$glass-pink-very-light-alt: #ffa0b405;
+$glass-pink-very-light-alt2: #ff8ca508;
+$glass-border: #ffffff33;
+$glass-pink-border: #ffb6c11a;
 
 // Glassmorphism properties
 $glass-blur-sm: 10px;

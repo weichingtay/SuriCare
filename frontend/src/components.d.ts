@@ -9,7 +9,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AIAssistant: typeof import('./components/AIAssistant.vue')['default']
-    AlertNotification: typeof import('./components/AlertNotification.vue')['default']
     AppFooter: typeof import('./components/vue-default/AppFooter.vue')['default']
     AppHeader: typeof import('./components/AppHeader.vue')['default']
     AppNavigation: typeof import('./components/AppNavigation.vue')['default']

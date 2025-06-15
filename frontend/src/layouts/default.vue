@@ -23,6 +23,7 @@
       </div>
     </v-main>
 
+    <!-- TODO: MOVE DIALOGS TO THE APP HEADER  -->
     <!-- Growth Data Dialog -->
     <v-dialog
       v-model="growthDialog"
