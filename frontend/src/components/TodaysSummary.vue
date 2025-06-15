@@ -35,7 +35,6 @@
             v-model="selectedDate"
             @update:model-value="handleDateChange"
             :max="new Date()"
-            color="error"
           ></v-date-picker>
         </v-card>
       </v-menu>

@@ -13,6 +13,7 @@
       </div>
       <v-btn
         size="small"
+        class="btn-light-blue"
         variant="flat"
         @click="handleViewHistory"
       >

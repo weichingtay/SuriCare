@@ -63,6 +63,16 @@ body, .v-application {
   // }
 }
 
+// Custom light blue button
+.btn-light-blue {
+  //  #66BBFF, #4FA8E8
+  background: linear-gradient(135deg, #66BBFF 5%, #4FA8E8 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(135, 206, 235, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
 // Card glassmorphism effect
 .v-card {
   background: $glass-white;

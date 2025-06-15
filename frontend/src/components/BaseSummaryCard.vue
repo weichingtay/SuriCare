@@ -20,9 +20,10 @@
                     <span class="card-title">{{ title }}</span>
                 </div>
                 <v-btn
-                    size="x-small"
+                    size="small"
                     variant="flat"
-                    class="check-in-btn"
+                    color="primary"
+                    class="check-in-btn btn-light-blue"
                     @click="$emit('check-in')"
                 >
                     Check In

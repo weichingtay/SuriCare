@@ -55,10 +55,8 @@
             </v-list>
           </v-menu>
         </div>
-      </div>
-
-      <!-- Right section: Growth data cards -->
-      <div class="right-section">
+        
+        <!-- Growth data cards moved here -->
         <div class="growth-cards">
           <div class="growth-card height-card" @click="openGrowthDialog">
             <div class="growth-icon height-icon">
@@ -98,6 +96,10 @@
             </v-btn>
           </div>
         </div>
+      </div>
+
+      <!-- Right section: Now empty -->
+      <div class="right-section">
       </div>
     </v-container>
   </v-app-bar>
