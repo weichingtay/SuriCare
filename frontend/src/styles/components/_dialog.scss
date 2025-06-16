@@ -1,0 +1,177 @@
+@use '../variables' as *;
+
+// Form field styles
+
+.dialog-field {
+  margin-bottom: $spacing-sm;
+
+  .v-field__input {
+    color: $field-text;
+  }
+
+  .v-label {
+    color: $field-label;
+  }
+
+ 
+
+
+  // .v-field__outline {
+  //   border-color: $field-border;
+  // }
+
+  // &:hover .v-field__outline {
+  //   border-color: $field-border-hover;
+  // }
+
+  // &.v-field--focused .v-field__outline {
+  //   border-color: $field-border-focus;
+  // }
+
+  // :deep(.v-field) {
+  //   background: $field-background;
+  //   border-radius: $border-radius-lg;
+  // }
+
+  // :deep(.v-field--focused) {
+  //   // background: $field-background;
+  //   background: $field-border;
+  // }
+}
+
+// Alert styles
+.dialog-alert {
+  border-radius: $border-radius-md;
+  margin-top: $spacing-sm;
+  background-color: $app-primary-light;
+
+  .text-caption {
+    color: $alert-text;
+  }
+}
+
+// Account section styles
+.account-section {
+  padding: $spacing-sm $spacing-sm 20px $spacing-sm;
+  position: relative;
+  z-index: 2;
+}
+
+.account-item {
+  min-height: 56px;
+  margin-bottom: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.account-icon {
+  background: rgba($app-text-primary, 0.05);
+}
+
+// AI Assistant styles
+.suriai-section {
+  background: white;
+  border-radius: $border-radius-lg;
+  padding: 20px;
+  border: 1px solid #f0f0f0;
+}
+
+.suriai-description {
+  line-height: 1.4;
+}
+
+.suriai-input-container {
+  margin-top: $spacing-md;
+}
+
+.suriai-input {
+  .v-field__outline {
+    border-color: $app-primary-light !important;
+  }
+
+  .v-field__outline--focused {
+    border-color: $app-primary !important;
+  }
+}
+
+// Dialog Layout
+.dialog-card {
+  background: $dialog-background;
+  backdrop-filter: blur(20px);
+  border: 1px solid $dialog-border;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-lg;
+  overflow: hidden;
+}
+
+.dialog-title {
+  background: linear-gradient(
+    135deg,
+    rgba($app-primary, 0.1) 0%,
+    rgba($app-primary-light, 0.05) 100%
+  );
+  border-bottom: 1px solid $dialog-border;
+  padding: $spacing-lg;
+}
+
+.dialog-title-content {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  width: 100%;
+}
+
+.dialog-title h3 {
+  font-family: $font-heading;
+  font-size: 20px;
+  font-weight: 600;
+  color: $dialog-text;
+  margin: 0;
+}
+
+.child-chip {
+  font-family: $font-child;
+  font-weight: 500;
+}
+
+.dialog-content {
+  padding: $spacing-lg;
+}
+
+.dialog-actions {
+  padding: $spacing-md $spacing-lg $spacing-lg $spacing-lg;
+  gap: $spacing-md;
+}
+
+.cancel-btn {
+  color: rgba($app-text-primary, 0.7);
+  font-weight: 500;
+}
+
+.save-btn {
+  font-weight: 600;
+  border-radius: $border-radius-lg;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.alert-line {
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: $spacing-xs;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Modern dialog overlay
+.modern-dialog {
+  :deep(.v-overlay__content) {
+    background: transparent;
+  }
+}

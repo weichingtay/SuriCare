@@ -1,0 +1,35 @@
+.v-alert {
+  /* Ensure consistent spacing and appearance */
+  border: none;
+
+  /* Add animation for alert appearance */
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Style adjustments based on alert type */
+.v-alert--success {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.v-alert--warning {
+  background-color: rgba(255, 152, 0, 0.1);
+}
+
+.v-alert--error {
+  background-color: rgba(244, 67, 54, 0.1);
+} 
+
+.health-alert {
+  border-radius: 8px;
+}

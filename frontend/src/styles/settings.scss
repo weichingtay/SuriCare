@@ -1,10 +1,54 @@
-/**
- * src/styles/settings.scss
- *
- * Configures SASS variables and Vuetify overwrites
- */
+// Import SCSS modules
+@use 'variables';
+@use 'typography';
+@use 'components';
+@use 'utilities';
+@use 'themes';
 
-// https://vuetifyjs.com/features/sass-variables/`
-// @use 'vuetify/settings' with (
-//   $color-pack: false
-// );
+// Import Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@200..800&family=Fredoka:wght@300..700&display=swap');
+
+
+// Global styles
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-y: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: var(--font-primary);
+  color: var(--text-primary);
+  background-color: var(--background);
+}
+
+// Vuetify overrides
+// .v-application {
+//   font-family: var(--font-primary);
+//   background: transparent;
+// }
+
+// .v-btn {
+//   text-transform: none !important;
+//   letter-spacing: -0.01em !important;
+// }
+
+// .v-card {
+//   border-radius: var(--border-radius-md) !important;
+// }
+
+// .v-field {
+//   border-radius: var(--border-radius-lg) !important;
+// }
+
+// .v-chip {
+//   border-radius: var(--border-radius-lg) !important;
+// }
+
+// .v-alert {
+//   border-radius: var(--border-radius-sm) !important;
+// } 

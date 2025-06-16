@@ -1,0 +1,138 @@
+@use '../variables' as *;
+
+// Base styles
+body, .v-application {
+  background: linear-gradient(135deg, 
+    #faf7f2 0%,
+    #f8f4ef 25%,
+    #fcfaf7 50%,
+    #f5f2ed 75%,
+    #faf7f2 100%
+  );
+}
+
+.app-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    #faf7f2 0%,
+    #f8f4ef 25%,
+    #fcfaf7 50%,
+    #f5f2ed 75%,
+    #faf7f2 100%
+  );
+  z-index: 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23FFB6C1' fill-opacity='0.02'%3E%3Cpolygon points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.6;
+  }
+}
+
+.custom-app {
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-main {
+  padding-left: 110px;
+  padding-top: 72px;
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.custom-main-content {
+  height: calc(100vh - 72px);
+  padding: 23px;
+  position: relative;
+  overflow-y: hidden;
+}
+
+.left-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+}
+
+.right-section {
+  display: flex;
+  align-items: center;
+}
+
+// Button styles
+.v-btn {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-md;
+  transition: $transition-base;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: $shadow-lg;
+  }
+
+  &.v-btn--variant-flat {
+    background-color: $app-primary;
+    color: white;
+    
+    &:hover {
+      background-color: $app-primary-dark;
+    }
+  }
+  
+  &.v-btn--variant-outlined {
+    border-color: $app-primary;
+    color: $app-primary;
+    
+    &:hover {
+      background-color: $app-primary-light;
+      color: $app-primary-dark;
+    }
+  }
+}
+
+// Card styles
+.v-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+}
+
+// Form field styles
+.v-field {
+  border-radius: $border-radius-lg;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+
+  &--focused {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
+// Chip styles
+.v-chip {
+  border-radius: $border-radius-lg;
+  font-weight: 500;
+}
+
+// Alert styles
+.v-alert {
+  border-radius: $border-radius-sm;
+  backdrop-filter: blur(10px);
+} 
