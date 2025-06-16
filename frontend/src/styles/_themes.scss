@@ -1,0 +1,97 @@
+@use 'variables' as *;
+
+// Modern background for the entire app
+body, .v-application {
+  background: linear-gradient(135deg, 
+    $app-beige 0%,
+    $app-beige-light 50%,
+    $app-grey-lightest 75%,
+    $app-beige 100%
+  );
+}
+
+// Header background
+.header-background {
+  background: linear-gradient(180deg, 
+    $glass-white 0%,
+    $glass-white-lighter 50%,
+    $glass-white 100%
+  );
+
+  backdrop-filter: blur($glass-blur-md);
+  -webkit-backdrop-filter: blur($glass-blur-md);
+  border-bottom: 1px solid $glass-pink-border;
+
+  // &::before {
+  //   content: '';
+  //   position: absolute;
+  //   top: 0;
+  //   left: 0;
+  //   right: 0;
+  //   bottom: 0;
+  //   background: linear-gradient(45deg,
+  //     $glass-pink-very-light 0%,
+  //     $glass-pink-very-light-alt 50%,
+  //     $glass-pink-very-light-alt2 100%
+  //   );
+  // }
+}
+
+// Navigation background
+.nav-background {
+  background: linear-gradient(180deg,
+    $glass-white 0%,
+    $glass-white-lighter 50%,
+    $glass-white 100%
+  );
+  backdrop-filter: blur($glass-blur-md);
+  -webkit-backdrop-filter: blur($glass-blur-md);
+  border-right: 1px solid $glass-pink-border;
+
+  // &::before {
+  //   content: '';
+  //   position: absolute;
+  //   top: 0;
+  //   left: 0;
+  //   right: 0;
+  //   bottom: 0;
+  //   background: linear-gradient(45deg,
+  //     $glass-pink-very-light 0%,
+  //     $glass-pink-very-light-alt 50%,
+  //     $glass-pink-very-light-alt2 100%
+  //   );
+  // }
+}
+
+// Custom light blue button
+.btn-light-blue {
+  //  #66BBFF, #4FA8E8
+  background: linear-gradient(135deg, #66BBFF 5%, #4FA8E8 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(135, 206, 235, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+// Card glassmorphism effect
+.v-card {
+  background: $glass-white;
+  backdrop-filter: blur($glass-blur-md);
+  border: 1px solid $glass-border;
+  box-shadow: $shadow-sm;
+}
+
+// Form field glassmorphism
+.v-field {
+  background: $glass-white-lighter;
+  backdrop-filter: blur($glass-blur-sm);
+
+  &--focused {
+    background: $glass-white-light;
+  }
+}
+
+// Alert glassmorphism
+.v-alert {
+  backdrop-filter: blur($glass-blur-sm);
+} 

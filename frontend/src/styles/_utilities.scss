@@ -1,0 +1,34 @@
+@use 'variables' as *;
+
+// Text color utilities
+.text-pink { color: $app-primary; }
+.text-grey { color: $app-grey; }
+.text-grey-light { color: $app-grey-light; }
+.text-warm { color: $app-text-primary; }
+.text-warm-secondary { color: $app-text-secondary; }
+.text-warm-muted { color: $app-text-muted; }
+
+// Border utilities
+.border-e { border-right: 1px solid #e0e0e0; }
+
+// Alert utilities
+.health-alert {
+  border-radius: $border-radius-lg;
+  padding: $spacing-md;
+}
+
+// Button utilities
+.date-picker-btn {
+  border-color: #e8ddd4;
+  color: $app-grey;
+} 
+
+.share-child-btn {
+  background: $app-primary;
+  color: white;
+}
+
+.error-btn {
+  background: green !important;
+  color: black !important;
+}

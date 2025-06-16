@@ -1,0 +1,135 @@
+@use '../variables' as *;
+// Growth Cards Layout
+.growth-cards {
+  display: flex;
+  gap: 12px;
+}
+
+.growth-card {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border: 1px solid $app-primary-light;
+  border-radius: 16px;
+  min-width: 120px;
+  height: 48px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  &.growth-edit-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    &:hover {
+      opacity: 1;
+    }
+  }
+  &:hover {
+    &::before {
+      opacity: 1;
+    }
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+
+  }
+}
+
+
+// Combined Growth Card (Height, Weight, Head Circ.)
+.combined-card {
+  // Wider base to accommodate three metric pairs plus edit button
+  min-width: 340px;
+  padding: $spacing-xs $spacing-md;
+  display: grid;
+  grid-template-columns: repeat(3, auto) auto; // 3 metric pairs + edit icon column
+  align-items: center;
+  column-gap: $spacing-md;
+
+  &::before {
+    background: $glass-white; // subtle white overlay not fully opaque
+  }
+
+  &:hover {
+    &::before {
+      opacity: 0.4; // subtle highlight not masking content
+    }
+  }
+}
+
+.metric-pair {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: $spacing-xs;
+
+  // bring pair contents to midline for vertical centering
+  height: 100%;
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  justify-content: center;
+}
+
+.metric-info .growth-label {
+  font-size: 9px;
+  color: $app-text-secondary;
+  text-transform: uppercase;
+}
+
+.metric-info .growth-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: $app-text-primary;
+}
+
+// Icon theme colours
+.height-pair .v-icon {
+  color: rgb(102, 187, 255); // light blue
+}
+.weight-pair .v-icon {
+  color: rgb(255, 142, 198); // pink
+}
+.head-pair .v-icon {
+  color: #cba8ff; // violet-lavender
+}
+
+.combined-card .growth-edit-btn {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background: $app-primary-light;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 1 !important; // override any hidden state
+
+  .v-icon {
+    color: $app-primary-dark;
+    font-size: 16px;
+  }
+}

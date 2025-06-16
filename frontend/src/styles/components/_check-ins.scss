@@ -1,0 +1,27 @@
+@use '../variables' as *;
+
+.check-ins-history {
+  margin-bottom: $spacing-md;
+}
+
+.check-ins-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+
+.check-ins-title {
+  color: $app-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.check-ins-description {
+  display: flex;
+  align-items: center;
+  color: $app-text-secondary;
+  margin-bottom: 0;
+}
+
+
