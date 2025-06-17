@@ -64,7 +64,7 @@ const handleCheckIn = () => {
 
 <style scoped>
 /* NOTE: Here because they are used to center the pie charts */
-.breakdown-section {
+/* .breakdown-section {
   align-items: center;
   text-align: center;
 }
@@ -74,6 +74,6 @@ const handleCheckIn = () => {
   gap: 24px;
   justify-content: center;
   width: 100%;
-}
+} */
 </style>
 
