@@ -10,7 +10,7 @@
   >
     <!-- Glassmorphism background -->
     <div class="nav-background"></div>
-    
+
     <!-- Logo section at top of sidebar -->
     <template v-slot:prepend>
       <div class="logo-section">
@@ -39,8 +39,8 @@
         <template v-slot:default>
           <div class="nav-content">
             <div class="nav-icon-wrapper" :class="{ 'nav-icon-active': activeTab === item.value }">
-              <v-icon 
-                :size="navIconSize" 
+              <v-icon
+                :size="navIconSize"
                 :color="activeTab === item.value ? navIconActiveColor : navIconInactiveColor"
               >
                 {{ item.icon }}
