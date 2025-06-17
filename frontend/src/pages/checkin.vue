@@ -155,6 +155,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // State
 const selectedDate = ref(new Date('2025-05-15'))

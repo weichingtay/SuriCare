@@ -27,7 +27,9 @@
   import ArticleGrid from '../components/guidance/ArticleGrid.vue'
   import AlertsView from '../components/guidance/AlertsView.vue'
   import SavedView from '../components/guidance/SavedView.vue'
+  import { useRouter } from 'vue-router'
 
+const router = useRouter()
   const currentTab = ref('guidance')
 
   const handleTabChange = (tab) => {

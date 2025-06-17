@@ -50,6 +50,7 @@
   import { useChildrenStore } from '@/stores/children'
   import { useSummaryStore } from '@/stores/summary'
   import { useAIChat } from '@/composables/useAIChat'
+  import { useRouter } from 'vue-router'
 
   // Import components
   import AIAssistant from '@/components/chatbot/AIAssistant.vue'
@@ -62,8 +63,11 @@
   const summaryStore = useSummaryStore()
   const aiChat = useAIChat()
 
+  const router = useRouter()
+
   // Caregiver's name - in production, this would come from authentication
   const caregiverName = ref('Wei Ching')
+
 
   // ===== METHODS =====
 
@@ -76,12 +80,14 @@
   // Handle health alert view more
   const handleHealthAlert = (alert) => {
     console.log('Health alert clicked:', alert)
+    router.push('/guidance')
     // Handle health alert navigation
   }
 
   // Handle view history
   const handleViewHistory = (child) => {
     console.log('View history clicked:', child)
+    router.push('/checkin')
     // Handle view history navigation
   }
 

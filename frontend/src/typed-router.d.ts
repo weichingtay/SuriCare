@@ -22,6 +22,7 @@ declare module 'vue-router/auto-routes' {
     '/addChild': RouteRecordInfo<'/addChild', '/addChild', Record<never, never>, Record<never, never>>,
     '/chatbot': RouteRecordInfo<'/chatbot', '/chatbot', Record<never, never>, Record<never, never>>,
     '/checkin': RouteRecordInfo<'/checkin', '/checkin', Record<never, never>, Record<never, never>>,
+    '/dashboard': RouteRecordInfo<'/dashboard', '/dashboard', Record<never, never>, Record<never, never>>,
     '/Dialog': RouteRecordInfo<'/Dialog', '/Dialog', Record<never, never>, Record<never, never>>,
     '/guidance': RouteRecordInfo<'/guidance', '/guidance', Record<never, never>, Record<never, never>>,
     '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
