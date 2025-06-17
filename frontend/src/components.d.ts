@@ -23,6 +23,7 @@ declare module 'vue' {
     HealthAlert: typeof import('./components/HealthAlert.vue')['default']
     HealthSummaryCard: typeof import('./components/summaryCard/HealthSummaryCard.vue')['default']
     LoginForm: typeof import('./components/login/LoginForm.vue')['default']
+    LogMealDialog: typeof import('./components/dialog/LogMealDialog.vue')['default']
     MealsSummaryCard: typeof import('./components/summaryCard/MealsSummaryCard.vue')['default']
     NavigationTabs: typeof import('./components/guidance/NavigationTabs.vue')['default']
     PoopSummaryCard: typeof import('./components/summaryCard/PoopSummaryCard.vue')['default']
