@@ -1,13 +1,25 @@
 <template>
-  <v-card class="mx-auto article-card" variant="outlined" rounded="lg">
+  <v-card
+    class="mx-auto article-card"
+    variant="outlined"
+    rounded="lg"
+  >
     <v-card-text class="pa-5">
       <div class="d-flex justify-space-between align-center mb-4">
         <p class="text-h5 font-weight-regular">
           {{ article.title }}
         </p>
-        <v-btn icon variant="text" size="small" @click="toggleFavorite">
-          <v-icon :color="isFavorite ? 'red' : 'black'" size="20">
-            {{ isFavorite ? "mdi-heart" : "mdi-heart-outline" }}
+        <v-btn
+          icon
+          variant="text"
+          size="small"
+          @click="handleToggleSave"
+        >
+          <v-icon
+            :color="isSaved ? 'red' : 'black'"
+            size="20"
+          >
+            {{ isSaved ? 'mdi-heart' : 'mdi-heart-outline' }}
           </v-icon>
         </v-btn>
       </div>
@@ -43,31 +55,34 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+  import { ref, inject, computed } from 'vue'
 
-const props = defineProps({
-  article: {
-    type: Object,
-    required: true,
-  },
-});
+  const props = defineProps({
+    article: {
+      type: Object,
+      required: true,
+    },
+  })
 
-const isFavorite = ref(false);
+  const toggleSaveArticle = inject('toggleSaveArticle')
+  const isArticleSaved = inject('isArticleSaved')
 
-const toggleFavorite = () => {
-  isFavorite.value = !isFavorite.value;
-};
+  const isSaved = computed(() => isArticleSaved(props.article.id))
+
+  const handleToggleSave = () => {
+    toggleSaveArticle(props.article)
+  }
 </script>
 
 <style scoped>
-.article-card {
-  background-color: white;
-  height: 100%;
-  transition: transform 0.2s ease-in-out;
-  border: 1.25px solid #AEAAA9;
-}
+  .article-card {
+    background-color: white;
+    height: 100%;
+    transition: transform 0.2s ease-in-out;
+    border: 1.25px solid #aeaaa9;
+  }
 
-.article-card:hover {
-  transform: translateY(-2px);
-}
+  .article-card:hover {
+    transform: translateY(-2px);
+  }
 </style>
