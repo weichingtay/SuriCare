@@ -62,7 +62,6 @@ def new_sleep(*, session: Session = Depends(get_session), sleep: SleepTime):
     session.add(sleep)
     session.commit()
     session.refresh(sleep)
-
     return sleep
 
 
