@@ -3,7 +3,7 @@
     <!-- SuriCare Logo/Mascot -->
     <div class="mb-6">
       <v-avatar size="249" class="mr-4" rounded="0">
-        <v-img src="@/assets/logo.jpg" alt="SuriAI" />
+        <v-img src="@/assets/logo_wo_bg.png" alt="SuriAI" />
       </v-avatar>
     </div>
 
