@@ -33,6 +33,34 @@
   const handleTabChange = (tab) => {
     currentTab.value = tab
   }
+
+  // Global state for saved articles
+  const savedArticles = ref([])
+
+  // Provide the saved articles state to child components
+  provide('savedArticles', savedArticles)
+
+  const toggleSaveArticle = (article) => {
+    const existingIndex = savedArticles.value.findIndex(
+      (saved) => saved.id === article.id
+    )
+
+    if (existingIndex > -1) {
+      // Remove from saved
+      savedArticles.value.splice(existingIndex, 1)
+    } else {
+      // Add to saved
+      savedArticles.value.push({ ...article })
+    }
+  }
+
+  provide('toggleSaveArticle', toggleSaveArticle)
+
+  const isArticleSaved = (articleId) => {
+    return savedArticles.value.some((saved) => saved.id === articleId)
+  }
+
+  provide('isArticleSaved', isArticleSaved)
 </script>
 
 <style>
