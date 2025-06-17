@@ -33,8 +33,8 @@
 <script setup>
 import { computed } from 'vue'
 import BaseSummaryCard from './BaseSummaryCard.vue'
-import { useMeals } from '../composables/useMeals'
-import { useMealsStore } from '../stores/meals'
+import { useMeals } from '@/composables/useMeals'
+import { useMealsStore } from '@/stores/meals'
 import { storeToRefs } from 'pinia'
 
 const props = defineProps({

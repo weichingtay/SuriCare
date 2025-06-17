@@ -25,7 +25,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useSleepStore } from '../stores/sleep'
+import { useSleepStore } from '@/stores/sleep'
 import BaseSummaryCard from './BaseSummaryCard.vue'
 
 const sleepStore = useSleepStore()

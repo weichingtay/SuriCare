@@ -12,7 +12,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { usePoopStore } from '../stores/poop'
+import { usePoopStore } from '@/stores/poop'
 import BaseSummaryCard from './BaseSummaryCard.vue'
 
 const poopStore = usePoopStore()

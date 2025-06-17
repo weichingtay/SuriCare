@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AddChildForm: typeof import('./components/addChild/AddChildForm.vue')['default']
     AIAssistant: typeof import('./components/chatbot/AIAssistant.vue')['default']
     AlertCard: typeof import('./components/guidance/AlertCard.vue')['default']
     AlertsView: typeof import('./components/guidance/AlertsView.vue')['default']
@@ -20,16 +21,24 @@ declare module 'vue' {
     ChatContent: typeof import('./components/chatbot/ChatContent.vue')['default']
     ChatSidebar: typeof import('./components/chatbot/ChatSidebar.vue')['default']
     CheckInsHistory: typeof import('./components/CheckInsHistory.vue')['default']
+    ChildForm: typeof import('./components/addChild/ChildForm.vue')['default']
+    ChildNameInput: typeof import('./components/addChild/ChildNameInput.vue')['default']
+    ChildPhotoUpload: typeof import('./components/addChild/ChildPhotoUpload.vue')['default']
+    DateOfBirthPicker: typeof import('./components/addChild/DateOfBirthPicker.vue')['default']
+    GenderSelect: typeof import('./components/addChild/GenderSelect.vue')['default']
     HealthAlert: typeof import('./components/HealthAlert.vue')['default']
     HealthSummaryCard: typeof import('./components/summaryCard/HealthSummaryCard.vue')['default']
     LoginForm: typeof import('./components/login/LoginForm.vue')['default']
     MealsSummaryCard: typeof import('./components/summaryCard/MealsSummaryCard.vue')['default']
     NavigationTabs: typeof import('./components/guidance/NavigationTabs.vue')['default']
     PoopSummaryCard: typeof import('./components/summaryCard/PoopSummaryCard.vue')['default']
+    ProfilePhotoUpload: typeof import('./components/addChild/ProfilePhotoUpload.vue')['default']
+    RelationshipSelect: typeof import('./components/addChild/RelationshipSelect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SavedView: typeof import('./components/guidance/SavedView.vue')['default']
     SleepSummaryCard: typeof import('./components/summaryCard/SleepSummaryCard.vue')['default']
+    SubmitButton: typeof import('./components/addChild/SubmitButton.vue')['default']
     TodaysSummary: typeof import('./components/summaryCard/TodaysSummary.vue')['default']
     WelcomeSection: typeof import('./components/login/WelcomeSection.vue')['default']
   }
