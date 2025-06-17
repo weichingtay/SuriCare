@@ -52,10 +52,10 @@
   import { useAIChat } from '@/composables/useAIChat'
 
   // Import components
-  import AIAssistant from '@/components/AIAssistant.vue'
+  import AIAssistant from '@/components/chatbot/AIAssistant.vue'
   import HealthAlert from '@/components/HealthAlert.vue'
   import CheckInsHistory from '@/components/CheckInsHistory.vue'
-  import TodaysSummary from '@/components/TodaysSummary.vue'
+  import TodaysSummary from '@/components/summaryCard/TodaysSummary.vue'
 
   // Use stores and composables
   const childrenStore = useChildrenStore()
