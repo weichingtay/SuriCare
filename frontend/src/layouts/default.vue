@@ -7,6 +7,7 @@
     <AppNavigation 
       :activeTab="activeTab"
       @nav-change="handleNavChange"
+      v-if="!hideComponent.includes(route.name)"
     />
     
     <!-- Header -->
@@ -14,6 +15,7 @@
       :currentChild="childrenStore.currentChild"
       :children="childrenStore.children"
       @child-selected="childrenStore.selectChild"
+      v-if="!hideComponent.includes(route.name)"
     />
     
     <v-main class="custom-main">
@@ -33,6 +35,9 @@ import { ref } from 'vue'
 // import AppHeader from '@/components/AppHeader.vue'
 // import AppNavigation from '@/components/AppNavigation.vue'
 import { useChildrenStore } from '@/stores/children'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 
 // Use the children store
 const childrenStore = useChildrenStore()
@@ -42,6 +47,8 @@ const activeTab = ref('home')
 const handleNavChange = (tabName: string) => {
   activeTab.value = tabName
 }
+
+const hideComponent = ['/login']
 </script>
 
 <style lang="scss" scoped>
