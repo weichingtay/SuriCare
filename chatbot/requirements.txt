@@ -3,5 +3,7 @@ uvicorn
 sqlmodel
 sqlalchemy
 langchain-google-genai
+langchain-community
 google-auth
 dotenv
+pylint
