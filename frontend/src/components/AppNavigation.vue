@@ -144,3 +144,9 @@ const goHome = () => {
   emit('nav-change', 'home')
 }
 </script>
+
+<style lang="css" scoped>
+:deep(.v-list-item__overlay) {
+  opacity: 0 !important;
+}
+</style>
