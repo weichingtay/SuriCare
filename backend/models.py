@@ -1,4 +1,5 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Column, DateTime
+import sqlmodel
 from datetime import datetime
 
 
@@ -42,9 +43,9 @@ class GrowthBenchmark(SQLModel, table=True):
 
 class SleepTime(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
-    check_in: datetime
-    start_time: datetime
-    end_time: datetime
+    check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    start_time: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    end_time: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     note: str | None
 
     child_id: int = Field(default=None, foreign_key="child.id")

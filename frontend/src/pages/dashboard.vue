@@ -25,11 +25,11 @@ async function fetchGrowth() {
         const response = await axios.get("http://127.0.0.1:8000/growth/1");
         const api_data = response.data
 
-        console.log(api_data)
+        // console.log(api_data)
 
         const weight_series = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.actual_weight
+            const y = item.actual_weight.toFixed(1)
 
             return { x, y }
         });
@@ -38,7 +38,7 @@ async function fetchGrowth() {
 
         const benchmark_weight_series = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.benchmark_weight
+            const y = item.benchmark_weight.toFixed(1)
 
             return { x, y }
         });
@@ -47,7 +47,7 @@ async function fetchGrowth() {
 
         const height_series = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.actual_height
+            const y = item.actual_height.toFixed(1)
 
             return { x, y }
         })
@@ -56,7 +56,7 @@ async function fetchGrowth() {
 
         const benchmark_height_series = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.benchmark_height
+            const y = item.benchmark_height.toFixed(1)
 
             return { x, y }
         })
@@ -65,7 +65,7 @@ async function fetchGrowth() {
 
         const head_measure = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.actual_head_circumference
+            const y = item.actual_head_circumference.toFixed(1)
 
             return { x, y }
         })
@@ -74,7 +74,7 @@ async function fetchGrowth() {
 
         const benchmark_head_measure = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.benchmark_head_circumference
+            const y = item.benchmark_head_circumference.toFixed(1)
 
             return { x, y }
         })
@@ -275,13 +275,22 @@ async function fetchSleep() {
         const nap_series = api_data.map(item => {
             const check_in = new Date(item.check_in);
             const start_time = new Date(item.start_time);
+            const start_hour = start_time.getHours();
             const end_time = new Date(item.end_time);
+            const end_hour = end_time.getHours();
 
-            return { check_in, start_time, end_time }
+            return { check_in, start_time, start_hour, end_time, end_hour }
         })
-            .filter(item => item.start_time.getHours() == 13)
+            .filter(item => item.start_hour >= 12 && item.start_hour <= 16)
             .map(item => {
-                const x = item.check_in
+                const tz_option = {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    timeZone: 'Asia/Singapore'
+                }
+
+                const x = item.check_in.toLocaleString('en-US', tz_option)
 
                 // reference: https://stackoverflow.com/questions/42454564/getting-the-difference-between-2-dates-in-javascript-in-hours-minutes-seconds
                 const time_ms = item.end_time - item.start_time
@@ -293,19 +302,30 @@ async function fetchSleep() {
                 return { x, y }
             })
 
+        console.log(nap_series)
+
         sleepSeries.value[0].data = nap_series;
 
 
         const night_series = api_data.map(item => {
             const check_in = new Date(item.check_in);
             const start_time = new Date(item.start_time);
+            const start_hour = start_time.getHours();
             const end_time = new Date(item.end_time);
+            const end_hour = end_time.getHours();
 
-            return { check_in, start_time, end_time }
+            return { check_in, start_time, start_hour, end_time, end_hour }
         })
-            .filter(item => item.start_time.getHours() == 21)
+            .filter(item => item.start_hour >= 20 && item.start_hour <= 22)
             .map(item => {
-                const x = item.check_in
+                const tz_option = {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    timeZone: 'Asia/Singapore'
+                }
+
+                const x = item.check_in.toLocaleString('en-US', tz_option)
 
                 const time_ms = item.end_time - item.start_time
                 const total_hours = Math.floor(time_ms / (1000 * 60 * 60))
@@ -315,6 +335,8 @@ async function fetchSleep() {
 
                 return { x, y }
             })
+
+        console.log(night_series)
 
         sleepSeries.value[1].data = night_series;
         // sleepOptions.value.yaxis.max = Math.max(...night_series.map(item => item.y)) + Math.max(...nap_series.map(item => item.y)) + 2

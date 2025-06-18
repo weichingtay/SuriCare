@@ -47,7 +47,9 @@ def growth_metrics(child_id: int):
                                 g.head_circumference as actual_head_circumference
                             FROM child as c
                             JOIN growth as g    ON c.id = g.child_id
-                            where c.id = {child_id}
+                            WHERE c.id = {child_id}
+                            ORDER BY    g.check_in DESC
+                            LIMIT   30
                         """
 
         child = pd.read_sql_query(sql_text_child, parse_dates=['birth_date', 'check_in'], con=conn)
@@ -73,6 +75,7 @@ def growth_metrics(child_id: int):
                             """
         metrics = pd.read_sql_query(sql_text_metrics, conn)
 
+        print('Growth Daily Check In:\n')
         print(metrics.loc[0:5,:])
 
         df = pd.merge(
@@ -100,16 +103,45 @@ def new_growth(*, session: Session = Depends(get_session), growth: Growth):
 
 
 # Sleep metric
-@app.get('/sleeptime/{child_id}', response_model=list[SleepTime])
-def sleep_metrics(*, session: Session = Depends(get_session), child_id: int):
-    metrics = session.exec(
-        select(SleepTime)
-        .where(child_id==child_id)
-        .order_by(desc(SleepTime.check_in))
-        .limit(30)
-    ).all()
+@app.get('/sleeptime/{child_id}')
+def sleep_metrics(child_id: int):
 
-    return metrics
+    with engine.connect() as conn, conn.begin():
+        
+        # Get sleep data for the last 30 days
+        sql_text_sleep = f"""
+                            WITH date_range AS
+                            (
+                                SELECT
+                                    MAX(check_in) - INTERVAL '30 DAY' as start_date,
+                                    MAX(check_in) as end_date
+                                FROM sleeptime
+                            )
+
+                            SELECT
+                                child_id,
+                                check_in,
+                                start_time,
+                                end_time
+                            FROM	sleeptime
+                            WHERE	child_id = {child_id} AND 
+                                    (check_in BETWEEN (SELECT start_date FROM date_range) AND
+                                    (SELECT end_date FROM date_range))
+                            ORDER BY	check_in DESC
+                        """
+        
+        sleep = pd.read_sql_query(sql_text_sleep, con=conn)
+        
+        sleep['check_in'] = sleep['check_in'].dt.tz_convert('Asia/Singapore')
+        sleep['start_time'] = sleep['start_time'].dt.tz_convert('Asia/Singapore')
+        sleep['end_time'] = sleep['end_time'].dt.tz_convert('Asia/Singapore')
+
+        print('\n')
+        print('Sleep Record:\n')
+        print(sleep)
+        print('\n')
+
+    return json.loads(sleep.to_json(orient='records'))
 
 
 # Insert new sleep record
