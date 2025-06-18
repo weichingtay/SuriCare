@@ -15,9 +15,9 @@ class Child(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     name: str
     birth_date: datetime
+    gender: str
 
     carer_id: int = Field(default=None, foreign_key="primarycaregiver.id")
-    gender: str
 
 
 class Growth(SQLModel, table=True):
@@ -28,7 +28,16 @@ class Growth(SQLModel, table=True):
     head_circumference: float
     note: str | None
 
-    child_id: int = Field(default=None, foreign_key="child.id")
+    child_id: int | None = Field(default=None, foreign_key="child.id")
+
+
+class GrowthBenchmark(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    age_month: int
+    weight: float
+    height: float
+    head_circumference: float
+    gender: str
 
 
 class SleepTime(SQLModel, table=True):
