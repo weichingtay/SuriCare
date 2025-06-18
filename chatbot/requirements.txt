@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+sqlmodel
+sqlalchemy
+langchain-google-genai
+google-auth
+dotenv
