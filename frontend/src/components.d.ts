@@ -33,6 +33,7 @@ declare module 'vue' {
     LogMealDialog: typeof import('./components/dialog/LogMealDialog.vue')['default']
     MealDialog: typeof import('./components/dialog/MealDialog.vue')['default']
     LogMealDialog: typeof import('./components/dialog/LogMealDialog.vue')['default']
+    MealDialog: typeof import('./components/dialog/MealDialog.vue')['default']
     MealsSummaryCard: typeof import('./components/summaryCard/MealsSummaryCard.vue')['default']
     NavigationTabs: typeof import('./components/guidance/NavigationTabs.vue')['default']
     PoopDialog: typeof import('./components/dialog/PoopDialog.vue')['default']
