@@ -13,7 +13,7 @@
 <script setup>
 import { computed } from 'vue'
 import { usePoopStore } from '@/stores/poop'
-import BaseSummaryCard from './BaseSummaryCard.vue'
+import BaseSummaryCard from '@/components/summaryCard/BaseSummaryCard.vue'
 
 const poopStore = usePoopStore()
 const currentDate = new Date().toISOString().split('T')[0]

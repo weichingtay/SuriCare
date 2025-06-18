@@ -31,7 +31,9 @@
 import { ref, computed } from "vue";
 import ChatSidebar from "../components/chatbot/ChatSidebar.vue";
 import ChatContent from "../components/chatbot/ChatContent.vue";
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 // State
 const chatHistory = ref([
   {
