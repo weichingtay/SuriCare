@@ -19,6 +19,7 @@ declare module 'vue' {
     ArticleCard: typeof import('./components/guidance/ArticleCard.vue')['default']
     ArticleGrid: typeof import('./components/guidance/ArticleGrid.vue')['default']
     BaseCheckInDialog: typeof import('./components/dialog/BaseCheckInDialog.vue')['default']
+    BaseDialog: typeof import('./components/dialog/BaseDialog.vue')['default']
     BaseSummaryCard: typeof import('./components/summaryCard/BaseSummaryCard.vue')['default']
     ChatContent: typeof import('./components/chatbot/ChatContent.vue')['default']
     ChatSidebar: typeof import('./components/chatbot/ChatSidebar.vue')['default']
@@ -47,6 +48,7 @@ declare module 'vue' {
     SleepSummaryCard: typeof import('./components/summaryCard/SleepSummaryCard.vue')['default']
     SubmitButton: typeof import('./components/addChild/SubmitButton.vue')['default']
     SymptomDialog: typeof import('./components/dialog/SymptomDialog.vue')['default']
+    SymptompsDialog: typeof import('./components/dialog/SymptompsDialog.vue')['default']
     TodaysSummary: typeof import('./components/summaryCard/TodaysSummary.vue')['default']
     WelcomeSection: typeof import('./components/login/WelcomeSection.vue')['default']
   }
