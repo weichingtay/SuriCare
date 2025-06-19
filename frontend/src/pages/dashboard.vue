@@ -12,8 +12,8 @@
         <v-col cols="12" lg="6">
             <v-container>
                 <v-container class="mb-1 d-flex justify-end pr-0">
-                    <button type="submit" class="toggle-btn week-btn">Week</button>
-                    <button type="submit" class="toggle-btn month-btn">Month</button>
+                    <button type="submit" class="toggle-btn week-btn" @click="weight_toggleWeek">Week</button>
+                    <button type="submit" class="toggle-btn month-btn" @click="weight_toggleMonth">Month</button>
                 </v-container>
                 <apexchart width="100%" :options="weightOptions" :series="weightSeries"></apexchart>
             </v-container>
@@ -23,8 +23,8 @@
         <v-col cols="12" lg="6">
             <v-container>
                 <v-container class="mb-1 d-flex justify-end pr-0">
-                    <button type="submit" class="toggle-btn week-btn">Week</button>
-                    <button type="submit" class="toggle-btn month-btn">Month</button>
+                    <button type="submit" class="toggle-btn week-btn" @click="height_toggleWeek">Week</button>
+                    <button type="submit" class="toggle-btn month-btn" @click="height_toggleMonth">Month</button>
                 </v-container>
                 <apexchart width="100%" :options="heightOptions" :series="heightSeries"></apexchart>
             </v-container>
@@ -32,8 +32,8 @@
         <v-col cols="12" lg="6">
             <v-container>
                 <v-container class="mb-1 d-flex justify-end pr-0">
-                    <button type="submit" class="toggle-btn week-btn">Week</button>
-                    <button type="submit" class="toggle-btn month-btn">Month</button>
+                    <button type="submit" class="toggle-btn week-btn" @click="hc_toggleWeek">Week</button>
+                    <button type="submit" class="toggle-btn month-btn" @click="hc_toggleMonth">Month</button>
                 </v-container>
                 <apexchart width="100%" :options="headOptions" :series="headSeries"></apexchart>
             </v-container>
@@ -53,64 +53,169 @@ async function fetchGrowth() {
 
         const weight_series = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.actual_weight.toFixed(1)
+            const y = item.actual_weight
 
             return { x, y }
         });
 
-        weightSeries.value[0].data = weight_series;
+        actual_weight.value = weight_series;
+
+        weightSeries.value[0].data = weight_series.slice(0, 7);
 
         const benchmark_weight_series = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.benchmark_weight.toFixed(1)
+            const y = item.benchmark_weight
 
             return { x, y }
         });
 
-        weightSeries.value[1].data = benchmark_weight_series;
+        benchmark_weight.value = benchmark_weight_series;
+
+        weightSeries.value[1].data = benchmark_weight_series.slice(0, 7);
 
         const height_series = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.actual_height.toFixed(1)
+            const y = item.actual_height
 
             return { x, y }
         })
 
-        heightSeries.value[0].data = height_series;
+        actual_height.value = height_series;
+
+        heightSeries.value[0].data = height_series.slice(0, 7);
 
         const benchmark_height_series = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.benchmark_height.toFixed(1)
+            const y = item.benchmark_height
 
             return { x, y }
         })
 
-        heightSeries.value[1].data = benchmark_height_series;
+        benchmark_height.value = benchmark_height_series;
+
+        heightSeries.value[1].data = benchmark_height_series.slice(0, 7);
 
         const head_measure = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.actual_head_circumference.toFixed(1)
+            const y = item.actual_head_circumference
 
             return { x, y }
         })
 
-        headSeries.value[0].data = head_measure;
+        actual_hc.value = head_measure;
+
+        headSeries.value[0].data = head_measure.slice(0, 7);
 
         const benchmark_head_measure = api_data.map(item => {
             const x = new Date(item.check_in)
-            const y = item.benchmark_head_circumference.toFixed(1)
+            const y = item.benchmark_head_circumference
 
             return { x, y }
         })
 
-        headSeries.value[1].data = head_measure;
+        benchmark_hc.value = benchmark_head_measure;
+
+        headSeries.value[1].data = benchmark_head_measure.slice(0, 7);
 
     } catch (error) {
         console.error("Error: " + error)
     }
 }
 
+const actual_weight = ref([]);
+const benchmark_weight = ref([]);
+
+const actual_height = ref([]);
+const benchmark_height = ref([]);
+
+const actual_hc = ref([]);
+const benchmark_hc = ref([]);
+
 fetchGrowth()
+
+// Update Head Circumference chart
+const hc_toggleWeek = () => {
+    headSeries.value = [
+        {
+            name: 'Actual Head Circumference',
+            data: actual_hc.value.slice(0, 7),
+        },
+        {
+            name: 'Benchmark Head Circumference',
+            data: benchmark_hc.value.slice(0, 7),
+        }
+    ]
+}
+
+const hc_toggleMonth = () => {
+    headSeries.value = [
+        {
+            name: 'Actual Head Circumference',
+            data: actual_hc.value,
+        },
+        {
+            name: 'Benchmark Head Circumference',
+            data: benchmark_hc.value,
+        }
+    ]
+}
+
+
+// Update the Height chart
+const height_toggleWeek = () => {
+    heightSeries.value = [
+        {
+            name: 'Actual Height',
+            data: actual_height.value.slice(0, 7),
+        },
+        {
+            name: 'Benchmark Height',
+            data: benchmark_height.value.slice(0, 7),
+        }
+    ]
+}
+
+const height_toggleMonth = () => {
+    heightSeries.value = [
+        {
+            name: 'Actual Height',
+            data: actual_height.value,
+        },
+        {
+            name: 'Benchmark Height',
+            data: benchmark_height.value,
+        }
+    ]
+}
+
+
+// Update the Weight chart
+const weight_toggleWeek = () => {
+    weightSeries.value = [
+        {
+            name: 'Actual Weight',
+            data: actual_weight.value.slice(0, 7),
+        },
+        {
+            name: 'Benchmark Weight',
+            data: benchmark_weight.value.slice(0, 7),
+        }
+    ]
+}
+
+const weight_toggleMonth = () => {
+    weightSeries.value = [
+        {
+            name: 'Actual Weight',
+            data: actual_weight.value,
+        },
+        {
+            name: 'Benchmark Weight',
+            data: benchmark_weight.value,
+        }
+    ]
+}
+
 
 const weightSeries = ref([
     {
@@ -143,7 +248,7 @@ const weightOptions = ref({
                 return opts.dateFormatter(new Date(timestamp), "dd MMM yy");
             },
         },
-        tickPlacement: 'on'
+        tickPlacement: 'on',
     },
     yaxis: {
         title: {
@@ -375,18 +480,14 @@ fetchSleep()
 
 // Update the Sleep Quality Chart
 const sleep_toggleWeek = () => {
-
-    const nap_week = sleep_nap.value.slice(0, 7);
-    const night_week = sleep_night.value.slice(0, 7);
-
     sleepSeries.value = [
         {
             name: 'Nap',
-            data: nap_week
+            data: sleep_nap.value.slice(0, 7)
         },
         {
             name: 'Night',
-            data: night_week
+            data: sleep_night.value.slice(0, 7)
         }
     ]
 
@@ -394,18 +495,14 @@ const sleep_toggleWeek = () => {
 }
 
 const sleep_toggleMonth = () => {
-
-    const nap_month = sleep_nap;
-    const night_month = sleep_night;
-
     sleepSeries.value = [
         {
             name: 'Nap',
-            data: nap_month
+            data: sleep_nap.value
         },
         {
             name: 'Night',
-            data: night_month
+            data: sleep_night.value
         }
     ]
 
