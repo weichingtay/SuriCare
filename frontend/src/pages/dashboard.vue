@@ -1,18 +1,42 @@
 <template>
     <v-row>
         <v-col cols="12" lg="6">
-            <apexchart width="100%" :options="sleepOptions" :series="sleepSeries"></apexchart>
+            <v-container>
+                <v-container class="mb-1 d-flex justify-end pr-0">
+                    <button type="submit" class="toggle-btn week-btn" @click="sleep_toggleWeek">Week</button>
+                    <button type="submit" class="toggle-btn month-btn" @click="sleep_toggleMonth">Month</button>
+                </v-container>
+                <apexchart width="100%" :options="sleepOptions" :series="sleepSeries"></apexchart>
+            </v-container>
         </v-col>
         <v-col cols="12" lg="6">
-            <apexchart width="100%" :options="weightOptions" :series="weightSeries"></apexchart>
+            <v-container>
+                <v-container class="mb-1 d-flex justify-end pr-0">
+                    <button type="submit" class="toggle-btn week-btn">Week</button>
+                    <button type="submit" class="toggle-btn month-btn">Month</button>
+                </v-container>
+                <apexchart width="100%" :options="weightOptions" :series="weightSeries"></apexchart>
+            </v-container>
         </v-col>
     </v-row>
     <v-row>
         <v-col cols="12" lg="6">
-            <apexchart width="100%" :options="heightOptions" :series="heightSeries"></apexchart>
+            <v-container>
+                <v-container class="mb-1 d-flex justify-end pr-0">
+                    <button type="submit" class="toggle-btn week-btn">Week</button>
+                    <button type="submit" class="toggle-btn month-btn">Month</button>
+                </v-container>
+                <apexchart width="100%" :options="heightOptions" :series="heightSeries"></apexchart>
+            </v-container>
         </v-col>
         <v-col cols="12" lg="6">
-            <apexchart width="100%" :options="headOptions" :series="headSeries"></apexchart>
+            <v-container>
+                <v-container class="mb-1 d-flex justify-end pr-0">
+                    <button type="submit" class="toggle-btn week-btn">Week</button>
+                    <button type="submit" class="toggle-btn month-btn">Month</button>
+                </v-container>
+                <apexchart width="100%" :options="headOptions" :series="headSeries"></apexchart>
+            </v-container>
         </v-col>
     </v-row>
 </template>
@@ -264,7 +288,6 @@ const headOptions = ref({
     },
 })
 
-
 async function fetchSleep() {
     try {
         const response = await axios.get("http://127.0.0.1:8000/sleeptime/1");
@@ -302,9 +325,8 @@ async function fetchSleep() {
                 return { x, y }
             })
 
-        console.log(nap_series)
-
-        sleepSeries.value[0].data = nap_series;
+        sleep_nap.value = nap_series;
+        sleepSeries.value[0].data = nap_series.slice(0, 7);
 
 
         const night_series = api_data.map(item => {
@@ -336,9 +358,8 @@ async function fetchSleep() {
                 return { x, y }
             })
 
-        console.log(night_series)
-
-        sleepSeries.value[1].data = night_series;
+        sleep_night.value = night_series
+        sleepSeries.value[1].data = night_series.slice(0, 7);
         // sleepOptions.value.yaxis.max = Math.max(...night_series.map(item => item.y)) + Math.max(...nap_series.map(item => item.y)) + 2
 
     } catch (error) {
@@ -346,7 +367,50 @@ async function fetchSleep() {
     }
 }
 
+const sleep_nap = ref([])
+const sleep_night = ref([])
+
+
 fetchSleep()
+
+// Update the Sleep Quality Chart
+const sleep_toggleWeek = () => {
+
+    const nap_week = sleep_nap.value.slice(0, 7);
+    const night_week = sleep_night.value.slice(0, 7);
+
+    sleepSeries.value = [
+        {
+            name: 'Nap',
+            data: nap_week
+        },
+        {
+            name: 'Night',
+            data: night_week
+        }
+    ]
+
+    console.log("Weekly Sleep chart updated")
+}
+
+const sleep_toggleMonth = () => {
+
+    const nap_month = sleep_nap;
+    const night_month = sleep_night;
+
+    sleepSeries.value = [
+        {
+            name: 'Nap',
+            data: nap_month
+        },
+        {
+            name: 'Night',
+            data: night_month
+        }
+    ]
+
+    console.log("Monthly Sleep chart updated")
+}
 
 const sleepSeries = ref([
     {
@@ -361,7 +425,7 @@ const sleepSeries = ref([
 
 const sleepOptions = ref({
     chart: {
-        type: 'line', // line or area
+        type: 'area', // line or area
         fontFamily: "Tahoma",
         stacked: true, // Enable stacking
     },
@@ -380,7 +444,9 @@ const sleepOptions = ref({
                 return opts.dateFormatter(new Date(timestamp), "dd MMM yy");
             },
         },
-        tickPlacement: 'on'
+        tickPlacement: 'on',
+        // reference: https://github.com/apexcharts/apexcharts.js/issues/167
+        tickAmount: 'dataPoints',
     },
     yaxis: {
         title: {
@@ -409,3 +475,21 @@ const sleepOptions = ref({
 })
 
 </script>
+
+<style scoped>
+.toggle-btn {
+    border: 1px solid black;
+    padding: 2px 10px;
+    font-family: Tahoma;
+    font-size: 10px;
+}
+
+.week-btn {
+    border-right: none;
+    border-radius: 5px 0 0 5px;
+}
+
+.month-btn {
+    border-radius: 0 5px 5px 0;
+}
+</style>
