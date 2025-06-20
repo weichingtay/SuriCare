@@ -76,9 +76,11 @@
 import { computed } from 'vue'
 import { useCssVar } from '@vueuse/core'
 import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 // Router
 const router = useRouter()
+const route = useRoute()
 
 // Props
 const props = defineProps({
@@ -129,6 +131,15 @@ const navigationItems = [
     route: '/guidance'
   }
 ]
+
+const currentPage = computed(() => {
+  const match = navigationItems.find(item => item.route === route.path)
+  return match.value
+})
+
+const activeTab = computed(() => {
+  return props.activeTab || currentPage.value
+})
 
 // Methods
 const handleNavClick = (tabName) => {
