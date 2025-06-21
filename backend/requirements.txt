@@ -1,0 +1,9 @@
+fastapi
+sqlmodel
+dotenv
+db
+datetime
+langchain-google-genai
+langchain-community
+google-auth
+sqlalchemy

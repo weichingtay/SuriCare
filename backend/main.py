@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import select, Session, desc, text
 from db import create_db_and_tables, get_session
 from models import *
+from pydantic import BaseModel
+from chatbot.app.model import generate_reply
 
 
 app = FastAPI()
@@ -62,3 +64,23 @@ def new_sleep(*, session: Session = Depends(get_session), sleep: SleepTime):
     session.refresh(sleep)
 
     return sleep
+
+
+# Chatbot Gemini endpoint
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+class ChatResponse(BaseModel):
+    reply: str
+
+
+@app.post('/chat/', response_model=ChatResponse)
+def chat_endpoint(payload: ChatRequest):
+    """Relay the user's message to the Gemini model and return its reply."""
+    try:
+        reply_text = generate_reply(payload.message)
+        return ChatResponse(reply=reply_text)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
