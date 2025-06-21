@@ -175,6 +175,7 @@
                 cols="12"
                 sm="4"
               >
+              <!-- TODO: FIGURE OUT HOW TO MAKE ICONS ACROSS WEBSITE THE SAME  -->
                 <v-text-field
                   v-model="growthFormData.height"
                   label="Height (cm)"
@@ -268,6 +269,7 @@
       v-model="showShareDialog"
       width="420"
     >
+      TODO: Make this its own color class
       <v-card style="background-color: #fdf9f7; color: #000">
         <v-card-title class="headline">Share Child Info</v-card-title>
         <v-card-text>
