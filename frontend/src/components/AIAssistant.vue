@@ -27,6 +27,7 @@
               class="suriai-input"
               @keyup.enter="sendMessage"
             >
+              <!-- TODO: MOVE IT OUT AND CHANGE COLOR -->
               <template v-slot:append-inner>
                 <v-btn
                   icon
@@ -64,17 +65,18 @@
 <style lang="scss" scoped>
   @use '@/styles/variables' as *;
 
-  .logo-container {
-    width: 110px;
-    height: 110px;
-    border-radius: 80%;
-    overflow: hidden;
-    background-color: $app-beige;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid $app-primary-light;
-  }
+  // TODO: MOVE TO GLOBAL STYLES
+  // .logo-container {
+  //   width: 110px;
+  //   height: 110px;
+  //   border-radius: 80%;
+  //   overflow: hidden;
+  //   background-color: $app-beige;
+  //   display: flex;
+  //   align-items: center;
+  //   justify-content: center;
+  //   border: 1px solid $app-primary-light;
+  // }
 
   /* Try targeting the field outline start/end */
   .suriai-input :deep(.v-field__outline__start),
