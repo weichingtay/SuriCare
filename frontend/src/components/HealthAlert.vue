@@ -1,3 +1,5 @@
+<!--TODO: USE AI HERE INSTEAD OF HEALTH!!-->
+
 <template>
   <div class="mb-6" v-if="hasHealthAlert">
     <h2 class="text-body-1 font-weight-medium mb-3">

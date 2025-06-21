@@ -61,10 +61,10 @@
 <script setup>
 import {  computed } from 'vue'
 import { useDatePicker } from '@/composables/useDatePicker'
-import SleepSummaryCard from '@/components/SleepSummaryCard.vue'
-import PoopSummaryCard from '@/components/PoopSummaryCard.vue'
-import MealsSummaryCard from '@/components/MealsSummaryCard.vue'
-import HealthSummaryCard from '@/components/HealthSummaryCard.vue'
+import SleepSummaryCard from '@/components/summaryCard/SleepSummaryCard.vue'
+import PoopSummaryCard from '@/components/summaryCard/PoopSummaryCard.vue'
+import MealsSummaryCard from '@/components/summaryCard/MealsSummaryCard.vue'
+import HealthSummaryCard from '@/components/summaryCard/HealthSummaryCard.vue'
 
 const props = defineProps({
   summaryData: {

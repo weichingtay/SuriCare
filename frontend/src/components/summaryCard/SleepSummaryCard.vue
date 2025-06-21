@@ -25,8 +25,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useSleepStore } from '../stores/sleep'
-import BaseSummaryCard from './BaseSummaryCard.vue'
+import { useSleepStore } from '@/stores/sleep'
+import BaseSummaryCard from '@/components/summaryCard/BaseSummaryCard.vue'
 
 const sleepStore = useSleepStore()
 const currentDate = new Date().toISOString().split('T')[0]
