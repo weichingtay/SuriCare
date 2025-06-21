@@ -1,9 +1,9 @@
 fastapi
-uvicorn
 sqlmodel
-sqlalchemy
+dotenv
+db
+datetime
 langchain-google-genai
 langchain-community
 google-auth
-dotenv
-pylint
+sqlalchemy
