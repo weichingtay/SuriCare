@@ -121,6 +121,7 @@ const weightOptions = ref({
             },
         },
         tickPlacement: 'on',
+        tickAmount: "dataPoints",
     },
     yaxis: {
         title: {
@@ -185,6 +186,7 @@ const heightOptions = ref({
             },
         },
         tickPlacement: "on",
+        tickAmount: "dataPoints",
     },
     yaxis: {
         title: {
@@ -249,6 +251,7 @@ const headOptions = ref({
             },
         },
         tickPlacement: "on",
+        tickAmount: "dataPoints",
     },
     yaxis: {
         title: {
