@@ -4,7 +4,7 @@
   <v-app theme="light">
     <!-- Welcome text -->
     <div class="welcome-content">
-      <h1 class="welcome-text">Welcome, Wei Ching</h1>
+      <h1 class="welcome-text mb-1">Welcome, Wei Ching</h1>
       <p class="welcome-subtitle">Let's check on your little one today</p>
     </div>
     <!-- Main content area -->

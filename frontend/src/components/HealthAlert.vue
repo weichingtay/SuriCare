@@ -3,7 +3,7 @@
 <template>
   <div class="mb-6" v-if="hasHealthAlert">
     <h2 class="text-body-1 font-weight-medium mb-3">
-      {{ currentChild.name }}'s Health Issue
+      {{ currentChild.name }}'s Smart Alert
     </h2>
 
     <v-alert
@@ -15,7 +15,7 @@
         <div class="d-flex align-center">
           <v-icon
             color="error"
-            class="mr-3"
+            class="mr-3 ml-1"
           >mdi-alert-circle</v-icon>
           <div>
             <div class="text-body-1 font-weight-medium mb-1">
@@ -36,7 +36,7 @@
           size="small"
           variant="flat"
           color="error"
-          class="text-white"
+          class="text-white mr-3"
           @click="handleViewMore"
         >
           View More
