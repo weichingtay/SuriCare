@@ -77,7 +77,8 @@
           </v-menu>
         </div>
 
-        <!-- Growth data cards moved here -->
+        <!-- Growth data cards -->
+         <!-- TODO: THE HOVER HERE LOOKS ABIT DIFFERENT ADJUST IT -->
         <div class="growth-cards">
           <div
             class="growth-card combined-card"

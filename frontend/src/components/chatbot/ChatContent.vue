@@ -193,13 +193,19 @@
 
 <style scoped>
   .chat-content {
-    height: calc(100vh - 64px);
+    /* Let flexbox handle the sizing so this section uses only the space that
+       remains after the header. */
+    flex: 1 1 auto;
+    min-height: 0; /* Important so the internal scroll container can shrink */
+    overflow: hidden; /* Prevent the whole page from scrolling */
     background-color: #faf9f5;
   }
 
   .messages-container {
+    /* height: calc(100vh - (72px + 800px)); */
     overflow-y: auto;
     flex-grow: 1;
+    min-height: 0; /* Allow the container to shrink and scroll instead of forcing the page to grow */
   }
 
   .empty-state {

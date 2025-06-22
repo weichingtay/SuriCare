@@ -48,12 +48,14 @@ body, .v-application {
   padding-top: 72px;
   position: relative;
   z-index: 1;
-  height: 100vh;
-  overflow: auto;
+  // height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .custom-main-content {
   height: calc(100vh - 72px);
+  // height: 100%;
   padding: 23px;
   position: relative;
   overflow-y: auto;
