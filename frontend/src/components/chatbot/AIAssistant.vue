@@ -13,35 +13,41 @@
         </div>
         <div class="d-flex flex-column flex-grow-1">
           <div class="text-body-1 font-weight-medium mb-1">SuriAI</div>
-          <div class="text-body-2 text-grey suriai-description mb-3">
+          <div class="text-body-2 text-grey suriai-description mb-1">
             Powered by AI for childcare guidance. SuriAI can help with sleep
             patterns, meal suggestions, development milestones, and more.
           </div>
-          <div class="suriai-input-container d-flex align-center gap-2">
-            <v-text-field
-              v-model="message"
-              placeholder="Type your questions here"
-              variant="outlined"
-              density="comfortable"
-              hide-details
-              class="suriai-input flex-grow-1"
-              @keyup.enter="sendMessage"
-            >
-            </v-text-field>
-            <v-btn
-              icon
-              size="small"
-              class="suriai-send-button ml-3"
-              variant="flat"
-              @click="sendMessage"
-            >
-              <v-icon>mdi-send</v-icon>
-            </v-btn>
-          </div>
-        </div>
-      </div>
+          <div class="suriai-input-container">
+  <v-card
+    class="input-card"
+    variant="outlined"
+  >
+    <div class="d-flex align-center px-4 py-2">
+      <v-text-field
+        v-model="message"
+        placeholder="Type your questions here"
+        variant="plain"
+        hide-details
+        class="flex-grow-1 centered-input"
+        @keyup.enter="sendMessage"
+      />
+      <v-btn
+        icon
+        variant="text"
+        color="#D87179"
+        @click="sendMessage"
+        :disabled="!message.trim()"
+        class="ml-2"
+      >
+        <v-icon>mdi-send</v-icon>
+      </v-btn>
     </div>
-  </div>
+  </v-card>
+</div>
+</div>
+</div>
+</div>
+</div>
 </template>
 
 <script setup>
@@ -76,15 +82,31 @@
   // }
 
   /* Try targeting the field outline start/end */
-  .suriai-input :deep(.v-field__outline__start),
-  .suriai-input :deep(.v-field__outline__notch),
-  .suriai-input :deep(.v-field__outline__end) {
-    border-color: $app-primary-light !important;
-  }
+  .input-card {
+  background-color: white;
+  border: 1.5px solid #d87179;
+  border-radius: 12px;
+  overflow: hidden;
+}
 
-  .suriai-input :deep(.v-field--focused .v-field__outline__start),
-  .suriai-input :deep(.v-field--focused .v-field__outline__notch),
-  .suriai-input :deep(.v-field--focused .v-field__outline__end) {
-    border-color: $app-primary !important;
-  }
+.input-card :deep(.v-field__outline) {
+  display: none;
+}
+
+.input-card :deep(.v-field) {
+  border-radius: 24px;
+}
+
+.centered-input :deep(.v-field__input) {
+  align-items: center;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.centered-input :deep(.v-field__field) {
+  display: flex;
+  align-items: center;
+}
+
+// Remove the old suriai-input styles
 </style>
