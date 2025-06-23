@@ -16,7 +16,12 @@ export interface Child {
 
 export const useChildrenStore = defineStore('children', () => {
   // State
-  const children = ref<Child[]>([
+  const children = ref<Child[]>([])
+
+  const currentChildId = ref<number>(1) // Default to first child
+
+  // Demo fallback dataset
+  const demoChildren: Child[] = [
     {
       id: 1,
       name: 'Jennie',
@@ -41,13 +46,55 @@ export const useChildrenStore = defineStore('children', () => {
         lastUpdated: new Date('2025-04-20'),
       },
     },
-  ])
+  ]
 
-  const currentChildId = ref<number>(1) // Default to first child
+  // Helper: calculate age in years from birth_date
+  const calcAge = (birthDateStr: string): number => {
+    const bd = new Date(birthDateStr)
+    const diff = Date.now() - bd.getTime()
+    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25))
+  }
+
+  // Action: load children from Supabase
+  const loadChildren = async () => {
+    const { supabase } = await import('@/plugins/supabase') // lazy import to avoid circular deps
+    const { data, error } = await supabase
+      .from('child')
+      .select('*')
+
+    if (error) {
+      console.error('Failed to load children', error.message)
+      children.value = demoChildren
+      return
+    }
+
+    if (!data || data.length === 0) {
+      children.value = demoChildren
+      return
+    }
+
+    children.value = data.map(row => ({
+      id: row.id,
+      name: row.name,
+      age: calcAge(row.birth_date),
+      avatar: 'https://placehold.co/100x100', // placeholder; swap if you store avatars
+      growth: {
+        height: 0,
+        weight: 0,
+        headCircumference: 0,
+        lastUpdated: new Date(row.birth_date),
+      },
+    }))
+  }
 
   // Getters
   const currentChild = computed(() => {
-    return children.value.find(child => child.id === currentChildId.value) || children.value[0]
+    if (children.value.length === 0) {
+      return demoChildren[0]
+    }
+    return (
+      children.value.find(child => child.id === currentChildId.value) || children.value[0]
+    )
   })
 
   // Actions
@@ -99,5 +146,6 @@ export const useChildrenStore = defineStore('children', () => {
     updateChildGrowth,
     addChild,
     removeChild,
+    loadChildren,
   }
 }) 
