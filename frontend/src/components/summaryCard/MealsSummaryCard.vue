@@ -6,6 +6,7 @@
     unit="meals"
     :status-note="statusNote"
     :status-class="statusClass"
+    checkin-type="meal"
     @check-in="handleCheckIn"
   >
     <template #breakdown>
@@ -56,9 +57,10 @@ const {
   getPieSlicePath
 } = useMeals(mealsData)
 
-const handleCheckIn = () => {
-  console.log('Meal check-in clicked')
-  // TODO: Implement check-in functionality
+const emit = defineEmits(['check-in'])
+
+const handleCheckIn = (type) => {
+  emit('check-in', type)
 }
 </script>
 

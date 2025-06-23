@@ -1,11 +1,12 @@
 <template>
   <BaseSummaryCard
-    title="Bowel Movements"
+    title="Poop"
     icon="mdi-emoticon-poop"
     :main-value="poopData?.count || 0"
     unit="times"
     :status-note="statusNote"
     status-class="status-positive"
+    checkin-type="poop"
     @check-in="handleCheckIn"
   />
 </template>
@@ -24,8 +25,9 @@ const statusNote = computed(() => {
   return `${unusualCount} Unusual`
 })
 
-const handleCheckIn = () => {
-  console.log('Poop check-in clicked')
-  // TODO: Implement check-in functionality using poopStore.updatePoopForDate
+const emit = defineEmits(['check-in'])
+
+const handleCheckIn = (type) => {
+  emit('check-in', type)
 }
 </script>

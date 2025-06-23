@@ -40,31 +40,45 @@
       </v-menu>
     </div>
 
-    <!-- TODO: Make every summary card highlight a unique color? -->
     <!-- Summary cards grid -->
     <v-row>
       <!-- Meal Card -->
-      <MealsSummaryCard :mealsData="summaryData.meals" />
+      <MealsSummaryCard 
+        :date="formattedSelectedDate" 
+        @check-in="openDialog" 
+      />
 
       <!-- Sleep Card -->
-      <SleepSummaryCard :sleepData="summaryData.sleep" />
+      <SleepSummaryCard @check-in="openDialog" />
 
       <!-- Poop Card -->
-      <PoopSummaryCard :poopData="summaryData.poop" />
+      <PoopSummaryCard @check-in="openDialog" />
 
       <!-- Health Card -->
-      <HealthSummaryCard :healthData="summaryData.health" />
+      <HealthSummaryCard @check-in="openDialog"/>
     </v-row>
+
+    <!-- Combined Check-in Dialog -->
+    <CombinedCheckinDialog 
+      v-model="showDialog" 
+      :default-tab="dialogTab"
+      :child-name="childName"
+      @save="handleCheckinSave"
+    />
   </div>
 </template>
 
 <script setup>
-import {  computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useDatePicker } from '@/composables/useDatePicker'
 import SleepSummaryCard from '@/components/summaryCard/SleepSummaryCard.vue'
 import PoopSummaryCard from '@/components/summaryCard/PoopSummaryCard.vue'
 import MealsSummaryCard from '@/components/summaryCard/MealsSummaryCard.vue'
 import HealthSummaryCard from '@/components/summaryCard/HealthSummaryCard.vue'
+import CombinedCheckinDialog from '@/components/checkins/CombinedCheckinDialog.vue'
+
+const showDialog = ref(false)
+const dialogTab = ref('meal')
 
 const props = defineProps({
   summaryData: {
@@ -74,10 +88,14 @@ const props = defineProps({
   initialDate: {
     type: Date,
     default: () => new Date()
+  },
+  childName: {
+    type: String,
+    default: 'Jennie'
   }
 })
 
-const emit = defineEmits(['date-changed'])
+const emit = defineEmits(['date-changed', 'checkin-saved'])
 
 // Use date picker composable
 const { selectedDate, datePickerMenu, formattedSelectedDate, handleDateChange: baseDateChange } = useDatePicker(props.initialDate)
@@ -97,7 +115,6 @@ const dynamicTitle = computed(() => {
   // Format the selected date for display
   const options = { 
     weekday: 'long'
- 
   }
   
   // Check if it's yesterday
@@ -119,8 +136,27 @@ const handleDateChange = (date) => {
     emit('date-changed', newDate)
   })
 }
+
+// Handle opening dialog with specific tab
+const openDialog = (type) => {
+  dialogTab.value = type
+  showDialog.value = true
+}
+
+// Handle saving checkin data
+const handleCheckinSave = (checkinData) => {
+  console.log('Checkin saved:', checkinData)
+  emit('checkin-saved', checkinData)
+  
+  // TODO: Update the relevant store with the new checkin data
+  // Example:
+  // if (checkinData.type === 'meal') {
+  //   mealsStore.addMeal(checkinData)
+  // } else if (checkinData.type === 'sleep') {
+  //   sleepStore.addSleep(checkinData)
+  // } etc...
+}
 </script>
 
 <style lang="scss" scoped>
-
-</style> 
+</style>

@@ -24,7 +24,7 @@
                     variant="flat"
                     color="primary"
                     class="check-in-btn btn-light-blue"
-                    @click="$emit('check-in')"
+                    @click="handleCheckInClick"
                 >
                     Check In
                 </v-btn>
@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-    defineProps({
+    const props = defineProps({
         title: {
             type: String,
             required: true,
@@ -90,9 +90,17 @@
             type: String,
             default: 'status-positive',
         },
+        checkinType: { 
+            type: String, 
+            required: true 
+        },
     })
 
-    defineEmits(['check-in'])
+    const emit = defineEmits(['check-in'])
+
+    const handleCheckInClick = () => {
+        emit('check-in', props.checkinType)
+    }
 </script>
 
 <style scoped>

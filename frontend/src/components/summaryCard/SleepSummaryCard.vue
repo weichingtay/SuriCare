@@ -6,6 +6,7 @@
     unit="hours"
     :status-note="statusNote"
     status-class="status-positive"
+    checkin-type="sleep"
     @check-in="handleCheckIn"
   >
     <template #breakdown>
@@ -46,8 +47,9 @@ const statusNote = computed(() => {
   return 'Jennie slept well through today'
 })
 
-const handleCheckIn = () => {
-  console.log('Sleep check-in clicked')
-  // TODO: Implement check-in functionality using sleepStore.updateSleepForDate
+const emit = defineEmits(['check-in'])
+
+const handleCheckIn = (type) => {
+  emit('check-in', type)
 }
 </script>

@@ -5,6 +5,7 @@
     :main-value="healthData?.status || 'Healthy'"
     :status-note="healthData?.message || 'No symptoms today'"
     :status-class="statusClass"
+    checkin-type="symptoms"
     @check-in="handleCheckIn"
   />
 </template>
@@ -14,6 +15,8 @@ import { computed } from 'vue'
 import BaseSummaryCard from './BaseSummaryCard.vue'
 import { useHealthStore } from '@/stores/health'
 import { storeToRefs } from 'pinia'
+
+const emit = defineEmits(['check-in'])
 
 // Get health store
 const healthStore = useHealthStore()
@@ -42,9 +45,8 @@ const statusClass = computed(() => {
   }
 })
 
-const handleCheckIn = () => {
-  console.log('Health check-in clicked')
-  // TODO: Implement health check-in functionality
+const handleCheckIn = (type) => {
+  emit('check-in', type)
 }
 </script>
 
