@@ -14,7 +14,7 @@
     <!-- Logo section at top of sidebar -->
     <template v-slot:prepend>
       <div class="logo-section">
-        <div class="logo-container">
+        <div class="logo-container" @click="goHome" style="cursor: pointer;">
           <v-avatar  rounded="lg" class="logo-avatar">
             <v-img src="@/assets/logo.jpg" />
             <div class="logo-glow"></div>
@@ -75,6 +75,12 @@
 <script setup>
 import { computed } from 'vue'
 import { useCssVar } from '@vueuse/core'
+import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+
+// Router
+const router = useRouter()
+const route = useRoute()
 
 // Props
 const props = defineProps({
@@ -97,32 +103,61 @@ const navigationItems = [
   {
     value: 'home',
     label: 'Home',
-    icon: 'mdi-home'
+    icon: 'mdi-home',
+    route: '/'
   },
   {
     value: 'checkin',
     label: 'Check-in',
-    icon: 'mdi-clipboard-check'
+    icon: 'mdi-clipboard-check',
+    route: '/checkin'
   },
   {
     value: 'dashboard',
     label: 'Dashboard',
-    icon: 'mdi-chart-line'
+    icon: 'mdi-chart-line',
+    route: '/dashboard'
   },
   {
     value: 'chatbot',
     label: 'Chatbot',
-    icon: 'mdi-chat'
+    icon: 'mdi-chat',
+    route: '/chatbot'
   },
   {
     value: 'guidance',
     label: 'Guidance',
-    icon: 'mdi-book-open-variant'
+    icon: 'mdi-book-open-variant',
+    route: '/guidance'
   }
 ]
 
+const currentPage = computed(() => {
+  const match = navigationItems.find(item => item.route === route.path)
+  return match.value
+})
+
+const activeTab = computed(() => {
+  return props.activeTab || currentPage.value
+})
+
 // Methods
 const handleNavClick = (tabName) => {
+  const selectedItem = navigationItems.find(item => item.value === tabName)
+  if (selectedItem) {
+    router.push(selectedItem.route)
+  }
   emit('nav-change', tabName)
 }
+
+const goHome = () => {
+  router.push('/')
+  emit('nav-change', 'home')
+}
 </script>
+
+<style lang="css" scoped>
+:deep(.v-list-item__overlay) {
+  opacity: 0 !important;
+}
+</style>

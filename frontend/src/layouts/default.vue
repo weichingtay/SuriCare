@@ -2,24 +2,40 @@
   <v-app class="custom-app">
     <!-- Background -->
     <div class="app-background"></div>
-    
+
     <!-- Navigation sidebar -->
-    <AppNavigation 
+    <AppNavigation
       :activeTab="activeTab"
       @nav-change="handleNavChange"
+      v-if="!hideComponent.includes(route.name)"
     />
-    
+
     <!-- Header -->
-    <AppHeader 
+    <AppHeader
       :currentChild="childrenStore.currentChild"
       :children="childrenStore.children"
       @child-selected="childrenStore.selectChild"
+      v-if="!hideComponent.includes(route.name)"
     />
-    
-    <v-main class="custom-main">
-      <div class="custom-main-content">
+
+    <v-main
+      class="custom-main"
+      v-if="!hideComponent.includes(route.name)"
+    >
+      <div class="chatbot-content" v-if="chatbotPage.includes(route.name)">
         <router-view />
       </div>
+    
+      <div class="custom-main-content" v-else>
+        <router-view />
+      </div>
+    </v-main>
+
+    <v-main
+      class="custom-main-wo-header-nav"
+      v-else
+    >
+      <router-view />
     </v-main>
 
     <!-- Growth dialog now handled inside AppHeader component -->
@@ -29,21 +45,38 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
-// import AppHeader from '@/components/AppHeader.vue'
-// import AppNavigation from '@/components/AppNavigation.vue'
-import { useChildrenStore } from '@/stores/children'
+  import { ref } from 'vue'
+  // import AppHeader from '@/components/AppHeader.vue'
+  // import AppNavigation from '@/components/AppNavigation.vue'
+  import { useChildrenStore } from '@/stores/children'
+  import { useRoute } from 'vue-router'
 
-// Use the children store
-const childrenStore = useChildrenStore()
+  const route = useRoute()
 
-const activeTab = ref('home')
+  // Use the children store
+  const childrenStore = useChildrenStore()
 
-const handleNavChange = (tabName: string) => {
-  activeTab.value = tabName
-}
+  const activeTab = ref('')
+
+  const handleNavChange = (tabName: string) => {
+    activeTab.value = tabName
+  }
+
+  const hideComponent = ['/login', '/addChild', '/signup']
+  const chatbotPage = ['/chatbot']
 </script>
 
 <style lang="scss" scoped>
+.custom-main-wo-header-nav {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  overflow: auto;
+}
 
+.chatbot-content {
+  height: calc(100vh - 72px);
+  position: relative;
+  overflow-y: auto;
+}
 </style>
