@@ -8,8 +8,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AccountTypeSelector: typeof import('./components/signup/AccountTypeSelector.vue')['default']
     AccountDialog: typeof import('./components/AccountDialog.vue')['default']
+    AccountTypeSelector: typeof import('./components/signup/AccountTypeSelector.vue')['default']
     AddChildForm: typeof import('./components/addChild/AddChildForm.vue')['default']
     AIAssistant: typeof import('./components/chatbot/AIAssistant.vue')['default']
     AlertCard: typeof import('./components/guidance/AlertCard.vue')['default']
@@ -31,6 +31,7 @@ declare module 'vue' {
     HealthAlert: typeof import('./components/HealthAlert.vue')['default']
     HealthSummaryCard: typeof import('./components/summaryCard/HealthSummaryCard.vue')['default']
     LoginForm: typeof import('./components/login/LoginForm.vue')['default']
+    LogMealDialog: typeof import('./components/dialog/LogMealDialog.vue')['default']
     MealDialog: typeof import('./components/dialog/MealDialog.vue')['default']
     MealsSummaryCard: typeof import('./components/summaryCard/MealsSummaryCard.vue')['default']
     NavigationTabs: typeof import('./components/guidance/NavigationTabs.vue')['default']
@@ -51,4 +52,3 @@ declare module 'vue' {
     WelcomeSection: typeof import('./components/login/WelcomeSection.vue')['default']
   }
 }
-
