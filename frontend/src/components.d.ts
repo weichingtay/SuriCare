@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AccountTypeSelector: typeof import('./components/signup/AccountTypeSelector.vue')['default']
+    AccountDialog: typeof import('./components/AccountDialog.vue')['default']
     AddChildForm: typeof import('./components/addChild/AddChildForm.vue')['default']
     AIAssistant: typeof import('./components/chatbot/AIAssistant.vue')['default']
     AlertCard: typeof import('./components/guidance/AlertCard.vue')['default']
@@ -18,6 +19,7 @@ declare module 'vue' {
     AppNavigation: typeof import('./components/AppNavigation.vue')['default']
     ArticleCard: typeof import('./components/guidance/ArticleCard.vue')['default']
     ArticleGrid: typeof import('./components/guidance/ArticleGrid.vue')['default']
+    BaseCheckInDialog: typeof import('./components/dialog/BaseCheckInDialog.vue')['default']
     BaseSummaryCard: typeof import('./components/summaryCard/BaseSummaryCard.vue')['default']
     ChatContent: typeof import('./components/chatbot/ChatContent.vue')['default']
     ChatSidebar: typeof import('./components/chatbot/ChatSidebar.vue')['default']
@@ -25,12 +27,14 @@ declare module 'vue' {
     ChildNameInput: typeof import('./components/addChild/ChildNameInput.vue')['default']
     DateOfBirthPicker: typeof import('./components/addChild/DateOfBirthPicker.vue')['default']
     GenderSelect: typeof import('./components/addChild/GenderSelect.vue')['default']
+    GrowthDialog: typeof import('./components/dialog/GrowthDialog.vue')['default']
     HealthAlert: typeof import('./components/HealthAlert.vue')['default']
     HealthSummaryCard: typeof import('./components/summaryCard/HealthSummaryCard.vue')['default']
     LoginForm: typeof import('./components/login/LoginForm.vue')['default']
-    LogMealDialog: typeof import('./components/dialog/LogMealDialog.vue')['default']
+    MealDialog: typeof import('./components/dialog/MealDialog.vue')['default']
     MealsSummaryCard: typeof import('./components/summaryCard/MealsSummaryCard.vue')['default']
     NavigationTabs: typeof import('./components/guidance/NavigationTabs.vue')['default']
+    PoopDialog: typeof import('./components/dialog/PoopDialog.vue')['default']
     PoopSummaryCard: typeof import('./components/summaryCard/PoopSummaryCard.vue')['default']
     ProfilePhotoUpload: typeof import('./components/addChild/ProfilePhotoUpload.vue')['default']
     RelationshipSelect: typeof import('./components/addChild/RelationshipSelect.vue')['default']
@@ -39,9 +43,12 @@ declare module 'vue' {
     SavedView: typeof import('./components/guidance/SavedView.vue')['default']
     SignUpActions: typeof import('./components/signup/SignUpActions.vue')['default']
     SignUpFormFields: typeof import('./components/signup/SignUpFormFields.vue')['default']
+    SleepDialog: typeof import('./components/dialog/SleepDialog.vue')['default']
     SleepSummaryCard: typeof import('./components/summaryCard/SleepSummaryCard.vue')['default']
     SubmitButton: typeof import('./components/addChild/SubmitButton.vue')['default']
+    SymptomDialog: typeof import('./components/dialog/SymptomDialog.vue')['default']
     TodaysSummary: typeof import('./components/summaryCard/TodaysSummary.vue')['default']
     WelcomeSection: typeof import('./components/login/WelcomeSection.vue')['default']
   }
 }
+
