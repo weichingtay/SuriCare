@@ -45,4 +45,31 @@ watch(activeTab, (newTab) => {
 .inactive {
   color: #797675;
 }
+
+/* Override global v-btn styling for tabs only */
+:deep(.v-tab.v-btn) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  text-transform: none !important;
+  font-weight: normal !important;
+  min-width: auto !important;
+  padding: 12px 16px !important;
+}
+
+:deep(.v-tab.v-btn:hover) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:deep(.v-tab.v-btn:focus) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:deep(.v-tab.v-btn.v-tab--selected) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
 </style>

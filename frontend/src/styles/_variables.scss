@@ -28,9 +28,13 @@ $glass-blur-md: 20px;
 // Spacing
 $spacing-xs: 4px;
 $spacing-sm: 8px;
-$spacing-md: 16px;
-$spacing-lg: 24px;
-$spacing-xl: 32px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+$spacing-xl: 20px;    // step 5 (updated)
+$spacing-2xl: 24px;   // step 6 (new)
+$spacing-3xl: 28px;   // step 7 (new)
+$spacing-4xl: 32px;
+
 // Text colors
 $app-text-primary: #2c1810;     // Warm dark brown instead of black
 $app-text-secondary: #5d4037;   // Medium warm brown
@@ -72,16 +76,16 @@ $font-child: 'Inter', 'Comic Sans MS', cursive;
 
 
 // Navigation specific
-$nav-icon-size: 35px;
-$nav-icon-wrapper-size: 44px;
+$nav-icon-size: 30px;
+$nav-icon-wrapper-size: 30px;
 $nav-icon-active-color: $app-text-primary;
 $nav-icon-inactive-color: rgba($app-text-primary, 0.6);
-$nav-item-height: 60px;
+$nav-item-height: 50px;
 $nav-item-margin: $spacing-sm;
 $nav-label-font-size: 10px;
 $nav-label-max-width: 102px;
 // Logo sizes
-$logo-size: 80px;
+$logo-size: 70px;
 
 // Border radius
 $border-radius-sm: 6px;
