@@ -51,3 +51,4 @@ langchain-google-genai
 langchain-community
 google-auth
 sqlalchemy
+

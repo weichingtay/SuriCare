@@ -52,3 +52,4 @@ declare module 'vue' {
     WelcomeSection: typeof import('./components/login/WelcomeSection.vue')['default']
   }
 }
+

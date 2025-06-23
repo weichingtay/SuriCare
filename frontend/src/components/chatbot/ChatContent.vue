@@ -198,7 +198,6 @@
     flex: 1 1 auto;
     min-height: 0; /* Important so the internal scroll container can shrink */
     overflow: hidden; /* Prevent the whole page from scrolling */
-    background-color: #faf9f5;
   }
 
   .messages-container {

@@ -171,3 +171,4 @@ def chat_endpoint(payload: ChatRequest):
         return ChatResponse(reply=reply_text)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
