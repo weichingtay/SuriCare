@@ -77,6 +77,7 @@ const isActiveChat = (chatId) => {
 <style scoped>
 .chat-sidebar {
   border-right: 1px solid rgba(0, 0, 0, 0.12);
+  overflow: hidden;
 }
 
 .date-header {

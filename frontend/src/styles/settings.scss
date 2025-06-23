@@ -8,7 +8,6 @@
 // Import Google Fonts
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@200..800&family=Fredoka:wght@300..700&display=swap');
 
-
 // Global styles
 html {
   font-size: 16px;
@@ -27,6 +26,14 @@ body {
 }
 
 // Vuetify overrides
+// NOTE: THIS IS NEEDED TO MAKE THE NEW RENDERED MAIN CONTENT NOT OVERFLOW TO THE BOTTOM
+.v-application__wrap {
+  /* Let the routed pages decide their own height.
+     100% means “at least as tall as its parent flex-column”, 
+     but it will also shrink if the parent shrinks. */
+  min-height: 100% !important;
+}
+
 // .v-application {
 //   font-family: var(--font-primary);
 //   background: transparent;
@@ -51,4 +58,6 @@ body {
 
 // .v-alert {
 //   border-radius: var(--border-radius-sm) !important;
-// } 
+// }
+// for testing purposes
+// * { outline: 1px dashed red !important; }

@@ -31,7 +31,9 @@
 import { ref, computed } from "vue";
 import ChatSidebar from "../components/chatbot/ChatSidebar.vue";
 import ChatContent from "../components/chatbot/ChatContent.vue";
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 // State
 const chatHistory = ref([
   {
@@ -116,21 +118,34 @@ const handleSendMessage = (message) => {
         message.slice(0, 20) + (message.length > 20 ? "..." : "");
     }
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = {
-        id: Date.now() + 1,
-        text: "This is a simulated AI response to: " + message,
-        sender: "ai",
-      };
-      chatHistory.value[currentChatIndex].messages.push(aiResponse);
-    }, 1000);
+    // Call backend Gemini endpoint
+    fetch("http://localhost:8000/chat/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const aiResponse = {
+          id: Date.now() + 1,
+          text: data.reply ?? "(No response)",
+          sender: "ai",
+        };
+        chatHistory.value[currentChatIndex].messages.push(aiResponse);
+      })
+      .catch((error) => {
+        console.error("AI request failed:", error);
+        chatHistory.value[currentChatIndex].messages.push({
+          id: Date.now() + 1,
+          text: "Sorry, I couldn't fetch a response. Please try again later.",
+          sender: "ai",
+        });
+      });
   }
 };
 </script>
 
 <style scoped>
-.v-main {
-  background-color: #faf9f5;
-}
 </style>
