@@ -39,20 +39,44 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref, onMounted, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import { useGuidanceAlert } from '@/composables/useGuidanceAlert'
 
-  const { alertsCount  } = useGuidanceAlert()
+  const { alertsCount } = useGuidanceAlert()
+  const route = useRoute()
+  const router = useRouter()
 
   const activeTab = ref('guidance')
 
   // Emit the active tab to parent component
   const emit = defineEmits(['tab-changed'])
 
-  // Watch for tab changes and emit to parent
-  import { watch } from 'vue'
+  // Initialize tab based on route query parameter
+  onMounted(() => {
+    const tabFromQuery = route.query.tab
+    if (tabFromQuery && ['guidance', 'alert', 'saved'].includes(tabFromQuery)) {
+      activeTab.value = tabFromQuery
+      emit('tab-changed', tabFromQuery)
+    }
+  })
+
+  // Watch for tab changes and emit to parent + update URL
   watch(activeTab, (newTab) => {
     emit('tab-changed', newTab)
+    
+    // Update URL query parameter without triggering navigation
+    router.replace({
+      query: { ...route.query, tab: newTab }
+    })
+  })
+
+  // Watch for route changes (e.g., browser back/forward)
+  watch(() => route.query.tab, (newTab) => {
+    if (newTab && ['guidance', 'alert', 'saved'].includes(newTab)) {
+      activeTab.value = newTab
+      emit('tab-changed', newTab)
+    }
   })
 </script>
 

@@ -160,12 +160,14 @@
     summaryStore.loadSummaryForDate(date, childrenStore.currentChild.id)
   }
 
-  // Handle health alert view more
-  const handleHealthAlert = (alert) => {
-    console.log('Health alert clicked:', alert)
-    router.push('/guidance')
-    // Handle health alert navigation
-  }
+ // Handle health alert view more
+const handleHealthAlert = (alert) => {
+  console.log('Health alert clicked:', alert)
+  router.push({
+    path: '/guidance',
+    query: { tab: 'alert' }
+  })
+}
 
   // Handle view history
   const handleViewHistory = (child) => {

@@ -43,7 +43,7 @@
                     <v-date-picker
                       v-model="selectedDate"
                       @update:model-value="datePickerMenu = false"
-                      color= "rgba($app-primary, 0.1) !important"
+                      color=rgba($app-primary, 0.1) !important
                     ></v-date-picker>
                   </v-card>
                 </v-menu>
@@ -376,7 +376,7 @@ const categories = ref([
   { value: 'growth', label: 'Growth' },
   { value: 'meal', label: 'Meal' },
   { value: 'sleep', label: 'Sleep' },
-  { value: 'poop', label: 'Poop' },
+  { value: 'poop', label: 'Stool' },
   { value: 'health', label: 'Health' }
 ])
 

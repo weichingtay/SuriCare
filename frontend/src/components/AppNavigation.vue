@@ -118,7 +118,7 @@ const navigationItems = [
   },
   {
     value: 'checkin',
-    label: 'Check-in',
+    label: 'History',
     icon: 'mdi-clipboard-check',
     route: '/checkin'
   },

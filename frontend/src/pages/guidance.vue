@@ -21,16 +21,24 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref, onMounted, provide } from 'vue'
+  import { useRoute } from 'vue-router'
   import AppHeader from '../components/AppHeader.vue'
   import NavigationTabs from '../components/guidance/NavigationTabs.vue'
   import ArticleGrid from '../components/guidance/ArticleGrid.vue'
   import AlertsView from '../components/guidance/AlertsView.vue'
   import SavedView from '../components/guidance/SavedView.vue'
-  import { useRouter } from 'vue-router'
 
-const router = useRouter()
+  const route = useRoute()
   const currentTab = ref('guidance')
+
+  // Initialize tab based on route query parameter
+  onMounted(() => {
+    const tabFromQuery = route.query.tab
+    if (tabFromQuery && ['guidance', 'alert', 'saved'].includes(tabFromQuery)) {
+      currentTab.value = tabFromQuery
+    }
+  })
 
   const handleTabChange = (tab) => {
     currentTab.value = tab

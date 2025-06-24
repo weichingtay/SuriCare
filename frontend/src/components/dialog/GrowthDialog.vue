@@ -3,8 +3,8 @@
         :model-value="modelValue"
         @update:model-value="handleDialogUpdate"
         max-width="841px"
-        icon="mdi-food-apple"
-        icon-color="#4CAF50"
+        icon="mdi-ruler"
+        icon-color="#c85862"
         title="Growth"
         subtitle="How is Jennie growing?"
         :notes="notes"
@@ -34,7 +34,7 @@
                         >
                             <template #prepend-inner>
                                 <v-icon size="20" color="grey-darken-1">
-                                    mdi-scale-bathroom
+                                    mdi-weight-kilogram
                                 </v-icon>
                             </template>
                         </v-text-field>

@@ -1,4 +1,4 @@
-<!--TODO: USE AI HERE INSTEAD OF HEALTH!!-->
+<!-- TODO: USE AI HERE INSTEAD OF HEALTH!! -->
 
 <template>
   <div class="mb-6" v-if="hasHealthAlert">
@@ -64,4 +64,4 @@ const handleViewMore = () => {
   emit('view-more', healthData.value)
 }
 </script>
-
+ 
