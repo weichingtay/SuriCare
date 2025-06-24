@@ -4,7 +4,7 @@ from sqlmodel import select, Session, desc
 from db import engine, create_db_and_tables, get_session
 from models import *
 from pydantic import BaseModel
-from chatbot.app.model import generate_reply
+# from chatbot.app.model import generate_reply
 
 
 import pandas as pd
