@@ -1,17 +1,22 @@
 <template>
     <v-dialog
+        class="main-dialog"
         :model-value="modelValue"
         @update:model-value="$emit('update:modelValue', $event)"
-        max-width="600px" 
+         :max-width="maxWidth"
+        :width="width"
+        :min-width="minWidth"
         persistent
+        
     > <!--TODO:BUT DIFFERENT DIALOG HAS DIFFERENT MAX-WIDTH-->
         <v-card 
             class="checkin-dialog-card" 
             elevation="0" 
-            rounded="12"
+            style = "border:1px solid #e0e0e0;"
+            
         >
             <!-- Checkin Dialog Header -->
-            <div class="checkin-dialog-header">
+            <div class="checkin-dialog-header d-flex align-center justify-space-between">
                 <div class="d-flex align-center">
                     <v-icon
                         :color="iconColor"
@@ -22,15 +27,16 @@
                     </v-icon>
                     <span class="checkin-dialog-title">{{ title }}</span>
                 </div>
-                <v-btn 
+                    <v-btn 
                     icon="mdi-close" 
                     variant="text" 
-                    size="small" 
+                    size="medium" 
                     color="grey"
                     @click="$emit('close')"
                     :disabled="loading"
-                />
-                   <!--small button size-->
+                    
+                    />
+                    <!--small button size-->
                    <!-- $emit: Emit event when clicked | @click="$emit('check-in')"-Send events to parent-->
             </div>
             
@@ -43,19 +49,15 @@
             </div>
             
             <!-- Dialog Content -->
-            <v-card-text class="dialog-content">
+            <!-- Custom Content Slot -->
+            <div v-if="$slots['custom-content']" class="dialog-custom-content"
+            >   <!--HERE GOT ISSUES  name="custom-content"-->
+                <slot name="custom-content"></slot>
+            </div> <!-- Only show if slot content exists --> 
+            <!--<slot name="breakdown"> - Parent can inject custom content-->
+        
 
-                <!-- Custom Content Slot -->
-                <div
-                    v-if="$slots.content" 
-                    class="dialog-custom-content"
-                >
-                    <slot name="custom-content"></slot>
-                </div> <!-- Only show if slot content exists --> 
-                <!--<slot name="breakdown"> - Parent can inject custom content-->
-                
-
-                <!-- Notes Section -->
+            <!-- Notes Section -->
                 <div class="dialog-notes-section">
                     <label class="dialog-notes-label">
                         Remark/Notes
@@ -71,12 +73,11 @@
                         class="notes-textarea"
                     />
                 </div>
-            </v-card-text>
-            
+
             <!-- Dialog Save Button -->
             <div class="dialog-save-button-footer">
                 <v-spacer />
-                <v-btn 
+                <v-btn
                     variant="flat" 
                     size="large " 
                     rounded="8"
@@ -99,7 +100,20 @@
             type: Boolean,
             default: false
         },
-        
+        maxWidth: {
+            type: [String, Number],
+            default: "800px"
+        },
+        width: {
+            type: [String, Number],
+            default: undefined 
+        },
+        minWidth: {
+            type: [String, Number],
+            default: "320px"
+        },
+
+
         // Header Props
         title: {
             type: String,
@@ -147,74 +161,101 @@
 </script>
 
 <style scoped>
-    .dialog-card {
+
+    
+
+    .checkin-dialog-card {
         border: 1px solid #e0e0e0;
         background: white;
         margin: 0 auto;
+        padding: 24px !important;
+        box-sizing: border-box;
+    
     }
 
+   
     /* Dialog Header */
-    .dialog-header {
+    .checkin-dialog-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px;
-        border-bottom: 1px solid #f5f5f5;
+        margin-bottom: 4px;
     }
 
-    .dialog-title {
-        font-size: 1.25rem;
-        font-weight: 500;
+    .checkin-dialog-title {
+        font-size: 24px;
+        font-weight: 700;
         color: black;
     }
 
     /* Dialog Subtitle */
     .dialog-subtitle {
-        padding: 12px 16px 0 16px;
         color: #666;
-        font-size: 14px;
-    }
-
-    /* Dialog Content */
-    .dialog-content {
-        padding: 16px;
-    }
-
-    .content-section {
-        margin-bottom: 16px;
-    }
-
-    /* Notes Section */
-    .notes-section {
-        margin-bottom: 16px;
-    }
-
-    .notes-label {
-        display: block;
-        margin-bottom: 12px;
-        color: #333;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 500;
     }
 
+    .dialog-custom-content{
+        margin-top: 20px;
+    }
+
+
+
+    /* Notes Section */
+    .dialog-notes-section {
+        margin-top: 20px;
+        margin-bottom: 24px;
+    }
+
+    .dialog-notes-label{
+        font-size: 12px;
+        font-weight: 500;
+        color: #333;
+       
+    }
+
+    /* Textarea styling - normal state */
+    .notes-textarea :deep(.v-field) {
+        margin-top:4px;
+        background-color: #eeeeee !important;
+        border-radius: 8px !important;
+        resize: none !important;
+    }
+
+    /* Remove default outline */
     .notes-textarea :deep(.v-field__outline) {
+        border: none !important;
+    }
+
+    /* Focused state - black border */
+    .notes-textarea :deep(.v-field--focused ) {
         border-radius: 8px;
     }
 
+    .notes-textarea :deep(textarea) {
+        resize: none !important;
+    }
+
+    .notes-textarea :deep(.v-field__input::placeholder) {
+        color: #686868 !important;
+        opacity: 1 !important;
+    }
+
+
     /* Dialog Footer */
-    .dialog-footer {
-        display: flex;
-        align-items: center;
-        padding: 16px;
-        padding-top: 0;
+   .dialog-save-button-footer {
+        display: flex ;
+        justify-content: right ;
+        width: 100%;
     }
 
     .save-btn {
-        background-color: #E57373 !important;
+        background-color: #D87179 !important;
         color: white;
         text-transform: none;
         font-weight: 500;
-        padding: 0 24px;
+        padding: 8px 16px;
+        
     }
 
     /* Remove default button effects */
@@ -230,5 +271,6 @@
     .v-btn .v-btn__content {
         color: inherit;
         font-weight: inherit;
+        
     }
 </style>
