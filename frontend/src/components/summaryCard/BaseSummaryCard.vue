@@ -12,7 +12,7 @@
             <div class="card-header">
                 <div class="d-flex align-center">
                     <v-icon
-                        color="error"
+                        color="#c85862"
                         size="20"
                         class="mr-2"
                         >{{ icon }}</v-icon
