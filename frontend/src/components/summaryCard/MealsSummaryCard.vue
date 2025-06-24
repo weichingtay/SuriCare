@@ -39,7 +39,7 @@ import { storeToRefs } from 'pinia'
 
 const props = defineProps({
   date: {
-    type: String,
+    type: Date,
     required: true
   }
 })

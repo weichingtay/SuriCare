@@ -46,21 +46,25 @@
       <!-- Meal Card -->
       <MealsSummaryCard 
       :mealsData="summaryData.meals"
+      :date="selectedDate"
       @check-in="$emit('open-meal-dialog')" />
 
       <!-- Sleep Card -->
       <SleepSummaryCard 
       :sleepData="summaryData.sleep" 
+      :date="selectedDate"
       @check-in="$emit('open-sleep-dialog')"/>
 
       <!-- Poop Card -->
       <PoopSummaryCard 
       :poopData="summaryData.poop" 
+      :date="selectedDate"
       @check-in="$emit('open-poop-dialog')"/>
 
       <!-- Health Card -->
       <HealthSummaryCard 
       :healthData="summaryData.health" 
+      :date="selectedDate"
       @check-in="$emit('open-health-dialog')"
       />
     </v-row>
