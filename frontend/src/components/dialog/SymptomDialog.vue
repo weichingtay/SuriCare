@@ -1,0 +1,507 @@
+<template>
+    <BaseCheckInDialog
+        :model-value="modelValue"
+        @update:model-value="handleDialogUpdate"
+        max-width="800px"
+        icon="mdi-stethoscope"
+        icon-color="#000000"
+        title="Symptoms"
+        subtitle="Does Jennie have any symptoms?"
+        :notes="notes"
+        @update:notes="$emit('update:notes', $event)"
+        :loading="loading"
+        @save="handleSave"
+        @close="handleClose"
+    >
+        <template #custom-content>
+            <div class="symptoms-content">
+                <!-- Symptoms Selection -->
+                <div class="symptoms-section">
+                    <label class="section-label">Symptoms</label>
+                    <div class="symptoms-buttons">
+                        <v-btn
+                            v-for="symptom in symptomOptions"
+                            :key="symptom.value"
+                            :variant="localSymptoms.includes(symptom.value) ? 'flat' : 'outlined'"
+                            :color="localSymptoms.includes(symptom.value) ? 'primary' : 'default'"
+                            size="small"
+                            rounded="20"
+                            @click="toggleSymptom(symptom.value)"
+                            :disabled="loading"
+                            class="symptom-btn"
+                        >
+                            <v-icon 
+                                :icon="symptom.icon" 
+                                size="14" 
+                                class="mr-1"
+                            />
+                            {{ symptom.label }}
+                        </v-btn>
+                    </div>
+                    
+                    <div v-if="localSymptoms.includes('other')" class="other-symptom-section" style="margin-top: 16px;">
+                        <label class="section-label">Specify other symptoms</label>
+                        <v-text-field
+                            v-model="localOtherSymptom"
+                            placeholder="Please describe the specific symptoms"
+                            variant="outlined"
+                            hide-details
+                            :disabled="loading"
+                            density="compact"
+                            :error="!!errors.otherSymptom"
+                            class="other-symptom-input"
+                            @input="clearError('otherSymptom')"
+                            @focus="clearError('otherSymptom')"
+                        />
+                        <div v-if="errors.otherSymptom" class="error-message">
+                            {{ errors.otherSymptom }}
+                        </div>
+                    </div>
+                    
+                    <div v-if="errors.symptoms" class="error-message">
+                        {{ errors.symptoms }}
+                    </div>
+                </div>
+
+                <!-- Log Photo Section -->
+                <div class="photo-section">
+                    <label class="section-label">Log Photo</label>
+                    <div 
+                        class="photo-upload-area"
+                        @click="triggerFileInput"
+                        @dragover.prevent
+                        @drop.prevent="handleFileDrop"
+                    >
+                        <v-icon size="40" color="grey-lighten-1" class="mb-2">
+                            mdi-cloud-upload-outline
+                        </v-icon>
+                        <div class="upload-title">
+                            Upload a File
+                        </div>
+                        <div class="upload-subtitle">
+                            Click to browse, or drag & drop a file here
+                        </div>
+                        <input
+                            ref="fileInput"
+                            type="file"
+                            accept="image/*"
+                            style="display: none;"
+                            @change="handleFileSelect"
+                        />
+                    </div>
+                    
+                    <div v-if="selectedFile" class="selected-file" style="margin-top: 12px;">
+                        <v-chip
+                            closable
+                            @click:close="removeFile"
+                            color="success"
+                            variant="outlined"
+                            size="small"
+                        >
+                            <v-icon start icon="mdi-file-image" size="16" />
+                            {{ selectedFile.name }}
+                        </v-chip>
+                        
+                        <div v-if="imagePreview" class="image-preview" style="margin-top: 8px;">
+                            <img 
+                                :src="imagePreview" 
+                                alt="Preview" 
+                                style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #e0e0e0;"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </BaseCheckInDialog>
+</template>
+
+<script setup>
+import { ref, watch, nextTick } from 'vue'
+import BaseCheckInDialog from '@/components/BaseCheckInDialog.vue'
+
+const props = defineProps({
+    modelValue: {
+        type: Boolean,
+        default: false
+    },
+    maxWidth: {
+            type: String,
+            default:"800px"
+        },
+    symptoms: {
+        type: Array,
+        default: () => []
+    },
+    photo: {
+        type: File,
+        default: null
+    },
+    notes: {
+        type: String,
+        default: ''
+    },
+    loading: {
+        type: Boolean,
+        default: false
+    },
+    otherSymptom: {
+        type: String,
+        default: ''
+    }
+})
+
+const emit = defineEmits([
+    'update:modelValue',
+    'update:symptoms',
+    'update:photo',
+    'update:notes',
+    'update:otherSymptom', 
+    'save',
+    'close'
+])
+
+// Symptom options exactly as shown in image
+const symptomOptions = [
+    { value: 'cough', label: 'Cough', icon: 'mdi-account-voice' },
+    { value: 'fever', label: 'Fever', icon: 'mdi-thermometer' },
+    { value: 'cold', label: 'Cold', icon: 'mdi-weather-snowy' },
+    { value: 'rash', label: 'Rash', icon: 'mdi-circle-outline' },
+    { value: 'other', label: 'Other', icon: 'mdi-dots-horizontal' }
+]
+
+// Local reactive data
+const localSymptoms = ref([])
+const selectedFile = ref(null)
+const fileInput = ref(null)
+const errors = ref({})
+
+const localOtherSymptom = ref('')
+const imagePreview = ref(null)
+
+
+let symptomsTimeout = null
+let otherSymptomTimeout = null
+
+watch(() => props.modelValue, (newValue) => {
+    if (newValue) {
+        localSymptoms.value = [...(props.symptoms || [])]
+        selectedFile.value = props.photo || null
+        localOtherSymptom.value = props.otherSymptom || ''
+        imagePreview.value = null
+        
+        if (props.photo) {
+            createImagePreview(props.photo)
+        }
+        
+        errors.value = {}
+    }
+}, { immediate: true })
+
+watch(() => props.symptoms, (newValue) => {
+    if (props.modelValue) {
+        localSymptoms.value = [...(newValue || [])]
+    }
+})
+
+watch(() => props.photo, (newValue) => {
+    if (props.modelValue) {
+        selectedFile.value = newValue || null
+        if (newValue) {
+            createImagePreview(newValue)
+        } else {
+            imagePreview.value = null
+        }
+    }
+})
+
+watch(() => props.otherSymptom, (newValue) => {
+    if (props.modelValue) {
+        localOtherSymptom.value = newValue || ''
+    }
+})
+
+watch(localSymptoms, (newValue) => {
+    if (symptomsTimeout) clearTimeout(symptomsTimeout)
+    symptomsTimeout = setTimeout(() => {
+        emit('update:symptoms', newValue)
+        if (newValue && newValue.length > 0 && errors.value.symptoms) {
+            delete errors.value.symptoms
+        }
+    }, 100)
+}, { deep: true })
+
+watch(localOtherSymptom, (newValue) => {
+    if (otherSymptomTimeout) clearTimeout(otherSymptomTimeout)
+    otherSymptomTimeout = setTimeout(() => {
+        emit('update:otherSymptom', newValue)
+        if (newValue && errors.value.otherSymptom) {
+            delete errors.value.otherSymptom
+        }
+    }, 100)
+})
+
+watch(selectedFile, (newValue) => {
+    emit('update:photo', newValue)
+    if (newValue) {
+        createImagePreview(newValue)
+    } else {
+        imagePreview.value = null
+    }
+})
+
+// Methods
+const toggleSymptom = (symptom) => {
+    const currentSymptoms = [...localSymptoms.value]
+    const index = currentSymptoms.indexOf(symptom)
+    
+    if (index > -1) {
+        currentSymptoms.splice(index, 1)
+        if (symptom === 'other') {
+            localOtherSymptom.value = ''
+        }
+    } else {
+        currentSymptoms.push(symptom)
+    }
+    
+    localSymptoms.value = currentSymptoms
+}
+
+const triggerFileInput = () => {
+    if (fileInput.value) {
+        fileInput.value.click()
+    }
+}
+
+const handleFileSelect = (event) => {
+    const file = event.target.files?.[0]
+    if (file) {
+        selectedFile.value = file
+        createImagePreview(file)
+    }
+}
+
+const handleFileDrop = (event) => {
+    const file = event.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+        selectedFile.value = file
+        createImagePreview(file)
+    }
+}
+
+const createImagePreview = (file) => {
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            imagePreview.value = e.target.result
+        }
+        reader.readAsDataURL(file)
+    }
+}
+
+const removeFile = () => {
+    selectedFile.value = null
+    imagePreview.value = null
+    if (fileInput.value) {
+        fileInput.value.value = ''
+    }
+}
+
+
+const clearError = (field) => {
+    if (errors.value[field]) {
+        delete errors.value[field]
+    }
+}
+
+// Validation
+const validateSymptoms = () => {
+    if (!localSymptoms.value || localSymptoms.value.length === 0) {
+        errors.value.symptoms = 'Please select at least one symptom'
+        return false
+    }
+    
+    delete errors.value.symptoms
+    return true
+}
+
+const validateOtherSymptom = () => {
+    if (localSymptoms.value.includes('other') && !localOtherSymptom.value.trim()) {
+        errors.value.otherSymptom = 'Please describe the specific symptoms'
+        return false
+    }
+    
+    delete errors.value.otherSymptom
+    return true
+}
+
+const validateForm = () => {
+    const isSymptomsValid = validateSymptoms()
+    const isOtherSymptomValid = validateOtherSymptom()
+    
+    return isSymptomsValid && isOtherSymptomValid
+}
+
+// Handle dialog events
+const handleDialogUpdate = (value) => {
+    emit('update:modelValue', value)
+    if (!value) {
+        nextTick(() => {
+            errors.value = {}
+            localSymptoms.value = []
+            selectedFile.value = null
+            localOtherSymptom.value = ''
+            imagePreview.value = null
+        })
+    }
+}
+
+const handleClose = () => {
+    errors.value = {}
+    localSymptoms.value = []
+    selectedFile.value = null
+    localOtherSymptom.value = ''
+    imagePreview.value = null
+    emit('close')
+}
+
+// Handle save
+const handleSave = () => {
+    if (!validateForm()) {
+        return
+    }
+
+    const symptomsData = {
+        symptoms: localSymptoms.value,
+        photo: selectedFile.value,
+        otherSymptom: localOtherSymptom.value, 
+        notes: props.notes
+    }
+    
+    errors.value = {}
+    emit('save', symptomsData)
+}
+</script>
+
+<style scoped>
+
+
+.symptoms-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.symptoms-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.section-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.symptoms-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.symptom-btn {
+    text-transform: none;
+    font-weight: 400;
+    min-width: 80px;
+    height: 32px;
+    font-size: 13px;
+    border: 1px solid #BDBDBD;
+}
+
+.symptom-btn.v-btn--variant-flat {
+    background-color: #D87179 !important;
+    color: white !important;
+}
+
+.symptom-btn.v-btn--variant-flat .v-icon {
+    color: white !important;
+}
+
+.other-symptom-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.other-symptom-input {
+    min-width: 300px;
+}
+
+.error-message {
+    color: #d32f2f;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.photo-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.photo-upload-area {
+    border: 2px dashed #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    background: #fafafa;
+    cursor: pointer;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-upload-area:hover {
+    border-color: #1976d2;
+    background: #f5f5f5;
+}
+
+.upload-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.upload-subtitle {
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+}
+
+.selected-file {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.image-preview {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.image-preview img {
+    object-fit: cover;
+}
+
+/* Override button styling */
+.v-btn {
+    box-shadow: none !important;
+}
+
+.v-btn:hover {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+</style>
