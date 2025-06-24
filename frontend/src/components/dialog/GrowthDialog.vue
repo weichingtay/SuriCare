@@ -60,7 +60,7 @@
                         >
                             <template #prepend-inner>
                                 <v-icon size="20" color="grey-darken-1">
-                                    mdi-ruler
+                                    mdi-human-male-height
                                 </v-icon>
                             </template>
                         </v-text-field>
@@ -102,7 +102,7 @@
 
 <script setup>
 import { ref, watch, nextTick } from 'vue'
-import BaseCheckInDialog from '@/components/BaseCheckInDialog.vue'
+import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
 
 const props = defineProps({
     // Dialog Control

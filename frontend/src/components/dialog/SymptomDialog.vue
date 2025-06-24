@@ -416,7 +416,9 @@ const handleSave = () => {
     min-width: 80px;
     height: 32px;
     font-size: 13px;
-    border: 1px solid #BDBDBD;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 4px !important;
+    color: #000000 !important;
 }
 
 .symptom-btn.v-btn--variant-flat {

@@ -150,119 +150,21 @@
     </v-container>
 
     <!-- Growth Data Dialog -->
-    <v-dialog
-      v-model="growthDialog"
-      max-width="500"
-      class="modern-dialog"
-    >
-      <v-card class="dialog-card">
-        <v-card-title class="dialog-title">
-          <div class="dialog-title-content">
-            <h3>Update Growth Details</h3>
-            <v-chip
-              size="small"
-              class="child-chip"
-              color="pink"
-              variant="tonal"
-              >{{ currentChild.name }}</v-chip
-            >
-          </div>
-        </v-card-title>
+    <GrowthDialog
+    v-model="growthDialog"
+    :weight="growthFormData.weight"
+    :height="growthFormData.height"
+    :head-circumference="growthFormData.headCircumference"
+    :notes="growthFormData.notes"
+    :loading="false"
+    @update:weight="growthFormData.weight = $event"
+    @update:height="growthFormData.height = $event"
+    @update:head-circumference="growthFormData.headCircumference = $event"
+    @update:notes="growthFormData.notes = $event"
+    @save="saveGrowthData"
+    @close="growthDialog = false"
+  />
 
-        <v-card-text class="dialog-content">
-          <v-form ref="growthForm">
-            <v-row>
-              <v-col
-                cols="12"
-                sm="4"
-              >
-                <v-text-field
-                  v-model="growthFormData.height"
-                  label="Height (cm)"
-                  type="number"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-human-male-height"
-                  class="dialog-field"
-                  base-color="pink"
-                  color="pink"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-              >
-                <v-text-field
-                  v-model="growthFormData.weight"
-                  label="Weight (kg)"
-                  type="number"
-                  step="0.1"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-weight-kilogram"
-                  class="dialog-field"
-                  base-color="pink"
-                  color="pink"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-              >
-                <v-text-field
-                  v-model="growthFormData.headCircumference"
-                  label="Head Circ. (cm)"
-                  type="number"
-                  step="0.1"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-head"
-                  class="dialog-field"
-                  base-color="pink"
-                  color="pink"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <v-alert
-              type="info"
-              variant="tonal"
-              density="compact"
-            >
-              <div class="alert-content">
-                <div class="alert-line">
-                  <strong>Last updated:</strong>
-                  {{ formatGrowthUpdate(currentChild.growth?.lastUpdated) }}
-                </div>
-                <div class="alert-line">
-                  <strong>Previous:</strong>
-                  {{ currentChild.growth?.height || '--' }}cm,
-                  {{ currentChild.growth?.weight || '--' }}kg,
-                  {{ currentChild.growth?.headCircumference || '--' }}cm
-                </div>
-              </div>
-            </v-alert>
-          </v-form>
-        </v-card-text>
-
-        <v-card-actions class="dialog-actions">
-          <v-spacer></v-spacer>
-          <v-btn
-            variant="text"
-            @click="growthDialog = false"
-            class="cancel-btn"
-            >Cancel</v-btn
-          >
-          <v-btn
-            color="pink"
-            variant="flat"
-            @click="saveGrowthData"
-            class="save-btn"
-            >Save Changes</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <!-- Share dialog -->
     <v-dialog
@@ -335,6 +237,7 @@
 <script setup>
   import { useShareChild } from '@/composables/useShareChild'
   import { useGrowthDialog } from '@/composables/useGrowthDialog'
+  import GrowthDialog from '../components/dialog/GrowthDialog.vue'
 
   // Props
   const props = defineProps({

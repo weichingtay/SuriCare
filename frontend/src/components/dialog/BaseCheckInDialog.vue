@@ -4,6 +4,7 @@
         :model-value="modelValue"
         @update:model-value="$emit('update:modelValue', $event)"
          :max-width="maxWidth"
+          :style="{ maxWidth: maxWidth + ' !important' }"
         :width="width"
         :min-width="minWidth"
         persistent
@@ -215,6 +216,7 @@
     }
 
     /* Textarea styling - normal state */
+    /* Textarea styling - normal state */
     .notes-textarea :deep(.v-field) {
         margin-top:4px;
         background-color: #eeeeee !important;
@@ -227,9 +229,25 @@
         border: none !important;
     }
 
-    /* Focused state - black border */
-    .notes-textarea :deep(.v-field--focused ) {
+    /* Focused state - very subtle border */
+    .notes-textarea :deep(.v-field--focused) {
         border-radius: 8px;
+        border: 1px solid #d0d0d0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Remove focused outline from field outline */
+    .notes-textarea :deep(.v-field--focused .v-field__outline) {
+        border: none !important;
+        outline: none !important;
+    }
+
+    /* Remove any control outline */
+    .notes-textarea :deep(.v-field__outline__start),
+    .notes-textarea :deep(.v-field__outline__notch), 
+    .notes-textarea :deep(.v-field__outline__end) {
+        border: none !important;
     }
 
     .notes-textarea :deep(textarea) {
@@ -268,9 +286,5 @@
     }
 
     /* Button text styling */
-    .v-btn .v-btn__content {
-        color: inherit;
-        font-weight: inherit;
-        
-    }
+    
 </style>

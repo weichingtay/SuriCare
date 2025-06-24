@@ -27,7 +27,6 @@
                                 :variant="localMealTime === time.value ? 'flat' : 'outlined'"
                                 :color="localMealTime === time.value ? 'primary' : 'default'"
                                 size="small"
-                                rounded="20"
                                 @click="selectMealTime(time.value)"
                                 :disabled="loading"
                                 class="meal-time-btn"
@@ -472,6 +471,7 @@ const handleSave = () => {
     flex: 1;
     display: flex;
     flex-direction: column;
+    border-radius:4px !important;
 }
 
 .section-label {
@@ -494,12 +494,14 @@ const handleSave = () => {
     min-width: 70px;
     height: 32px;
     font-size: 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 4px;
+    color: #333 !important;
 }
 
 .meal-time-btn.v-btn--variant-flat,
 .meal-category-btn.v-btn--variant-flat {
-    background-color: #E57373 !important;
+    background-color: #D87179 !important;
     color: white !important;
 }
 
@@ -509,13 +511,13 @@ const handleSave = () => {
 }
 
 .milk-sub-btn.v-btn--variant-flat {
-    background-color: #1976d2 !important;
+    background-color:#D87179 !important;
     color: white !important;
-    border: 1px solid #1976d2;
 }
 
 .consumption-select {
     min-width: 200px;
+    border-radius: 4px;
 }
 
 .meal-category-section {
@@ -560,5 +562,17 @@ const handleSave = () => {
 
 .v-btn:hover {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+.meal-dialog {
+    max-width: 750px !important;
+    width: 90vw !important;
+    border-radius: 20px !important;
+    overflow: hidden;
+}
+
+.meal-dialog :deep(.v-card) {
+    border-radius: 20px !important;
+    width: 100% !important;
 }
 </style>
