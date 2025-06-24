@@ -38,9 +38,7 @@
                   style="flex: 1; text-align: left"
                 >
                   <span class="child-name">{{ currentChild.name }}</span>
-                  <span class="child-age"
-                    >{{ currentChild.age }}</span
-                  >
+                  <span class="child-age">{{ currentChild.age }}</span>
                 </div>
                 <v-icon
                   size="16"
@@ -69,16 +67,16 @@
                 <v-list-item-title class="dropdown-name">{{
                   child.name
                 }}</v-list-item-title>
-                <v-list-item-subtitle class="dropdown-age"
-                  >{{ child.age }}</v-list-item-subtitle
-                >
+                <v-list-item-subtitle class="dropdown-age">{{
+                  child.age
+                }}</v-list-item-subtitle>
               </v-list-item>
             </v-list>
           </v-menu>
         </div>
 
         <!-- Growth data cards -->
-         <!-- TODO: THE HOVER HERE LOOKS ABIT DIFFERENT ADJUST IT -->
+        <!-- TODO: THE HOVER HERE LOOKS ABIT DIFFERENT ADJUST IT -->
         <div class="growth-cards">
           <div
             class="growth-card combined-card"
@@ -151,27 +149,28 @@
 
     <!-- Growth Data Dialog -->
     <GrowthDialog
-    v-model="growthDialog"
-    :weight="growthFormData.weight"
-    :height="growthFormData.height"
-    :head-circumference="growthFormData.headCircumference"
-    :notes="growthFormData.notes"
-    :loading="false"
-    @update:weight="growthFormData.weight = $event"
-    @update:height="growthFormData.height = $event"
-    @update:head-circumference="growthFormData.headCircumference = $event"
-    @update:notes="growthFormData.notes = $event"
-    @save="saveGrowthData"
-    @close="growthDialog = false"
-  />
-
+      v-model="growthDialog"
+      :weight="growthFormData.weight"
+      :height="growthFormData.height"
+      :head-circumference="growthFormData.headCircumference"
+      :notes="growthFormData.notes"
+      :loading="false"
+      @update:weight="growthFormData.weight = $event"
+      @update:height="growthFormData.height = $event"
+      @update:head-circumference="growthFormData.headCircumference = $event"
+      @update:notes="growthFormData.notes = $event"
+      @save="saveGrowthData"
+      @close="growthDialog = false"
+    />
 
     <!-- Share dialog -->
     <v-dialog
       v-model="showShareDialog"
       width="420"
     >
-      <v-card style="background-color: #fdf9f7; color: #000">
+      <v-card
+        style="background-color: #fdf9f7; color: #000; border-radius: 12px"
+      >
         <v-card-title class="headline">Share Child Info</v-card-title>
         <v-card-text>
           <!-- Access type selector inside dialog -->
@@ -181,13 +180,24 @@
             label="Access Level"
             density="comfortable"
             variant="outlined"
-            style="margin-bottom: 16px"
+            
           ></v-select>
+
+          <!-- Share code instruction -->
+          <p
+            style="
+              margin-bottom: 16px;
+              color: rgba(0, 0, 0, 0.7);
+              font-size: 14px;
+            "
+          >
+            Share this code to invite caregivers to SuriCare
+          </p>
 
           <!-- Modern code field -->
           <v-text-field
             :model-value="shareCode"
-            label="Share Code"
+            label="Invitation Code"
             prepend-inner-icon="mdi-account-key"
             append-inner-icon="mdi-content-copy"
             readonly

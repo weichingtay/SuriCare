@@ -26,7 +26,7 @@ export function useShareChild() {
    */
   const generatePlaceholderData = (childId: number | string) => {
     shareCode.value = Math.random().toString(36).substring(2, 8).toUpperCase()
-    shareUrl.value = `https://example.com/child/${childId}/checkin`
+    shareUrl.value = `https://suricare.com.my/child/${childId}/checkin`
   }
 
   /**
