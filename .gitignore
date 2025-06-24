@@ -7,3 +7,5 @@ src/typed-router.d.ts
 __pycache__/
 *.py[cod]
 *.so
+.env.*
+.backend_schema

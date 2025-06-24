@@ -39,7 +39,7 @@
                 >
                   <span class="child-name">{{ currentChild.name }}</span>
                   <span class="child-age"
-                    >{{ currentChild.age }} years old</span
+                    >{{ currentChild.age }}</span
                   >
                 </div>
                 <v-icon
@@ -70,7 +70,7 @@
                   child.name
                 }}</v-list-item-title>
                 <v-list-item-subtitle class="dropdown-age"
-                  >{{ child.age }} years old</v-list-item-subtitle
+                  >{{ child.age }}</v-list-item-subtitle
                 >
               </v-list-item>
             </v-list>

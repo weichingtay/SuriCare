@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import select, Session, desc, text
+from sqlmodel import select, Session, desc
 from db import engine, create_db_and_tables, get_session
 from models import *
 from pydantic import BaseModel
-from chatbot.app.model import generate_reply
+# from chatbot.app.model import generate_reply
+
 
 import pandas as pd
 import numpy as np
@@ -27,6 +28,46 @@ app.add_middleware(
 
 
 #create_db_and_tables()
+
+
+# Retrieve user profile by ID
+@app.get('/user-profile/{user_id}', response_model=Primary_Care_Giver)
+def user_profile(*, user_id: int, session: Session = Depends(get_session)):
+    user = session.get(Primary_Care_Giver, user_id)
+
+    return user
+
+
+# Create new user record
+@app.post('/user-profile/', response_model=Primary_Care_Giver)
+def new_user(*, session: Session = Depends(get_session), user: Primary_Care_Giver):
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return user
+    
+
+# Retrieve child profile by ID
+@app.get('/child-profile/{child_id}', response_model=Child)
+def child_profile(*, session: Session = Depends(get_session), child_id: int):
+
+    try:
+        child = session.get(Child, child_id)
+        return child
+    except Exception:
+        raise HTTPException(status_code=404, detail=f"Child ID #{child_id} not found !!")
+
+
+# Create new child profile
+@app.post('/child-profile/', response_model=Child)
+def new_child(*, session: Session = Depends(get_session), child: Child):
+    session.add(child)
+    session.commit()
+    session.refresh(child)
+
+    return child
+
 
 # Growth metrics: height & weight
 @app.get('/growth/{child_id}')
@@ -71,7 +112,7 @@ def growth_metrics(child_id: int):
                                     weight as benchmark_weight,
                                     height as benchmark_height,
                                     head_circumference as benchmark_head_circumference
-                                FROM   growthbenchmark 
+                                FROM   growth_benchmark 
                             """
         metrics = pd.read_sql_query(sql_text_metrics, conn)
 
@@ -115,7 +156,7 @@ def sleep_metrics(child_id: int):
                                 SELECT
                                     MAX(check_in) - INTERVAL '30 DAY' as start_date,
                                     MAX(check_in) as end_date
-                                FROM sleeptime
+                                FROM sleep_time
                             )
 
                             SELECT
@@ -123,7 +164,7 @@ def sleep_metrics(child_id: int):
                                 check_in,
                                 start_time,
                                 end_time
-                            FROM	sleeptime
+                            FROM	sleep_time
                             WHERE	child_id = {child_id} AND 
                                     (check_in BETWEEN (SELECT start_date FROM date_range) AND
                                     (SELECT end_date FROM date_range))
@@ -145,8 +186,8 @@ def sleep_metrics(child_id: int):
 
 
 # Insert new sleep record
-@app.post('/sleeptime/')
-def new_sleep(*, session: Session = Depends(get_session), sleep: SleepTime):
+@app.post('/sleeptime/', response_model=Sleep_Time)
+def new_sleep(*, session: Session = Depends(get_session), sleep: Sleep_Time):
     session.add(sleep)
     session.commit()
     session.refresh(sleep)

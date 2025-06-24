@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-pgAdmin_password = os.getenv("DB_PASSWORD")
-DATABASE_URL = f"postgresql+psycopg://postgres:{pgAdmin_password}@localhost:5432/test_db"
+password = os.getenv("SUPABASE_PASSWORD")
+host = os.getenv("SUPABASE_HOST")
+DATABASE_URL = f"postgresql://postgres:{password}@{host}:5432/postgres"
 
 engine = create_engine(DATABASE_URL, echo=True)
 
