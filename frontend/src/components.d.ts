@@ -8,6 +8,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AccountDialog: typeof import('./components/AccountDialog.vue')['default']
+    AccountTypeSelector: typeof import('./components/signup/AccountTypeSelector.vue')['default']
     AddChildForm: typeof import('./components/addChild/AddChildForm.vue')['default']
     AIAssistant: typeof import('./components/chatbot/AIAssistant.vue')['default']
     AlertCard: typeof import('./components/guidance/AlertCard.vue')['default']
@@ -29,6 +31,7 @@ declare module 'vue' {
     HealthAlert: typeof import('./components/HealthAlert.vue')['default']
     HealthSummaryCard: typeof import('./components/summaryCard/HealthSummaryCard.vue')['default']
     LoginForm: typeof import('./components/login/LoginForm.vue')['default']
+    LogMealDialog: typeof import('./components/dialog/LogMealDialog.vue')['default']
     MealDialog: typeof import('./components/dialog/MealDialog.vue')['default']
     MealsSummaryCard: typeof import('./components/summaryCard/MealsSummaryCard.vue')['default']
     NavigationTabs: typeof import('./components/guidance/NavigationTabs.vue')['default']
@@ -39,6 +42,8 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SavedView: typeof import('./components/guidance/SavedView.vue')['default']
+    SignUpActions: typeof import('./components/signup/SignUpActions.vue')['default']
+    SignUpFormFields: typeof import('./components/signup/SignUpFormFields.vue')['default']
     SleepDialog: typeof import('./components/dialog/SleepDialog.vue')['default']
     SleepSummaryCard: typeof import('./components/summaryCard/SleepSummaryCard.vue')['default']
     SubmitButton: typeof import('./components/addChild/SubmitButton.vue')['default']

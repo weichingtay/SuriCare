@@ -2,7 +2,7 @@
   <v-navigation-drawer
     permanent
     rail
-    rail-width="110"
+    rail-width="100"
     color="transparent"
     elevation="0"
     app
@@ -10,7 +10,7 @@
   >
     <!-- Glassmorphism background -->
     <div class="nav-background"></div>
-    
+
     <!-- Logo section at top of sidebar -->
     <template v-slot:prepend>
       <div class="logo-section">
@@ -39,8 +39,8 @@
         <template v-slot:default>
           <div class="nav-content">
             <div class="nav-icon-wrapper" :class="{ 'nav-icon-active': activeTab === item.value }">
-              <v-icon 
-                :size="navIconSize" 
+              <v-icon
+                :size="navIconSize"
                 :color="activeTab === item.value ? navIconActiveColor : navIconInactiveColor"
               >
                 {{ item.icon }}
@@ -55,20 +55,26 @@
     </v-list>
 
     <!-- Account section at bottom -->
-    <template v-slot:append>
-      <div class="account-section">
-        <v-list-item class="nav-item account-item">
-          <template v-slot:default>
-            <div class="nav-content">
-              <div class="nav-icon-wrapper account-icon">
-                <v-icon :size="navIconSize" :color="navIconInactiveColor">mdi-account</v-icon>
-              </div>
-              <div class="nav-label nav-label-inactive">Account</div>
-            </div>
-          </template>
-        </v-list-item>
-      </div>
-    </template>
+    <!-- Account section at bottom -->
+<template v-slot:append>
+  <div class="account-section">
+    <AccountDialog v-model="showAccountDialog" />
+    
+    <v-list-item 
+      class="nav-item account-item"
+      @click="showAccountDialog = true"
+    >
+      <template v-slot:default>
+        <div class="nav-content">
+          <div class="nav-icon-wrapper account-icon">
+            <v-icon :size="navIconSize" :color="navIconInactiveColor">mdi-account</v-icon>
+          </div>
+          <div class="nav-label nav-label-inactive">Account</div>
+        </div>
+      </template>
+    </v-list-item>
+  </div>
+</template>
   </v-navigation-drawer>
 </template>
 
@@ -76,9 +82,15 @@
 import { computed } from 'vue'
 import { useCssVar } from '@vueuse/core'
 import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { ref } from 'vue'
+import AccountDialog from './AccountDialog.vue'
+
+const showAccountDialog = ref(false)
 
 // Router
 const router = useRouter()
+const route = useRoute()
 
 // Props
 const props = defineProps({
@@ -130,6 +142,15 @@ const navigationItems = [
   }
 ]
 
+const currentPage = computed(() => {
+  const match = navigationItems.find(item => item.route === route.path)
+  return match.value
+})
+
+const activeTab = computed(() => {
+  return props.activeTab || currentPage.value
+})
+
 // Methods
 const handleNavClick = (tabName) => {
   const selectedItem = navigationItems.find(item => item.value === tabName)
@@ -150,3 +171,4 @@ const goHome = () => {
   opacity: 0 !important;
 }
 </style>
+

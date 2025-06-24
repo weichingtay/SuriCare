@@ -56,13 +56,13 @@
   // Use the children store
   const childrenStore = useChildrenStore()
 
-  const activeTab = ref('home')
+  const activeTab = ref('')
 
   const handleNavChange = (tabName: string) => {
     activeTab.value = tabName
   }
 
-  const hideComponent = ['/login', '/addChild']
+  const hideComponent = ['/login', '/addChild', '/signup']
   const chatbotPage = ['/chatbot']
 </script>
 
