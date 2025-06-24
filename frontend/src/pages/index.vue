@@ -36,17 +36,45 @@
         <TodaysSummary
           :summaryData="summaryStore.summaryData"
           @date-changed="loadDataForDate"
+          @open-meal-dialog="openMealDialog"
+          @open-sleep-dialog="openSleepDialog"
+          @open-poop-dialog="openPoopDialog"
+          @open-health-dialog="openHealthDialog"
         />
 
         <!-- AI Assistant section -->
         <AIAssistant @send-message="aiChat.sendMessage" />
       </v-container>
     </v-main>
+        <!-- Dialog Components -->
+    <MealDialog
+      v-model="dialogs.meal"
+      @save="handleMealSave"
+      @close="dialogs.meal = false"
+    />
+
+    <SleepDialog
+      v-model="dialogs.sleep"
+      @save="handleSleepSave"
+      @close="dialogs.sleep = false"
+    />
+
+    <PoopDialog
+      v-model="dialogs.poop"
+      @save="handlePoopSave"
+      @close="dialogs.poop = false"
+    />
+
+    <SymptomDialog
+      v-model="dialogs.health"
+      @save="handleHealthSave"
+      @close="dialogs.health = false"
+    />
   </v-app>
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, reactive, onMounted } from 'vue'  
   import { useChildrenStore } from '@/stores/children'
   import { useSummaryStore } from '@/stores/summary'
   import { useAIChat } from '@/composables/useAIChat'
@@ -58,6 +86,12 @@
   import CheckInsHistory from '@/components/CheckInsHistory.vue'
   import TodaysSummary from '@/components/summaryCard/TodaysSummary.vue'
 
+  // Import dialog components
+  import MealDialog from '@/components/dialog/MealDialog.vue'
+  import SleepDialog from '@/components/dialog/SleepDialog.vue'
+  import PoopDialog from '@/components/dialog/PoopDialog.vue'
+  import SymptomDialog from '@/components/dialog/SymptomDialog.vue'
+
   // Use stores and composables
   const childrenStore = useChildrenStore()
   const summaryStore = useSummaryStore()
@@ -65,11 +99,60 @@
 
   const router = useRouter()
 
+  // Dialog states
+  const dialogs = reactive({
+    meal: false,
+    sleep: false,
+    poop: false,
+    health: false
+  })
+
   // Caregiver's name - in production, this would come from authentication
   const caregiverName = ref('Wei Ching')
 
+// ===== SAVE HANDLERS =====
+
+  const handleMealSave = (mealData) => {
+    console.log('Saving meal data:', mealData)
+    // TODO: Save to store
+    dialogs.meal = false
+  }
+
+  const handleSleepSave = (sleepData) => {
+    console.log('Saving sleep data:', sleepData)
+    // TODO: Save to store
+    dialogs.sleep = false
+  }
+
+  const handlePoopSave = (poopData) => {
+    console.log('Saving poop data:', poopData)
+    // TODO: Save to store
+    dialogs.poop = false
+  }
+
+  const handleHealthSave = (healthData) => {
+    console.log('Saving health data:', healthData)
+    // TODO: Save to store
+    dialogs.health = false
+  }
 
   // ===== METHODS =====
+
+  const openMealDialog = () => {
+    dialogs.meal = true
+  }
+
+  const openSleepDialog = () => {
+    dialogs.sleep = true
+  }
+
+  const openPoopDialog = () => {
+    dialogs.poop = true
+  }
+
+  const openHealthDialog = () => {
+    dialogs.health = true
+  }
 
   // Load data for a specific date and current child
   const loadDataForDate = (date) => {

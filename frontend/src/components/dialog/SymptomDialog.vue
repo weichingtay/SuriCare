@@ -118,7 +118,7 @@
 
 <script setup>
 import { ref, watch, nextTick } from 'vue'
-import BaseCheckInDialog from '@/components/BaseCheckInDialog.vue'
+import BaseCheckInDialog from './BaseCheckInDialog.vue'
 
 const props = defineProps({
     modelValue: {

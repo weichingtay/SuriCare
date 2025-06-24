@@ -57,9 +57,11 @@ const {
 } = useMeals(mealsData)
 
 const handleCheckIn = () => {
-  console.log('Meal check-in clicked')
-  // TODO: Implement check-in functionality
+  emit('check-in') // Remove console.log, just emit
 }
+
+// Add emit to defineEmits if not already there
+const emit = defineEmits(['check-in'])
 </script>
 
 <style scoped>

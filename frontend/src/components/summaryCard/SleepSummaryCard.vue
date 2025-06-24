@@ -46,8 +46,9 @@ const statusNote = computed(() => {
   return 'Jennie slept well through today'
 })
 
+const emit = defineEmits(['check-in'])
+
 const handleCheckIn = () => {
-  console.log('Sleep check-in clicked')
-  // TODO: Implement check-in functionality using sleepStore.updateSleepForDate
+  emit('check-in')
 }
 </script>

@@ -44,16 +44,25 @@
     <!-- Summary cards grid -->
     <v-row>
       <!-- Meal Card -->
-      <MealsSummaryCard :mealsData="summaryData.meals" />
+      <MealsSummaryCard 
+      :mealsData="summaryData.meals"
+      @check-in="$emit('open-meal-dialog')" />
 
       <!-- Sleep Card -->
-      <SleepSummaryCard :sleepData="summaryData.sleep" />
+      <SleepSummaryCard 
+      :sleepData="summaryData.sleep" 
+      @check-in="$emit('open-sleep-dialog')"/>
 
       <!-- Poop Card -->
-      <PoopSummaryCard :poopData="summaryData.poop" />
+      <PoopSummaryCard 
+      :poopData="summaryData.poop" 
+      @check-in="$emit('open-poop-dialog')"/>
 
       <!-- Health Card -->
-      <HealthSummaryCard :healthData="summaryData.health" />
+      <HealthSummaryCard 
+      :healthData="summaryData.health" 
+      @check-in="$emit('open-health-dialog')"
+      />
     </v-row>
   </div>
 </template>
@@ -77,7 +86,14 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['date-changed'])
+const emit = defineEmits([
+  'date-changed',
+  'open-meal-dialog',
+  'open-sleep-dialog', 
+  'open-poop-dialog',
+  'open-health-dialog'
+])
+
 
 // Use date picker composable
 const { selectedDate, datePickerMenu, formattedSelectedDate, handleDateChange: baseDateChange } = useDatePicker(props.initialDate)

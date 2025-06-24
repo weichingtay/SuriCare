@@ -24,8 +24,9 @@ const statusNote = computed(() => {
   return `${unusualCount} Unusual`
 })
 
+const emit = defineEmits(['check-in'])
+
 const handleCheckIn = () => {
-  console.log('Poop check-in clicked')
-  // TODO: Implement check-in functionality using poopStore.updatePoopForDate
+  emit('check-in')
 }
 </script>

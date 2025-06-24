@@ -42,9 +42,10 @@ const statusClass = computed(() => {
   }
 })
 
+const emit = defineEmits(['check-in'])
+
 const handleCheckIn = () => {
-  console.log('Health check-in clicked')
-  // TODO: Implement health check-in functionality
+  emit('check-in')
 }
 </script>
 
