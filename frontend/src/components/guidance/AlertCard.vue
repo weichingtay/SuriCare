@@ -10,11 +10,15 @@
     <v-card-text
       class="pt-3 pb-3 ps-4 alert-header"
       :class="{ 'header-border': isExpanded }"
-      style="background-color: #FFEBEB"
+      style="background-color: #ffebeb"
     >
       <div class="d-flex justify-space-between align-center">
         <div class="d-flex align-start">
-          <v-icon color="#FF5252" size="20" class="mt-1 mr-3">
+          <v-icon
+            color="#FF5252"
+            size="20"
+            class="mt-1 mr-3"
+          >
             mdi-alert
           </v-icon>
           <div>
@@ -26,7 +30,12 @@
             </p>
           </div>
         </div>
-        <v-btn icon variant="text" size="small" @click="toggleExpanded">
+        <v-btn
+          icon
+          variant="text"
+          size="small"
+          @click="toggleExpanded"
+        >
           <v-icon
             color="grey-darken-2"
             size="20"
@@ -41,7 +50,20 @@
 
     <!-- Expandable Suggestions Section -->
     <v-expand-transition>
-      <div v-if="isExpanded" class="suggestions-section">
+      <div
+        v-if="isExpanded"
+        class="suggestions-section"
+        style="position: relative"
+      >
+        <v-btn
+          density="comfortable"
+          icon="$close"
+          variant="plain"
+          class="close-btn"
+          style="position: absolute; top: 12px; right: 12px; z-index: 1"
+          @click="$emit('read-alert')"
+        ></v-btn>
+
         <div class="pa-6">
           <div
             v-for="suggestion in alert.suggestions"
@@ -49,7 +71,10 @@
             class="suggestion-item mb-6"
           >
             <div class="d-flex align-center mb-3">
-              <v-icon size="28" class="mr-1">
+              <v-icon
+                size="28"
+                class="mr-1"
+              >
                 mdi-lightbulb-variant
               </v-icon>
               <h4 class="text-subtitle-2 font-weight-bold">
@@ -70,60 +95,62 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+  import { ref } from 'vue'
 
-const props = defineProps({
-  alert: {
-    type: Object,
-    required: true,
-  },
-});
+  const props = defineProps({
+    alert: {
+      type: Object,
+      required: true,
+    },
+  })
 
-const isExpanded = ref(false);
-const toggleExpanded = () => {
-  isExpanded.value = !isExpanded.value;
-};
+  const isExpanded = ref(false)
+  const toggleExpanded = () => {
+    isExpanded.value = !isExpanded.value
+  }
+
+  defineEmits(['read-alert'])
 </script>
 
 <style scoped>
-.alert-card {
-  transition: all 0.2s ease-in-out;
-}
+  .alert-card {
+    transition: all 0.2s ease-in-out;
+  }
 
-.alert-card-border {
-  border: 1.5px solid #FF5252;
-}
+  .alert-card-border {
+    border: 1.5px solid #ff5252;
+  }
 
-.alert-card:hover {
-  transform: translateY(-1px);
-}
+  .alert-card:hover {
+    transform: translateY(-1px);
+  }
 
-.rotate-180 {
-  transform: rotate(180deg);
-}
+  .rotate-180 {
+    transform: rotate(180deg);
+  }
 
-.suggestion-item:last-child {
-  margin-bottom: 0 !important;
-}
+  .suggestion-item:last-child {
+    margin-bottom: 0 !important;
+  }
 
-.suggestion-content {
-  padding-left: 0.25rem;
-}
+  .suggestion-content {
+    padding-left: 0.25rem;
+  }
 
-.line-height-relaxed {
-  line-height: 1.6;
-}
+  .line-height-relaxed {
+    line-height: 1.6;
+  }
 
-.alert-header {
-  border-radius: 8px 8px 0 0;
-}
+  .alert-header {
+    border-radius: 8px 8px 0 0;
+  }
 
-.alert-header.header-border {
-  border: 1.5px solid #FF5252;
-}
+  .alert-header.header-border {
+    border: 1.5px solid #ff5252;
+  }
 
-.suggestions-section {
-  background-color: white;
-  border-radius: 0 0 8px 8px;
-}
+  .suggestions-section {
+    background-color: white;
+    border-radius: 0 0 8px 8px;
+  }
 </style>

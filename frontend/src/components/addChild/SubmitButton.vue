@@ -1,6 +1,6 @@
 <template>
   <v-btn
-    color="red-lighten-1"
+    color="#D87179"
     size="large"
     block
     :disabled="disabled"
