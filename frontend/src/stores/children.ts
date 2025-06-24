@@ -77,7 +77,7 @@ export const useChildrenStore = defineStore('children', () => {
       id: row.id,
       name: row.name,
       age: calcAge(row.birth_date),
-      avatar: 'https://placehold.co/100x100', // placeholder; swap if you store avatars
+      avatar: 'https://images.pexels.com/photos/2806752/pexels-photo-2806752.jpeg', // placeholder; swap if you store avatars
       growth: {
         height: 0,
         weight: 0,
@@ -137,10 +137,10 @@ export const useChildrenStore = defineStore('children', () => {
     // State
     children,
     currentChildId,
-    
+
     // Getters
     currentChild,
-    
+
     // Actions
     selectChild,
     updateChildGrowth,
@@ -148,4 +148,4 @@ export const useChildrenStore = defineStore('children', () => {
     removeChild,
     loadChildren,
   }
-}) 
+})
