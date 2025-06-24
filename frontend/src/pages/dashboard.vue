@@ -103,7 +103,7 @@ const weightSeries = ref([
 const weightOptions = ref({
     chart: {
         type: 'line', // line or area
-        fontFamily: "Tahoma",
+        // fontFamily: "Tahoma",
     },
     theme: {
         mode: 'light',
@@ -135,7 +135,7 @@ const weightOptions = ref({
         style: {
             fontSize: '22px',
             fontWeight: 'bold',
-            fontFamily: "Georgia",
+            // fontFamily: "Georgia",
             color: '#117a65'
         },
     },
@@ -168,7 +168,7 @@ const heightSeries = ref([
 const heightOptions = ref({
     chart: {
         type: "line", // line or area
-        fontFamily: "Tahoma",
+        // fontFamily: "Tahoma",
     },
     theme: {
         mode: "light",
@@ -200,7 +200,7 @@ const heightOptions = ref({
         style: {
             fontSize: "22px",
             fontWeight: "bold",
-            fontFamily: "Georgia",
+            // fontFamily: "Georgia",
             color: "#117a65",
         },
     },
@@ -233,7 +233,7 @@ const headSeries = ref([
 const headOptions = ref({
     chart: {
         type: "line", // line or area
-        fontFamily: "Tahoma",
+        // fontFamily: "Tahoma",
     },
     theme: {
         mode: "light",
@@ -265,7 +265,7 @@ const headOptions = ref({
         style: {
             fontSize: "22px",
             fontWeight: "bold",
-            fontFamily: "Georgia",
+            // fontFamily: "Georgia",
             color: "#117a65",
         },
     },
@@ -298,7 +298,7 @@ const sleepSeries = ref([
 const sleepOptions = ref({
     chart: {
         type: "area", // line or area
-        fontFamily: "Tahoma",
+        // fontFamily: "Tahoma",
         stacked: true, // Enable stacking
     },
     theme: {
@@ -332,7 +332,7 @@ const sleepOptions = ref({
         style: {
             fontSize: "22px",
             fontWeight: "bold",
-            fontFamily: "Georgia",
+            // fontFamily: "Georgia",
             color: "#117a65",
         },
     },
@@ -343,7 +343,7 @@ const sleepOptions = ref({
     stroke: {
         curve: "smooth",
         width: 3,
-        dashArray: 5,
+        // dashArray: 5,
     },
 });
 
@@ -814,11 +814,12 @@ const sleep_toggleMonth = () => {
 
 </script>
 
-<style scoped>
+<style lang='scss' scoped>
+@use '@/styles/variables' as *;
 .toggle-btn {
     border: 1px solid black;
     padding: 2px 10px;
-    font-family: Tahoma;
+    font-family: $font-primary;
     font-size: 10px;
 }
 

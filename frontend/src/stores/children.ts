@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 export interface Child {
   id: number
   name: string
-  age: number
+  age: string
   avatar: string
   growth: {
     height: number
@@ -25,7 +25,7 @@ export const useChildrenStore = defineStore('children', () => {
     {
       id: 1,
       name: 'Jennie',
-      age: 2,
+      age: '2 years',
       avatar: 'https://images.pexels.com/photos/2806752/pexels-photo-2806752.jpeg',
       growth: {
         height: 100,
@@ -37,7 +37,7 @@ export const useChildrenStore = defineStore('children', () => {
     {
       id: 2,
       name: 'Alex',
-      age: 5,
+      age: '5 years',
       avatar: 'https://images.pexels.com/photos/1288182/pexels-photo-1288182.jpeg',
       growth: {
         height: 110,
@@ -49,10 +49,41 @@ export const useChildrenStore = defineStore('children', () => {
   ]
 
   // Helper: calculate age in years from birth_date
-  const calcAge = (birthDateStr: string): number => {
-    const bd = new Date(birthDateStr)
-    const diff = Date.now() - bd.getTime()
-    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25))
+  const calcAge = (birthDateStr: string): string => {
+    const birthDate = new Date(birthDateStr)
+
+    console.log(birthDate)
+    // Guard: if the date is invalid, return 0 so the UI doesn't break
+    if (isNaN(birthDate.getTime())) {
+      console.warn('Invalid birth_date received:', birthDateStr)
+      return '0 months old'
+    }
+
+    const today = new Date()
+    let ageYears = today.getFullYear() - birthDate.getFullYear()
+
+    // Adjust age if the birthday hasn't happened yet this year
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+    const dayDiff = today.getDate() - birthDate.getDate()
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      ageYears--
+    }
+
+    // If under 1 year old, calculate months
+    if (ageYears < 1) {
+      let ageMonths = monthDiff
+      if (dayDiff < 0) {
+        ageMonths--
+      }
+      if (ageMonths < 0) {
+        ageMonths += 12
+      }
+      
+      return ageMonths === 1 ? '1 month old' : `${ageMonths} months old`
+    }
+
+    console.log(ageYears)
+    return ageYears === 1 ? '1 year old' : `${ageYears} years old`
   }
 
   // Action: load children from Supabase
@@ -79,9 +110,11 @@ export const useChildrenStore = defineStore('children', () => {
       age: calcAge(row.birth_date),
       avatar: 'https://images.pexels.com/photos/2806752/pexels-photo-2806752.jpeg', // placeholder; swap if you store avatars
       growth: {
+        // connect height & weight to the right tables
         height: 0,
         weight: 0,
         headCircumference: 0,
+        // lastUpdated date is wrong
         lastUpdated: new Date(row.birth_date),
       },
     }))
