@@ -29,6 +29,17 @@
           <AccountTypeSelector v-model="accountType" />
           <SignUpFormFields
             v-model:form="form"
+            v-if="accountType === 'Legal Guardian'"
+            :showPassword="showPassword"
+            :showConfirmPassword="showConfirmPassword"
+            @toggle-password="showPassword = !showPassword"
+            @toggle-confirm-password="
+              showConfirmPassword = !showConfirmPassword
+            "
+          />
+          <SignUpFormFieldsWithInvitationCode
+            v-model:form="form"
+            v-else
             :showPassword="showPassword"
             :showConfirmPassword="showConfirmPassword"
             @toggle-password="showPassword = !showPassword"
@@ -51,7 +62,10 @@
   import WelcomeSection from '../components/login/WelcomeSection.vue'
   import AccountTypeSelector from '../components/signup/AccountTypeSelector.vue'
   import SignUpFormFields from '../components/signup/SignUpFormFields.vue'
+  import SignUpFormFieldsWithInvitationCode from '../components/signup/SignUpFormFieldsWithInvitationCode.vue'
   import SignUpActions from '../components/signup/SignUpActions.vue'
+
+  const router = useRouter()
 
   const accountType = ref('Legal Guardian')
   const showPassword = ref(false)
@@ -66,9 +80,26 @@
     confirmPassword: '',
   })
 
+  const isFormComplete = () => {
+    return Object.values(form).every((value) => value.trim() !== '')
+  }
+
   const handleSignUp = () => {
+    if (!isFormComplete()) {
+      console.warn('Please fill out all fields.')
+      return
+    }
+
+    if (form.password !== form.confirmPassword) {
+      console.warn('Passwords do not match.')
+      return
+    }
+
     console.log('Sign up with:', form)
-    // Add your sign up logic here
+    router.push({
+      path: '/addChild',
+      query: { action: 'signup'},
+    })
   }
 
   const handleGoogleSignUp = () => {

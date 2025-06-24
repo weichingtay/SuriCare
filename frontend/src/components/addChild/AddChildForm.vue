@@ -1,6 +1,13 @@
 <template>
   <div class="text-center">
-    <h2 class="text-h4 font-weight-bold mb-8">Add Child</h2>
+    <div v-if="action === 'signup'">
+      <h2 class="text-h4 font-weight-bold mb-2">Create a Child Profile</h2>
+      <h4 class="text-h6 font-weight-regular mb-8">Let's get started! Tell us about the child you'll be logging.</h4>
+    </div>
+
+    <div v-else>
+      <h2 class="text-h4 font-weight-bold mb-8">Add Child</h2>
+    </div>
 
     <!-- Profile Photo Section -->
     <ProfilePhotoUpload
@@ -50,6 +57,7 @@
 
 <script setup>
   import { ref, reactive } from 'vue'
+  import { useRoute } from 'vue-router'
   import ProfilePhotoUpload from './ProfilePhotoUpload.vue'
   import ChildNameInput from './ChildNameInput.vue'
   import GenderSelect from './GenderSelect.vue'
@@ -57,11 +65,15 @@
   import RelationshipSelect from './RelationshipSelect.vue'
   import SubmitButton from './SubmitButton.vue'
 
+  const route = useRoute()
+
   const emit = defineEmits(['submit'])
 
   const formRef = ref(null)
   const valid = ref(false)
   const loading = ref(false)
+
+  const action = route.query.action
 
   const form = reactive({
     name: '',

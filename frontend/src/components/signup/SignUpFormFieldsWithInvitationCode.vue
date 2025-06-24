@@ -118,6 +118,26 @@
       </v-col>
     </v-row>
 
+    <!-- Share Code Row -->
+    <v-row class="mb-5">
+      <v-col
+        cols="12"
+        class="pr-5"
+      >
+        <label class="field-label">Invitation Code</label>
+        <v-text-field
+          v-model="localForm.invitationCode"
+          placeholder="Invitation code"
+          variant="outlined"
+          density="comfortable"
+          hide-details="auto"
+          bg-color="white"
+          color="#9E9E9E"
+          :rules="invitationCodeRules"
+        />
+      </v-col>
+    </v-row>
+
     <!-- Login Link -->
     <div class="text-center mb-4">
       <span class="text-body-2 text-grey-darken-1"
@@ -183,6 +203,8 @@
     (v) => !!v || 'Confirm password is required',
     (v) => v.length >= 6 || 'Confirm password must be at least 6 characters',
   ]
+
+  const invitationCodeRules = [(v) => !!v || 'Invitation code is required']
 
   const emit = defineEmits([
     'update:form',
