@@ -6,7 +6,6 @@
     <v-select
       v-model="selectedGender"
       :items="genderOptions"
-      placeholder="Select a gender"
       variant="outlined"
       :rules="rules"
       hide-details="auto"
@@ -34,6 +33,7 @@
   const selectedGender = ref(props.modelValue)
 
   const genderOptions = [
+    { title: 'Select a gender', value: '', disabled: true },
     { title: 'Male', value: 'male' },
     { title: 'Female', value: 'female' },
     { title: 'Other', value: 'other' },

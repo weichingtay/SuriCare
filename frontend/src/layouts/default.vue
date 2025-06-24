@@ -12,10 +12,10 @@
 
     <!-- Header -->
     <AppHeader
+      v-if="!hideComponent.includes(route.name) && childrenStore.children.length"
       :currentChild="childrenStore.currentChild"
       :children="childrenStore.children"
       @child-selected="childrenStore.selectChild"
-      v-if="!hideComponent.includes(route.name)"
     />
 
     <v-main
@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { ref, onMounted } from 'vue'
   // import AppHeader from '@/components/AppHeader.vue'
   // import AppNavigation from '@/components/AppNavigation.vue'
   import { useChildrenStore } from '@/stores/children'
@@ -64,6 +64,12 @@
 
   const hideComponent = ['/login', '/addChild', '/signup']
   const chatbotPage = ['/chatbot']
+
+  onMounted(() => {
+    if (childrenStore.children.length === 0) {
+      childrenStore.loadChildren()
+    }
+  })
 </script>
 
 <style lang="scss" scoped>

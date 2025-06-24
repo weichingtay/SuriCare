@@ -144,7 +144,7 @@ const navigationItems = [
 
 const currentPage = computed(() => {
   const match = navigationItems.find(item => item.route === route.path)
-  return match.value
+  return match?.value ?? ''
 })
 
 const activeTab = computed(() => {

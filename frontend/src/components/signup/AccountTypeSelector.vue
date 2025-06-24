@@ -4,7 +4,8 @@
     <v-tabs
       v-model="selectedType"
       color="black"
-      align-tabs="left"
+      align-tabs="center"
+      grow
       class="mb-9"
     >
       <v-tab

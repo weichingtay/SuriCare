@@ -1,9 +1,8 @@
 from sqlmodel import SQLModel, Field, Column, DateTime
-import sqlmodel
 from datetime import datetime
 
 
-class PrimaryCareGiver(SQLModel, table=True):
+class Primary_Care_Giver(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     username: str
     email: str
@@ -15,24 +14,24 @@ class PrimaryCareGiver(SQLModel, table=True):
 class Child(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     name: str
-    birth_date: datetime
+    birth_date: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     gender: str
 
-    carer_id: int = Field(default=None, foreign_key="primarycaregiver.id")
+    carer_id: int = Field(default=None, foreign_key="primary_care_giver.id")
 
 
 class Growth(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
-    check_in: datetime
+    check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     weight: float
     height: float
     head_circumference: float
     note: str | None
 
-    child_id: int | None = Field(default=None, foreign_key="child.id")
+    child_id: int = Field(default=None, foreign_key="child.id")
 
 
-class GrowthBenchmark(SQLModel, table=True):
+class Growth_Benchmark(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     age_month: int
     weight: float
@@ -41,7 +40,7 @@ class GrowthBenchmark(SQLModel, table=True):
     gender: str
 
 
-class SleepTime(SQLModel, table=True):
+class Sleep_Time(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     start_time: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
@@ -53,49 +52,49 @@ class SleepTime(SQLModel, table=True):
 
 class Meal(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
-    check_in: datetime
+    check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     consumption_level: float
     others: str
     note: str | None
 
-    meal_time_category: int = Field(default=None, foreign_key="mealtimecategory.id")
-    meal_category: int = Field(default=None, foreign_key="mealcategory.id")
+    meal_time_category: int = Field(default=None, foreign_key="meal_time_category.id")
+    meal_category: int = Field(default=None, foreign_key="meal_category.id")
     child_id: int = Field(default=None, foreign_key="child.id")
 
 
-class MealTimeCategory(SQLModel, table=True):
+class Meal_Time_Category(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     time_category: str
 
 
-class MealCategory(SQLModel, table=True):
+class Meal_Category(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     category: str
 
 
 class Poop(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
-    check_in: datetime
+    check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     note: str
 
-    color: int = Field(default=None, foreign_key="poopcolor.id")
-    consistency: int = Field(default=None, foreign_key="poopconsistency.id")
-    child_id: int | None = Field(default=None, foreign_key="child.id")
+    color: int = Field(default=None, foreign_key="poop_color.id")
+    consistency: int = Field(default=None, foreign_key="poop_consistency.id")
+    child_id: int = Field(default=None, foreign_key="child.id")
 
 
-class PoopColor(SQLModel, table=True):
+class Poop_Color(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     category: str
 
 
-class PoopConsistency(SQLModel, table=True):
+class Poop_Consistency(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     category: str
 
 
 class Symptom(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
-    check_in: datetime
+    check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     symptom: str
     photo_url: str
     note: str | None

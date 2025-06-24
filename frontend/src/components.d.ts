@@ -43,6 +43,7 @@ declare module 'vue' {
     SavedView: typeof import('./components/guidance/SavedView.vue')['default']
     SignUpActions: typeof import('./components/signup/SignUpActions.vue')['default']
     SignUpFormFields: typeof import('./components/signup/SignUpFormFields.vue')['default']
+    SignUpFormFieldsWithInvitationCode: typeof import('./components/signup/SignUpFormFieldsWithInvitationCode.vue')['default']
     SleepDialog: typeof import('./components/dialog/SleepDialog.vue')['default']
     SleepSummaryCard: typeof import('./components/summaryCard/SleepSummaryCard.vue')['default']
     SubmitButton: typeof import('./components/addChild/SubmitButton.vue')['default']
