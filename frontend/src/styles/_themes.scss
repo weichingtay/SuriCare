@@ -44,8 +44,8 @@ body, .v-application {
     $glass-white-lighter 50%,
     $glass-white 100%
   );
-  /* Removed heavy blur to improve navigation performance */
-  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur($glass-blur-md);
+  -webkit-backdrop-filter: blur($glass-blur-md);
   border-right: 1px solid $glass-pink-border;
 
   // &::before {

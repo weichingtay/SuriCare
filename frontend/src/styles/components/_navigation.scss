@@ -171,9 +171,8 @@
   justify-content: center;
   margin-bottom: 2px;
   transition: $transition-base;
-  /* Removed costly blur effect to improve performance */
-  background: rgba(255, 255, 255, 0.4);
-  will-change: transform; // hint GPU to cache for smoother scaling
+  // background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
 
   &.nav-icon-active {
     // background: rgba(255, 255, 255, 0.9);
