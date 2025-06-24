@@ -1,8 +1,8 @@
 <template>
     <BaseCheckInDialog
         :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
-        
+        @update:model-value="handleDialogUpdate"
+        max-width="841px"
         icon="mdi-food-apple"
         icon-color="#4CAF50"
         title="Growth"
@@ -11,68 +11,89 @@
         @update:notes="$emit('update:notes', $event)"
         :loading="loading"
         @save="handleSave"
-        @close="$emit('close')"
+        @close="handleClose"
     >
         <template #custom-content>
-            <div class="growth-measurements">
-                <!-- Weight Input -->
-                <div class="measurement-field">
-                    <label class="measurement-label">Weight</label>
-                    <v-text-field
-                        v-model="localWeight"
-                        placeholder="Input weight here"
-                        variant="outlined"
-                        suffix="kg"
-                        hide-details
-                        :disabled="loading"
-                        class="measurement-input"
-                    >
-                        <template #prepend-inner>
-                            <v-icon size="20" color="grey-darken-1">
-                                mdi-scale-bathroom
-                            </v-icon>
-                        </template>
-                    </v-text-field>
-                </div>
+            <div class="growth-content">
+                <!-- Growth Measurements Row -->
+                <div class="growth-measurements">
+                    <!-- Weight Input -->
+                    <div class="measurement-field">
+                        <label class="section-label">Weight</label>
+                        <v-text-field
+                            v-model="localWeight"
+                            placeholder="Input weight here"
+                            variant="outlined"
+                            suffix="kg"
+                            hide-details
+                            :disabled="loading"
+                            class="measurement-input"
+                            :error="!!errors.weight"
+                            @input="clearError('weight')"
+                            @focus="clearError('weight')"
+                        >
+                            <template #prepend-inner>
+                                <v-icon size="20" color="grey-darken-1">
+                                    mdi-scale-bathroom
+                                </v-icon>
+                            </template>
+                        </v-text-field>
+                        <div v-if="errors.weight" class="error-message">
+                            {{ errors.weight }}
+                        </div>
+                    </div>
 
-                <!-- Height Input -->
-                <div class="measurement-field">
-                    <label class="measurement-label">Height</label>
-                    <v-text-field
-                        v-model="localHeight"
-                        placeholder="Input height here"
-                        variant="outlined"
-                        suffix="cm"
-                        hide-details
-                        :disabled="loading"
-                        class="measurement-input"
-                    >
-                        <template #prepend-inner>
-                            <v-icon size="20" color="grey-darken-1">
-                                mdi-ruler
-                            </v-icon>
-                        </template>
-                    </v-text-field>
-                </div>
+                    <!-- Height Input -->
+                    <div class="measurement-field">
+                        <label class="section-label">Height</label>
+                        <v-text-field
+                            v-model="localHeight"
+                            placeholder="Input height here"
+                            variant="outlined"
+                            suffix="cm"
+                            hide-details
+                            :disabled="loading"
+                            class="measurement-input"
+                            :error="!!errors.height"
+                            @input="clearError('height')"
+                            @focus="clearError('height')"
+                        >
+                            <template #prepend-inner>
+                                <v-icon size="20" color="grey-darken-1">
+                                    mdi-ruler
+                                </v-icon>
+                            </template>
+                        </v-text-field>
+                        <div v-if="errors.height" class="error-message">
+                            {{ errors.height }}
+                        </div>
+                    </div>
 
-                <!-- Head Circumference Input -->
-                <div class="measurement-field">
-                    <label class="measurement-label">Head Circumference (cm)</label>
-                    <v-text-field
-                        v-model="localHeadCircumference"
-                        placeholder="Input headcircumference"
-                        variant="outlined"
-                        suffix="cm"
-                        hide-details
-                        :disabled="loading"
-                        class="measurement-input"
-                    >
-                        <template #prepend-inner>
-                            <v-icon size="20" color="grey-darken-1">
-                                mdi-head
-                            </v-icon>
-                        </template>
-                    </v-text-field>
+                    <!-- Head Circumference Input -->
+                    <div class="measurement-field">
+                        <label class="section-label">Head Circumference</label>
+                        <v-text-field
+                            v-model="localHeadCircumference"
+                            placeholder="Input head circumference"
+                            variant="outlined"
+                            suffix="cm"
+                            hide-details
+                            :disabled="loading"
+                            class="measurement-input"
+                            :error="!!errors.headCircumference"
+                            @input="clearError('headCircumference')"
+                            @focus="clearError('headCircumference')"
+                        >
+                            <template #prepend-inner>
+                                <v-icon size="20" color="grey-darken-1">
+                                    mdi-head
+                                </v-icon>
+                            </template>
+                        </v-text-field>
+                        <div v-if="errors.headCircumference" class="error-message">
+                            {{ errors.headCircumference }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </template>
@@ -80,8 +101,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
+import { ref, watch, nextTick } from 'vue'
+import BaseCheckInDialog from '@/components/BaseCheckInDialog.vue'
 
 const props = defineProps({
     // Dialog Control
@@ -128,78 +149,220 @@ const emit = defineEmits([
 ])
 
 // Local reactive variables for measurements
-const localWeight = ref(props.weight)
-const localHeight = ref(props.height)
-const localHeadCircumference = ref(props.headCircumference)
+const localWeight = ref('')
+const localHeight = ref('')
+const localHeadCircumference = ref('')
+const errors = ref({})
 
-// Watch for changes and emit to parent
-watch(localWeight, (newValue) => {
-    emit('update:weight', newValue)
-})
-
-watch(localHeight, (newValue) => {
-    emit('update:height', newValue)
-})
-
-watch(localHeadCircumference, (newValue) => {
-    emit('update:headCircumference', newValue)
-})
+// Initialize local values when dialog opens
+watch(() => props.modelValue, (newValue) => {
+    if (newValue) {
+        // Reset form when opening dialog
+        localWeight.value = props.weight || ''
+        localHeight.value = props.height || ''
+        localHeadCircumference.value = props.headCircumference || ''
+        // Clear all errors when opening
+        errors.value = {}
+    }
+}, { immediate: true })
 
 // Watch for prop changes and update local values
 watch(() => props.weight, (newValue) => {
-    localWeight.value = newValue
+    if (props.modelValue) {
+        localWeight.value = newValue || ''
+    }
 })
 
 watch(() => props.height, (newValue) => {
-    localHeight.value = newValue
+    if (props.modelValue) {
+        localHeight.value = newValue || ''
+    }
 })
 
 watch(() => props.headCircumference, (newValue) => {
-    localHeadCircumference.value = newValue
+    if (props.modelValue) {
+        localHeadCircumference.value = newValue || ''
+    }
 })
+
+// Watch for changes and emit to parent with debouncing
+let weightTimeout = null
+let heightTimeout = null
+let headTimeout = null
+
+watch(localWeight, (newValue) => {
+    if (weightTimeout) clearTimeout(weightTimeout)
+    weightTimeout = setTimeout(() => {
+        emit('update:weight', newValue)
+    }, 100)
+})
+
+watch(localHeight, (newValue) => {
+    if (heightTimeout) clearTimeout(heightTimeout)
+    heightTimeout = setTimeout(() => {
+        emit('update:height', newValue)
+    }, 100)
+})
+
+watch(localHeadCircumference, (newValue) => {
+    if (headTimeout) clearTimeout(headTimeout)
+    headTimeout = setTimeout(() => {
+        emit('update:headCircumference', newValue)
+    }, 100)
+})
+
+// Clear specific error when user starts typing
+const clearError = (field) => {
+    if (errors.value[field]) {
+        delete errors.value[field]
+    }
+}
+
+// Validation methods
+const validateWeight = () => {
+    if (!localWeight.value || localWeight.value.toString().trim() === '') {
+        errors.value.weight = 'Please enter weight'
+        return false
+    }
+    
+    const weightNum = parseFloat(localWeight.value)
+    if (isNaN(weightNum) || weightNum <= 0) {
+        errors.value.weight = 'Please enter a valid weight'
+        return false
+    }
+    
+    delete errors.value.weight
+    return true
+}
+
+const validateHeight = () => {
+    if (!localHeight.value || localHeight.value.toString().trim() === '') {
+        errors.value.height = 'Please enter height'
+        return false
+    }
+    
+    const heightNum = parseFloat(localHeight.value)
+    if (isNaN(heightNum) || heightNum <= 0) {
+        errors.value.height = 'Please enter a valid height'
+        return false
+    }
+    
+    delete errors.value.height
+    return true
+}
+
+const validateHeadCircumference = () => {
+    if (!localHeadCircumference.value || localHeadCircumference.value.toString().trim() === '') {
+        errors.value.headCircumference = 'Please enter head circumference'
+        return false
+    }
+    
+    const circumferenceNum = parseFloat(localHeadCircumference.value)
+    if (isNaN(circumferenceNum) || circumferenceNum <= 0) {
+        errors.value.headCircumference = 'Please enter a valid head circumference'
+        return false
+    }
+    
+    delete errors.value.headCircumference
+    return true
+}
+
+const validateForm = () => {
+    // Clear all errors first
+    errors.value = {}
+    
+    const isWeightValid = validateWeight()
+    const isHeightValid = validateHeight()
+    const isHeadCircumferenceValid = validateHeadCircumference()
+    
+    return isWeightValid && isHeightValid && isHeadCircumferenceValid
+}
+
+// Handle dialog events
+const handleDialogUpdate = (value) => {
+    emit('update:modelValue', value)
+    if (!value) {
+        // Clear errors and reset form when dialog is closed
+        nextTick(() => {
+            errors.value = {}
+            localWeight.value = ''
+            localHeight.value = ''
+            localHeadCircumference.value = ''
+        })
+    }
+}
+
+const handleClose = () => {
+    // Clear errors and reset form when closing
+    errors.value = {}
+    localWeight.value = ''
+    localHeight.value = ''
+    localHeadCircumference.value = ''
+    emit('close')
+}
 
 // Handle save action
 const handleSave = () => {
+    if (!validateForm()) {
+        return
+    }
+
     const growthData = {
         weight: localWeight.value,
         height: localHeight.value,
         headCircumference: localHeadCircumference.value,
         notes: props.notes
     }
+    
+    // Clear errors after successful validation
+    errors.value = {}
+    
     emit('save', growthData)
 }
 </script>
 
 <style scoped>
+.growth-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Growth Measurements Container - Inline Layout */
 .growth-measurements {
-    margin-bottom: 24px;
+    display: flex;
+    gap: 32px;
 }
 
+/* Individual Measurement Field */
 .measurement-field {
-    margin-bottom: 20px;
+    flex: 1;
+    min-width: 278px; 
+    display: flex;
+    flex-direction: column;
 }
 
-.measurement-field:last-child {
-    margin-bottom: 0;
-}
-
-.measurement-label {
-    display: block;
-    margin-bottom: 8px;
-    color: #333;
-    font-size: 14px;
+/* Measurement Labels */
+.section-label {
+    font-size: 12px;
     font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.measurement-input :deep(.v-field__outline) {
-    border-radius: 8px;
+/* Measurement Input Styling */
+.measurement-input {
+    min-width: 160px; /* Ensure placeholder text fits */
 }
 
-.measurement-input :deep(.v-field__input) {
-    padding-left: 8px;
+.error-message {
+    color: #d32f2f;
+    font-size: 12px;
+    margin-top: 8px;
 }
 
-.measurement-input :deep(.v-field__prepend-inner) {
-    padding-top: 12px;
-}
+
 </style>
