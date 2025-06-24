@@ -14,7 +14,7 @@
         @close="$emit('close')"
     >
         <template #custom-content>
-            <div class="growth-measurements">
+            <div class="growth-measurements" style="display: flex; gap: 16px; margin-bottom: 16px;">
                 <!-- Weight Input -->
                 <div class="measurement-field">
                     <label class="measurement-label">Weight</label>

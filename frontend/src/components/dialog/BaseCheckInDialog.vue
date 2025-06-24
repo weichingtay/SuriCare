@@ -6,12 +6,14 @@
         persistent
     > <!--TODO:BUT DIFFERENT DIALOG HAS DIFFERENT MAX-WIDTH-->
         <v-card 
-            class="checkin-dialog-card" 
+            class="checkin-dialog-card pa-6" 
             elevation="0" 
             rounded="12"
+            style = "border:1px solid #e0e0e0;"
+            
         >
             <!-- Checkin Dialog Header -->
-            <div class="checkin-dialog-header">
+            <div class="checkin-dialog-header d-flex align-center justify-space-between">
                 <div class="d-flex align-center">
                     <v-icon
                         :color="iconColor"
@@ -22,15 +24,16 @@
                     </v-icon>
                     <span class="checkin-dialog-title">{{ title }}</span>
                 </div>
-                <v-btn 
+                    <v-btn 
                     icon="mdi-close" 
                     variant="text" 
                     size="small" 
                     color="grey"
                     @click="$emit('close')"
                     :disabled="loading"
-                />
-                   <!--small button size-->
+                    
+                    />
+                    <!--small button size-->
                    <!-- $emit: Emit event when clicked | @click="$emit('check-in')"-Send events to parent-->
             </div>
             
@@ -47,9 +50,10 @@
 
                 <!-- Custom Content Slot -->
                 <div
-                    v-if="$slots.content" 
+                    
+                     v-if="$slots['custom-content']"
                     class="dialog-custom-content"
-                >
+                >   <!--HERE GOT ISSUES  name="custom-content"-->
                     <slot name="custom-content"></slot>
                 </div> <!-- Only show if slot content exists --> 
                 <!--<slot name="breakdown"> - Parent can inject custom content-->
