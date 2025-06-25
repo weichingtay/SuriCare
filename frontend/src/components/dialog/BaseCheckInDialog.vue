@@ -3,10 +3,6 @@
         class="main-dialog"
         :model-value="modelValue"
         @update:model-value="$emit('update:modelValue', $event)"
-         :max-width="maxWidth"
-          :style="{ maxWidth: maxWidth + ' !important' }"
-        :width="width"
-        :min-width="minWidth"
         persistent
         
     > <!--TODO:BUT DIFFERENT DIALOG HAS DIFFERENT MAX-WIDTH-->
@@ -100,18 +96,6 @@
         modelValue: {
             type: Boolean,
             default: false
-        },
-        maxWidth: {
-            type: [String, Number],
-            default: "800px"
-        },
-        width: {
-            type: [String, Number],
-            default: undefined 
-        },
-        minWidth: {
-            type: [String, Number],
-            default: "320px"
         },
 
 

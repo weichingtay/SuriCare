@@ -2,7 +2,7 @@
     <BaseCheckInDialog
         :model-value="modelValue"
         @update:model-value="handleDialogUpdate"
-        max-width="841px"
+        width="1000px"
         icon="mdi-food-apple"
         icon-color="#4CAF50"
         title="Growth"
