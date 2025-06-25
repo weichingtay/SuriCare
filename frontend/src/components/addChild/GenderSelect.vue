@@ -9,13 +9,15 @@
       variant="outlined"
       :rules="rules"
       hide-details="auto"
+      :loading="isGenderLoading"
+      :disabled="isGenderLoading"
       @update:modelValue="handleSelection"
     />
   </div>
 </template>
 
 <script setup>
-  import { ref, watch } from 'vue'
+  import { ref, watch, computed } from 'vue'
 
   const props = defineProps({
     modelValue: {
@@ -32,13 +34,22 @@
 
   const selectedGender = ref(props.modelValue)
 
-  const genderOptions = [
-    { title: 'Select a gender', value: '', disabled: true },
-    { title: 'Male', value: 'male' },
-    { title: 'Female', value: 'female' },
-    { title: 'Other', value: 'other' },
-    { title: 'Prefer not to say', value: 'prefer_not_to_say' },
-  ]
+  // Use dynamic options from database
+  import { useFormOptions } from '@/composables/useFormOptions'
+
+  const {
+    genderOptions: genderOptionsData,
+    isLoading: isGenderLoading
+  } = useFormOptions()
+
+  // Transform to match expected format for VSelect
+  const genderOptions = computed(() => 
+    genderOptionsData.value.map(option => ({
+      title: option.label,
+      value: option.value,
+      disabled: option.disabled || false
+    }))
+  )
 
   watch(
     () => props.modelValue,

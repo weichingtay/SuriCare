@@ -8,13 +8,13 @@
         :width="width"
         :min-width="minWidth"
         persistent
-        
+
     > <!--TODO:BUT DIFFERENT DIALOG HAS DIFFERENT MAX-WIDTH-->
-        <v-card 
-            class="checkin-dialog-card" 
-            elevation="0" 
+        <v-card
+            class="checkin-dialog-card"
+            elevation="0"
             style = "border:1px solid #e0e0e0;"
-            
+
         >
             <!-- Checkin Dialog Header -->
             <div class="checkin-dialog-header d-flex align-center justify-space-between">
@@ -28,35 +28,35 @@
                     </v-icon>
                     <span class="checkin-dialog-title">{{ title }}</span>
                 </div>
-                    <v-btn 
-                    icon="mdi-close" 
-                    variant="text" 
-                    size="medium" 
+                    <v-btn
+                    icon="mdi-close"
+                    variant="text"
+                    size="medium"
                     color="grey"
                     @click="$emit('close')"
                     :disabled="loading"
-                    
+
                     />
                     <!--small button size-->
                    <!-- $emit: Emit event when clicked | @click="$emit('check-in')"-Send events to parent-->
             </div>
-            
+
             <!-- Dialog Subtitle -->
-            <div 
+            <div
                 v-if="subtitle"
                 class="dialog-subtitle"
             >
                 {{ subtitle }}
             </div>
-            
+
             <!-- Dialog Content -->
             <!-- Custom Content Slot -->
             <div v-if="$slots['custom-content']" class="dialog-custom-content"
             >   <!--HERE GOT ISSUES  name="custom-content"-->
                 <slot name="custom-content"></slot>
-            </div> <!-- Only show if slot content exists --> 
+            </div> <!-- Only show if slot content exists -->
             <!--<slot name="breakdown"> - Parent can inject custom content-->
-        
+
 
             <!-- Notes Section -->
                 <div class="dialog-notes-section">
@@ -79,8 +79,8 @@
             <div class="dialog-save-button-footer">
                 <v-spacer />
                 <v-btn
-                    variant="flat" 
-                    size="large " 
+                    variant="flat"
+                    size="large "
                     rounded="8"
                     class="save-btn"
                     @click="$emit('save')"
@@ -107,7 +107,7 @@
         },
         width: {
             type: [String, Number],
-            default: undefined 
+            default: undefined
         },
         minWidth: {
             type: [String, Number],
@@ -128,19 +128,19 @@
             type: String,
             default: 'black'
         },
-        
+
         // Subtitle
         subtitle: {
             type: String,
             default: ''
         },
-        
+
         // Notes
         notes: {
             type: String,
             default: ''
         },
-        
+
         // State
         loading: {
             type: Boolean,
@@ -154,7 +154,7 @@
 
     defineEmits([
         'update:modelValue',
-        'update:notes', 
+        'update:notes',
         'save',
         'close',
         'clear-error'
@@ -163,7 +163,7 @@
 
 <style scoped>
 
-    
+
 
     .checkin-dialog-card {
         border: 1px solid #e0e0e0;
@@ -171,10 +171,10 @@
         margin: 0 auto;
         padding: 24px !important;
         box-sizing: border-box;
-    
+
     }
 
-   
+
     /* Dialog Header */
     .checkin-dialog-header {
         display: flex;
@@ -212,7 +212,7 @@
         font-size: 12px;
         font-weight: 500;
         color: #333;
-       
+
     }
 
     /* Textarea styling - normal state */
@@ -245,7 +245,7 @@
 
     /* Remove any control outline */
     .notes-textarea :deep(.v-field__outline__start),
-    .notes-textarea :deep(.v-field__outline__notch), 
+    .notes-textarea :deep(.v-field__outline__notch),
     .notes-textarea :deep(.v-field__outline__end) {
         border: none !important;
     }
@@ -273,7 +273,7 @@
         text-transform: none;
         font-weight: 500;
         padding: 8px 16px;
-        
+
     }
 
     /* Remove default button effects */
@@ -286,5 +286,5 @@
     }
 
     /* Button text styling */
-    
+
 </style>

@@ -19,18 +19,22 @@
                 <div class="color-section">
                     <label class="section-label">Color</label>
                     <div class="color-options">
+                        <div v-if="isPoopOptionsLoading" class="d-flex justify-center pa-4">
+                            <v-progress-circular indeterminate size="20"></v-progress-circular>
+                        </div>
                         <div
+                            v-else
                             v-for="color in colorOptions"
                             :key="color.value"
                             class="color-option"
                             :class="{ 'selected': localColor === color.value }"
                             @click="selectColor(color.value)"
                         >
-                            <div 
+                            <div
                                 class="color-circle"
                                 :style="{
                                     backgroundColor: color.hex,
-                                    
+
                                 }"
                             ></div>
                             <div class="color-label">
@@ -47,7 +51,11 @@
                 <div class="texture-section">
                     <label class="section-label">Consistency</label>
                     <div class="texture-options">
+                        <div v-if="isPoopOptionsLoading" class="d-flex justify-center pa-4">
+                            <v-progress-circular indeterminate size="20"></v-progress-circular>
+                        </div>
                         <div
+                            v-else
                             v-for="texture in textureOptions"
                             :key="texture.value"
                             class="texture-option"
@@ -56,16 +64,16 @@
                         >
                             <!-- Texture Visual -->
                             <div class="texture-visual-img">
-                            <img 
-                                :src="texture.image" 
-                                alt="texture" 
+                            <img
+                                :src="texture.image"
+                                alt="texture"
                                 class="texture-image"
                             />
                             <div class="texture-label">
                                 {{ texture.label }}
                             </div>
                             </div>
-                            
+
                         </div>
                     </div>
                     <div v-if="errors.texture" class="error-message">
@@ -113,54 +121,14 @@ const emit = defineEmits([
     'close'
 ])
 
-// Color options exactly as shown in image
-const colorOptions = [
-    { value: 'yellow', label: 'Yellow', hex: '#FDD835' },
-    { value: 'red', label: 'Red', hex: '#E53935' },
-    { value: 'brown', label: 'Brown', hex: '#8D6E63' },
-    { value: 'green', label: 'Green', hex: '#43A047' },
-    { value: 'black', label: 'Black', hex: '#424242' },
-    { value: 'gray', label: 'Gray', hex: '#9E9E9E' }
-]
+// Use dynamic options from database
+import { usePoopOptions } from '@/composables/usePoopOptions'
 
-// Texture options with visual representations exactly as shown in image
-const textureOptions = [
-    { 
-        value: 'pellets', 
-        label: 'Pellets',
-        image: '/assets/textures/pellets.png'
-    },
-    { 
-        value: 'lumpy', 
-        label: 'Lumpy',
-        image: '/assets/textures/lumpy.png'
-    },
-    { 
-        value: 'cracked', 
-        label: 'Cracked',
-        image: '/assets/textures/cracked.png'
-    },
-    { 
-        value: 'smooth', 
-        label: 'Smooth',
-        image: '/assets/textures/smooth.png'
-    },
-    { 
-        value: 'soft', 
-        label: 'Soft',
-        image: '/assets/textures/soft.png'
-    },
-    { 
-        value: 'mushy', 
-        label: 'Mushy',
-        image: '/assets/textures/mushy.png'
-    },
-    { 
-        value: 'watery', 
-        label: 'Watery',
-        image: '/assets/textures/watery.png'
-    }
-]
+const {
+    colorOptions,
+    textureOptions,
+    isLoading: isPoopOptionsLoading
+} = usePoopOptions()
 
 const localColor = ref('')
 const localTexture = ref('')
@@ -177,7 +145,6 @@ watch(() => props.modelValue, (newValue) => {
     }
 }, { immediate: true })
 
-// 🔧 修改5: 条件性监听props变化
 watch(() => props.color, (newValue) => {
     if (props.modelValue) {
         localColor.value = newValue || ''
@@ -190,7 +157,6 @@ watch(() => props.texture, (newValue) => {
     }
 })
 
-// 🔧 修改6: 防抖动emit处理
 watch(localColor, (newValue) => {
     if (colorTimeout) clearTimeout(colorTimeout)
     colorTimeout = setTimeout(() => {
@@ -211,7 +177,6 @@ watch(localTexture, (newValue) => {
     }, 100)
 })
 
-// 🔧 修改7: 改进选择方法 - 确保触发reactivity
 const selectColor = (color) => {
     localColor.value = color
 }
@@ -239,7 +204,6 @@ const validateTexture = () => {
     return true
 }
 
-// 🔧 修改8: 重写validateForm - 先清除所有错误
 const validateForm = () => {
     errors.value = {}
     const isColorValid = validateColor()
@@ -247,7 +211,6 @@ const validateForm = () => {
     return isColorValid && isTextureValid
 }
 
-// 🔧 修改9: 重写handleDialogUpdate
 const handleDialogUpdate = (value) => {
     emit('update:modelValue', value)
     if (!value) {
@@ -259,7 +222,6 @@ const handleDialogUpdate = (value) => {
     }
 }
 
-// 🔧 修改10: 重写handleClose
 const handleClose = () => {
     errors.value = {}
     localColor.value = ''
@@ -267,7 +229,6 @@ const handleClose = () => {
     emit('close')
 }
 
-// 🔧 修改11: 重写handleSave
 const handleSave = () => {
     if (!validateForm()) {
         return
@@ -278,7 +239,7 @@ const handleSave = () => {
         texture: localTexture.value,
         notes: props.notes
     }
-    
+
     errors.value = {}
     emit('save', poopData)
 }

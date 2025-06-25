@@ -19,7 +19,11 @@
                 <div class="symptoms-section">
                     <label class="section-label">Symptoms</label>
                     <div class="symptoms-buttons">
+                        <div v-if="isSymptomOptionsLoading" class="d-flex justify-center pa-4">
+                            <v-progress-circular indeterminate size="20"></v-progress-circular>
+                        </div>
                         <v-btn
+                            v-else
                             v-for="symptom in symptomOptions"
                             :key="symptom.value"
                             :variant="localSymptoms.includes(symptom.value) ? 'flat' : 'outlined'"
@@ -161,14 +165,13 @@ const emit = defineEmits([
     'close'
 ])
 
-// Symptom options exactly as shown in image
-const symptomOptions = [
-    { value: 'cough', label: 'Cough', icon: 'mdi-account-voice' },
-    { value: 'fever', label: 'Fever', icon: 'mdi-thermometer' },
-    { value: 'cold', label: 'Cold', icon: 'mdi-weather-snowy' },
-    { value: 'rash', label: 'Rash', icon: 'mdi-circle-outline' },
-    { value: 'other', label: 'Other', icon: 'mdi-dots-horizontal' }
-]
+// Use dynamic options from database
+import { useSymptomOptions } from '@/composables/useSymptomOptions'
+
+const {
+    symptomOptions,
+    isLoading: isSymptomOptionsLoading
+} = useSymptomOptions()
 
 // Local reactive data
 const localSymptoms = ref([])

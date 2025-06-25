@@ -24,7 +24,11 @@
                     <div class="meal-time-section">
                         <label class="section-label">Meal Time</label>
                         <div class="meal-time-buttons">
+                            <div v-if="isMealOptionsLoading" class="d-flex justify-center pa-4">
+                                <v-progress-circular indeterminate size="20"></v-progress-circular>
+                            </div>
                             <v-btn
+                                v-else
                                 v-for="time in mealTimeOptions"
                                 :key="time.value"
                                 :variant="localMealTime === time.value ? 'flat' : 'outlined'"
@@ -34,9 +38,9 @@
                                 :disabled="loading"
                                 class="meal-time-btn"
                             >
-                                <v-icon 
-                                    :icon="time.icon" 
-                                    size="14" 
+                                <v-icon
+                                    :icon="time.icon"
+                                    size="14"
                                     class="mr-1"
                                 />
                                 {{ time.label }}
@@ -57,7 +61,8 @@
                             placeholder="0% (Refused)"
                             variant="outlined"
                             hide-details
-                            :disabled="loading"
+                            :disabled="loading || isMealOptionsLoading"
+                            :loading="isMealOptionsLoading"
                             density="compact"
                             :error="!!errors.consumptionLevel"
                             class="consumption-select"
@@ -76,14 +81,18 @@
                 </div>
 
                 <!-- Consumption Level -->
-                    
+
 
 
                 <!-- Meal Category -->
                 <div class="meal-category-section">
                     <label class="section-label">Meal Category</label>
                     <div class="meal-category-buttons">
+                        <div v-if="isMealOptionsLoading" class="d-flex justify-center pa-4">
+                            <v-progress-circular indeterminate size="20"></v-progress-circular>
+                        </div>
                         <v-btn
+                            v-else
                             v-for="category in mealCategoryOptions"
                             :key="category.value"
                             :variant="localMealCategory === category.value ? 'flat' : 'outlined'"
@@ -94,9 +103,9 @@
                             :disabled="loading"
                             class="meal-category-btn"
                         >
-                            <v-icon 
-                                :icon="category.icon" 
-                                size="14" 
+                            <v-icon
+                                :icon="category.icon"
+                                size="14"
                                 class="mr-1"
                             />
                             {{ category.label }}
@@ -151,7 +160,6 @@
 </template>
 
 <script setup>
-// 🔧 修改1: 添加 nextTick 导入
 import { ref, watch, nextTick } from 'vue'
 import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
 
@@ -206,34 +214,17 @@ const emit = defineEmits([
     'close'
 ])
 
-// Options exactly as shown in images
-const mealTimeOptions = [
-    { value: 'breakfast', label: 'Breakfast', icon: 'mdi-weather-sunny' },
-    { value: 'lunch', label: 'Lunch', icon: 'mdi-white-balance-sunny' },
-    { value: 'dinner', label: 'Dinner', icon: 'mdi-weather-night' }
-]
+// Use dynamic options from database
+import { useMealOptions } from '@/composables/useMealOptions'
 
-const consumptionOptions = [
-    { value: '0', label: '0% (Refused)' },
-    { value: '25', label: '25% (Partial)' },
-    { value: '50', label: '50% (Partial)' },
-    { value: '75', label: '75% (Partial)' },
-    { value: '100', label: '100% (Full)' }
-]
+const {
+    mealTimeOptions,
+    mealCategoryOptions,
+    consumptionOptions,
+    milkSubCategories,
+    isLoading: isMealOptionsLoading
+} = useMealOptions()
 
-const mealCategoryOptions = [
-    { value: 'milk', label: 'Milk', icon: 'mdi-cup' },
-    { value: 'solid', label: 'Solid', icon: 'mdi-food-apple' },
-    { value: 'mixed', label: 'Mixed', icon: 'mdi-bowl-mix' },
-    { value: 'others', label: 'Others', icon: 'mdi-dots-horizontal' }
-]
-
-const milkSubCategories = [
-    { value: 'breast_milk', label: 'Breast Milk' },
-    { value: 'formula', label: 'Formula' }
-]
-
-// 🔧 修改2: 本地变量初始化为空值
 const localMealTime = ref('')
 const localConsumptionLevel = ref('')
 const localMealCategory = ref('')
@@ -241,14 +232,12 @@ const localSubCategory = ref('')
 const localCustomMeal = ref('')
 const errors = ref({})
 
-// 🔧 修改3: 添加防抖变量
 let mealTimeTimeout = null
 let consumptionTimeout = null
 let categoryTimeout = null
 let subCategoryTimeout = null
 let customMealTimeout = null
 
-// 🔧 修改4: 监听dialog开关 - 重置所有状态
 watch(() => props.modelValue, (newValue) => {
     if (newValue) {
         // Reset all form data when opening dialog
@@ -262,7 +251,6 @@ watch(() => props.modelValue, (newValue) => {
     }
 }, { immediate: true })
 
-// 🔧 修改5: 条件性监听props变化
 watch(() => props.mealTime, (newValue) => {
     if (props.modelValue) {
         localMealTime.value = newValue || ''
@@ -293,7 +281,6 @@ watch(() => props.customMeal, (newValue) => {
     }
 })
 
-// 🔧 修改6: 防抖动emit处理
 watch(localMealTime, (newValue) => {
     if (mealTimeTimeout) clearTimeout(mealTimeTimeout)
     mealTimeTimeout = setTimeout(() => {
@@ -348,14 +335,12 @@ watch(localCustomMeal, (newValue) => {
     }, 100)
 })
 
-// 🔧 修改7: 添加错误清除方法
 const clearError = (field) => {
     if (errors.value[field]) {
         delete errors.value[field]
     }
 }
 
-// 🔧 修改8: 改进按钮选择方法 - 确保触发reactivity
 const selectMealTime = (time) => {
     localMealTime.value = time
 }
@@ -405,7 +390,6 @@ const validateCustomMeal = () => {
     return true
 }
 
-// 🔧 修改9: 重写validateForm - 先清除所有错误
 const validateForm = () => {
     errors.value = {}
     const isMealTimeValid = validateMealTime()
@@ -415,7 +399,6 @@ const validateForm = () => {
     return isMealTimeValid && isConsumptionValid && isCategoryValid && isCustomMealValid
 }
 
-// 🔧 修改10: 重写handleDialogUpdate
 const handleDialogUpdate = (value) => {
     emit('update:modelValue', value)
     if (!value) {
@@ -430,7 +413,6 @@ const handleDialogUpdate = (value) => {
     }
 }
 
-// 🔧 修改11: 重写handleClose
 const handleClose = () => {
     errors.value = {}
     localMealTime.value = ''
@@ -441,7 +423,6 @@ const handleClose = () => {
     emit('close')
 }
 
-// 🔧 修改12: 重写handleSave
 const handleSave = () => {
     if (!validateForm()) {
         return
@@ -455,7 +436,7 @@ const handleSave = () => {
         customMeal: localCustomMeal.value,
         notes: props.notes
     }
-    
+
     errors.value = {}
     emit('save', mealData)
 }
