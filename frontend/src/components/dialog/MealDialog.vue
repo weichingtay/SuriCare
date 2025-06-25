@@ -2,7 +2,7 @@
     <BaseCheckInDialog
         :model-value="modelValue"
         @update:model-value="handleDialogUpdate"
-        max-width="650px"
+        class="mealdialog"
         icon="mdi-food"
         icon-color="#000000"
         title="Log Meal"
@@ -12,9 +12,12 @@
         :loading="loading"
         @save="handleSave"
         @close="handleClose"
+        max-width="1000px"
+
     >
         <template #custom-content>
             <div class="meal-content">
+
                 <!-- Meal Time and Consumption Level Row -->
                 <div class="meal-time-consumption">
                     <!-- Meal Time -->
@@ -44,10 +47,6 @@
                         </div>
                     </div>
 
-                    
-                </div>
-
-                <!-- Consumption Level -->
                     <div class="consumption-section">
                         <label class="section-label">Consumption Level</label>
                         <v-select
@@ -74,6 +73,10 @@
                             {{ errors.consumptionLevel }}
                         </div>
                     </div>
+                </div>
+
+                <!-- Consumption Level -->
+                    
 
 
                 <!-- Meal Category -->
@@ -153,6 +156,10 @@ import { ref, watch, nextTick } from 'vue'
 import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
 
 const props = defineProps({
+    width: {
+        type: String,
+        default: '800px'
+    },
     modelValue: {
         type: Boolean,
         default: false
@@ -455,6 +462,8 @@ const handleSave = () => {
 </script>
 
 <style scoped>
+
+
 .meal-content {
     display: flex;
     flex-direction: column;
@@ -463,7 +472,7 @@ const handleSave = () => {
 
 .meal-time-consumption {
     display: flex;
-    gap: 24px;
+    gap: 28px;
 }
 
 .meal-time-section,
@@ -516,9 +525,74 @@ const handleSave = () => {
 }
 
 .consumption-select {
-    min-width: 200px;
-    border-radius: 4px;
+    width: 160px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
 }
+
+/* Updated styles for consumption dropdown */
+.consumption-select :deep(.v-field) {
+    min-height: 32px !important;
+    border-radius: 4px !important;
+    width: 120px !important;
+    font-size: 14px !important;
+}
+
+.consumption-select :deep(.v-field__input) {
+    min-height: 32px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    font-size: 14px !important;
+}
+
+.consumption-select :deep(.v-field__input input) {
+    font-size: 14px !important;
+}
+
+.consumption-select :deep(.v-field__input .v-field__field) {
+    font-size: 14px !important;
+}
+
+.consumption-select :deep(.v-select__selection) {
+    font-size: 14px !important;
+}
+
+.consumption-select :deep(.v-select__selection-text) {
+    font-size: 14px !important;
+}
+
+.consumption-select :deep(.v-field__overlay) {
+    font-size: 14px !important;
+}
+
+.consumption-select :deep(.v-field__outline) {
+    border-radius: 4px !important;
+}
+
+/* Dropdown menu width and options font size */
+.consumption-select :deep(.v-overlay__content) {
+    width: 200px !important;
+}
+
+.consumption-select :deep(.v-list) {
+    width: 200px !important;
+}
+
+.consumption-select :deep(.v-list-item) {
+    font-size: 14px !important;
+    min-height: 32px !important;
+}
+
+.consumption-select :deep(.v-list-item-title) {
+    font-size: 14px !important;
+}
+
+.consumption-select :deep(.v-list-item__content) {
+    font-size: 14px !important;
+}
+
 
 .meal-category-section {
     display: flex;
@@ -564,15 +638,17 @@ const handleSave = () => {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 
-.meal-dialog {
-    max-width: 750px !important;
-    width: 90vw !important;
-    border-radius: 20px !important;
-    overflow: hidden;
+/* Make textarea wider for meal dialog */
+:deep(.notes-textarea) {
+    width: 800px !important;
+    min-width: 600px !important;
 }
 
-.meal-dialog :deep(.v-card) {
-    border-radius: 20px !important;
-    width: 100% !important;
+:deep(.notes-textarea .v-field) {
+    width: 800px !important;
+}
+
+:deep(.dialog-notes-section) {
+    width: 800px !important;
 }
 </style>
