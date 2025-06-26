@@ -7,15 +7,15 @@ const fallbackSymptomOptions = [
   { id: 2, value: 'fever', label: 'Fever', icon: 'mdi-thermometer' },
   { id: 3, value: 'cold', label: 'Cold', icon: 'mdi-weather-snowy' },
   { id: 4, value: 'rash', label: 'Rash', icon: 'mdi-circle-outline' },
-  { id: 5, value: 'other', label: 'Other', icon: 'mdi-dots-horizontal' }
+  { id: 5, value: 'other', label: 'Other', icon: 'mdi-dots-horizontal' },
 ]
 
-export function useSymptomOptions() {
+export function useSymptomOptions () {
   const {
     fetchSymptomTypes,
     symptomTypes,
     isLoading,
-    getError
+    getError,
   } = useLookupData()
 
   // Symptom options with icons
@@ -27,7 +27,7 @@ export function useSymptomOptions() {
     return symptomTypes.value.map(item => ({
       ...item,
       // Ensure icon is present, fallback to default if not
-      icon: item.icon || 'mdi-medical-bag'
+      icon: item.icon || 'mdi-medical-bag',
     }))
   })
 
@@ -62,18 +62,18 @@ export function useSymptomOptions() {
   return {
     // Options
     symptomOptions,
-    
+
     // Loading state
     isLoading: isSymptomLoading,
-    
+
     // Error state
     error: symptomError,
-    
+
     // Helper functions
     getSymptomIcon,
     getSymptomLabel,
-    
+
     // Actions
-    loadSymptomOptions
+    loadSymptomOptions,
   }
 }

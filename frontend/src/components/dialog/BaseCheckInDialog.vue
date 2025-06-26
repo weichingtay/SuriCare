@@ -1,168 +1,166 @@
 <template>
-    <v-dialog
-        class="main-dialog"
-        :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
-         :max-width="maxWidth"
-          :style="{ maxWidth: maxWidth + ' !important' }"
-        :width="width"
-        :min-width="minWidth"
-        persistent
+  <v-dialog
+    class="main-dialog"
+    :max-width="maxWidth"
+    :min-width="minWidth"
+    :model-value="modelValue"
+    persistent
+    :style="{ maxWidth: maxWidth + ' !important' }"
+    :width="width"
+    @update:model-value="$emit('update:modelValue', $event)"
+  > <!--TODO:BUT DIFFERENT DIALOG HAS DIFFERENT MAX-WIDTH-->
+    <v-card
+      class="checkin-dialog-card"
+      elevation="0"
+      style="border:1px solid #e0e0e0;"
+    >
+      <!-- Checkin Dialog Header -->
+      <div class="checkin-dialog-header d-flex align-center justify-space-between">
+        <div class="d-flex align-center">
+          <v-icon
+            class="mr-2"
+            :color="iconColor"
+            size="28"
+          >
+            {{ icon }}
+          </v-icon>
+          <span class="checkin-dialog-title">{{ title }}</span>
+        </div>
+        <v-btn
+          color="grey"
+          :disabled="loading"
+          icon="mdi-close"
+          size="medium"
+          variant="text"
+          @click="$emit('close')"
+        />
+        <!--small button size-->
+        <!-- $emit: Emit event when clicked | @click="$emit('check-in')"-Send events to parent-->
+      </div>
 
-    > <!--TODO:BUT DIFFERENT DIALOG HAS DIFFERENT MAX-WIDTH-->
-        <v-card
-            class="checkin-dialog-card"
-            elevation="0"
-            style = "border:1px solid #e0e0e0;"
+      <!-- Dialog Subtitle -->
+      <div
+        v-if="subtitle"
+        class="dialog-subtitle"
+      >
+        {{ subtitle }}
+      </div>
 
+      <!-- Dialog Content -->
+      <!-- Custom Content Slot -->
+      <div
+        v-if="$slots['custom-content']"
+        class="dialog-custom-content"
+      >   <!--HERE GOT ISSUES  name="custom-content"-->
+        <slot name="custom-content" />
+      </div> <!-- Only show if slot content exists -->
+      <!--<slot name="breakdown"> - Parent can inject custom content-->
+
+
+      <!-- Notes Section -->
+      <div class="dialog-notes-section">
+        <label class="dialog-notes-label">
+          Remark/Notes
+        </label>
+        <v-textarea
+          class="notes-textarea"
+          :disabled="loading"
+          hide-details
+          :model-value="notes"
+          placeholder="Type details here"
+          rows="3"
+          variant="outlined"
+          @update:model-value="$emit('update:notes', $event)"
+        />
+      </div>
+
+      <!-- Dialog Save Button -->
+      <div class="dialog-save-button-footer">
+        <v-spacer />
+        <v-btn
+          class="save-btn"
+          :loading="loading"
+          rounded="8"
+          size="large "
+          variant="flat"
+          @click="$emit('save')"
         >
-            <!-- Checkin Dialog Header -->
-            <div class="checkin-dialog-header d-flex align-center justify-space-between">
-                <div class="d-flex align-center">
-                    <v-icon
-                        :color="iconColor"
-                        size="28"
-                        class="mr-2"
-                    >
-                        {{ icon }}
-                    </v-icon>
-                    <span class="checkin-dialog-title">{{ title }}</span>
-                </div>
-                    <v-btn
-                    icon="mdi-close"
-                    variant="text"
-                    size="medium"
-                    color="grey"
-                    @click="$emit('close')"
-                    :disabled="loading"
-
-                    />
-                    <!--small button size-->
-                   <!-- $emit: Emit event when clicked | @click="$emit('check-in')"-Send events to parent-->
-            </div>
-
-            <!-- Dialog Subtitle -->
-            <div
-                v-if="subtitle"
-                class="dialog-subtitle"
-            >
-                {{ subtitle }}
-            </div>
-
-            <!-- Dialog Content -->
-            <!-- Custom Content Slot -->
-            <div v-if="$slots['custom-content']" class="dialog-custom-content"
-            >   <!--HERE GOT ISSUES  name="custom-content"-->
-                <slot name="custom-content"></slot>
-            </div> <!-- Only show if slot content exists -->
-            <!--<slot name="breakdown"> - Parent can inject custom content-->
-
-
-            <!-- Notes Section -->
-                <div class="dialog-notes-section">
-                    <label class="dialog-notes-label">
-                        Remark/Notes
-                    </label>
-                    <v-textarea
-                        :model-value="notes"
-                        @update:model-value="$emit('update:notes', $event)"
-                        placeholder="Type details here"
-                        variant="outlined"
-                        rows="3"
-                        hide-details
-                        :disabled="loading"
-                        class="notes-textarea"
-                    />
-                </div>
-
-            <!-- Dialog Save Button -->
-            <div class="dialog-save-button-footer">
-                <v-spacer />
-                <v-btn
-                    variant="flat"
-                    size="large "
-                    rounded="8"
-                    class="save-btn"
-                    @click="$emit('save')"
-                    :loading="loading"
-                >
-                    <v-icon class="mr-2" size="18">mdi-content-save</v-icon>
-                    Save
-                </v-btn>
-            </div>
-        </v-card>
-    </v-dialog>
+          <v-icon class="mr-2" size="18">mdi-content-save</v-icon>
+          Save
+        </v-btn>
+      </div>
+    </v-card>
+  </v-dialog>
 </template>
 
-<script setup>
-    defineProps({
-        // Dialog Control
-        modelValue: {
-            type: Boolean,
-            default: false
-        },
-        maxWidth: {
-            type: [String, Number],
-            default: "800px"
-        },
-        width: {
-            type: [String, Number],
-            default: undefined
-        },
-        minWidth: {
-            type: [String, Number],
-            default: "320px"
-        },
+<script setup lang="ts">
+  defineProps({
+    // Dialog Control
+    modelValue: {
+      type: Boolean,
+      default: false,
+    },
+    maxWidth: {
+      type: [String, Number],
+      default: '800px',
+    },
+    width: {
+      type: [String, Number],
+      default: undefined,
+    },
+    minWidth: {
+      type: [String, Number],
+      default: '320px',
+    },
 
 
-        // Header Props
-        title: {
-            type: String,
-            required: true
-        },
-        icon: {
-            type: String,
-            required: true
-        },
-        iconColor: {
-            type: String,
-            default: 'black'
-        },
+    // Header Props
+    title: {
+      type: String,
+      required: true,
+    },
+    icon: {
+      type: String,
+      required: true,
+    },
+    iconColor: {
+      type: String,
+      default: 'black',
+    },
 
-        // Subtitle
-        subtitle: {
-            type: String,
-            default: ''
-        },
+    // Subtitle
+    subtitle: {
+      type: String,
+      default: '',
+    },
 
-        // Notes
-        notes: {
-            type: String,
-            default: ''
-        },
+    // Notes
+    notes: {
+      type: String,
+      default: '',
+    },
 
-        // State
-        loading: {
-            type: Boolean,
-            default: false
-        },
-        error: {
-            type: String,
-            default: null
-        }
-    })
+    // State
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    error: {
+      type: String,
+      default: null,
+    },
+  })
 
-    defineEmits([
-        'update:modelValue',
-        'update:notes',
-        'save',
-        'close',
-        'clear-error'
-    ])
+  defineEmits([
+    'update:modelValue',
+    'update:notes',
+    'save',
+    'close',
+    'clear-error',
+  ])
 </script>
 
 <style scoped>
-
 
 
     .checkin-dialog-card {
@@ -199,7 +197,6 @@
     .dialog-custom-content{
         margin-top: 20px;
     }
-
 
 
     /* Notes Section */

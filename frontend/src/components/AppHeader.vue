@@ -1,37 +1,37 @@
 <template>
   <v-app-bar
     app
+    class="app-header"
     color="transparent"
     elevation="0"
     height="72"
-    class="app-header"
   >
     <!-- Glassmorphism background overlay -->
-    <div class="header-background"></div>
+    <div class="header-background" />
 
     <v-container
-      fluid
       class="header-container"
+      fluid
     >
       <!-- Left section: Welcome message and child selector in one row -->
       <div class="left-section">
         <!-- Child selector -->
         <div>
           <v-menu class="dropdown-menu">
-            <template v-slot:activator="{ props }">
+            <template #activator="{ props }">
               <v-btn
                 v-bind="props"
-                variant="elevated"
                 class="child-selector-btn"
                 height="48"
                 style="justify-content: flex-start"
+                variant="elevated"
               >
                 <v-avatar
-                  size="32"
                   class="child-avatar"
+                  size="32"
                   style="margin-right: 12px"
                 >
-                  <v-img :src="currentChild.avatar"></v-img>
+                  <v-img :src="currentChild.avatar" />
                 </v-avatar>
                 <div
                   class="child-info"
@@ -41,10 +41,9 @@
                   <span class="child-age">{{ currentChild.age }}</span>
                 </div>
                 <v-icon
-                  size="16"
                   class="dropdown-icon"
-                  >mdi-chevron-down</v-icon
-                >
+                  size="16"
+                >mdi-chevron-down</v-icon>
               </v-btn>
             </template>
 
@@ -52,16 +51,16 @@
               <v-list-item
                 v-for="child in children"
                 :key="child.id"
-                @click="selectChild(child)"
                 :active="child.id === currentChild.id"
                 class="child-dropdown-item"
+                @click="selectChild(child)"
               >
-                <template v-slot:prepend>
+                <template #prepend>
                   <v-avatar
-                    size="32"
                     class="dropdown-avatar"
+                    size="32"
                   >
-                    <v-img :src="child.avatar"></v-img>
+                    <v-img :src="child.avatar" />
                   </v-avatar>
                 </template>
                 <v-list-item-title class="dropdown-name">{{
@@ -87,9 +86,7 @@
               <v-icon size="20">mdi-human-male-height</v-icon>
               <div class="metric-info">
                 <span class="growth-label">Height</span>
-                <span class="growth-value"
-                  >{{ currentChild.growth?.height || '100' }}cm</span
-                >
+                <span class="growth-value">{{ currentChild.growth?.height || '100' }}cm</span>
               </div>
             </div>
 
@@ -97,9 +94,7 @@
               <v-icon size="20">mdi-weight-kilogram</v-icon>
               <div class="metric-info">
                 <span class="growth-label">Weight</span>
-                <span class="growth-value"
-                  >{{ currentChild.growth?.weight || '20' }}kg</span
-                >
+                <span class="growth-value">{{ currentChild.growth?.weight || '20' }}kg</span>
               </div>
             </div>
 
@@ -107,24 +102,21 @@
               <v-icon size="20">mdi-head</v-icon>
               <div class="metric-info">
                 <span class="growth-label">Head Circ.</span>
-                <span class="growth-value"
-                  >{{ currentChild.growth?.headCircumference || '45' }}cm</span
-                >
+                <span class="growth-value">{{ currentChild.growth?.headCircumference || '45' }}cm</span>
               </div>
             </div>
 
             <v-btn
+              class="growth-edit-btn"
               icon
               size="x-small"
               variant="text"
-              class="growth-edit-btn"
               @click.stop="openGrowthDialog"
             >
               <v-icon
-                size="14"
                 color="rgba(0,0,0,0.6)"
-                >mdi-pencil</v-icon
-              >
+                size="14"
+              >mdi-pencil</v-icon>
             </v-btn>
           </div>
         </div>
@@ -137,9 +129,9 @@
       >
         <!-- Share button -->
         <v-btn
-          variant="elevated"
           class="share-child-btn"
           height="40"
+          variant="elevated"
           @click="openShareDialog"
         >
           Share Child Info
@@ -150,17 +142,17 @@
     <!-- Growth Data Dialog -->
     <GrowthDialog
       v-model="growthDialog"
-      :weight="growthFormData.weight"
-      :height="growthFormData.height"
       :head-circumference="growthFormData.headCircumference"
-      :notes="growthFormData.notes"
+      :height="growthFormData.height"
       :loading="false"
-      @update:weight="growthFormData.weight = $event"
-      @update:height="growthFormData.height = $event"
-      @update:head-circumference="growthFormData.headCircumference = $event"
-      @update:notes="growthFormData.notes = $event"
-      @save="saveGrowthData"
+      :notes="growthFormData.notes"
+      :weight="growthFormData.weight"
       @close="growthDialog = false"
+      @save="saveGrowthData"
+      @update:head-circumference="growthFormData.headCircumference = $event"
+      @update:height="growthFormData.height = $event"
+      @update:notes="growthFormData.notes = $event"
+      @update:weight="growthFormData.weight = $event"
     />
 
     <!-- Share dialog -->
@@ -176,12 +168,11 @@
           <!-- Access type selector inside dialog -->
           <v-select
             v-model="shareAccessType"
+            density="comfortable"
             :items="accessOptions"
             label="Access Level"
-            density="comfortable"
             variant="outlined"
-            
-          ></v-select>
+          />
 
           <!-- Share code instruction -->
           <p
@@ -196,39 +187,38 @@
 
           <!-- Modern code field -->
           <v-text-field
-            :model-value="shareCode"
-            label="Invitation Code"
-            prepend-inner-icon="mdi-account-key"
             append-inner-icon="mdi-content-copy"
-            readonly
-            hide-details
             density="comfortable"
-            variant="outlined"
+            hide-details
+            label="Invitation Code"
+            :model-value="shareCode"
+            prepend-inner-icon="mdi-account-key"
+            readonly
             style="margin-bottom: 16px"
+            variant="outlined"
             @click:append-inner="copyToClipboard(shareCode)"
-          ></v-text-field>
+          />
 
           <!-- Modern URL field -->
           <v-text-field
-            :model-value="shareUrl"
-            label="Share URL"
-            prepend-inner-icon="mdi-link"
             append-inner-icon="mdi-content-copy"
-            readonly
-            hide-details
             density="comfortable"
-            variant="outlined"
+            hide-details
+            label="Share URL"
+            :model-value="shareUrl"
+            prepend-inner-icon="mdi-link"
+            readonly
             style="margin-bottom: 8px"
+            variant="outlined"
             @click:append-inner="copyToClipboard(shareUrl)"
-          ></v-text-field>
+          />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             variant="text"
             @click="closeDialog"
-            >Close</v-btn
-          >
+          >Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -244,7 +234,7 @@
   </v-app-bar>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { useShareChild } from '@/composables/useShareChild'
   import { useGrowthDialog } from '@/composables/useGrowthDialog'
   import GrowthDialog from '../components/dialog/GrowthDialog.vue'
@@ -265,7 +255,7 @@
   const emit = defineEmits(['child-selected'])
 
   // Methods
-  const selectChild = (child) => {
+  const selectChild = child => {
     emit('child-selected', child)
   }
 
@@ -273,7 +263,6 @@
   const {
     growthDialog,
     growthFormData,
-    formatGrowthUpdate,
     handleOpenGrowthDialog,
     saveGrowthData,
   } = useGrowthDialog()

@@ -242,9 +242,9 @@ const alerts = ref([
   },
 ])
 
-export function useGuidanceAlert() {
+export function useGuidanceAlert () {
   const removeAlert = (id: number) => {
-    alerts.value = alerts.value.filter((alert) => alert.id !== id)
+    alerts.value = alerts.value.filter(alert => alert.id !== id)
   }
 
   const alertsCount = computed(() => alerts.value.length)

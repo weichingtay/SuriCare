@@ -1,105 +1,105 @@
 <template>
-    <div class="dialog-page">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1 class="page-title">Dialog Components</h1>
-            <p class="page-subtitle">Growth Dialog Component Demo</p>
-        </div>
-
-        <!-- Button to open dialog -->
-        <div class="button-section">
-            <v-btn 
-                @click="openDialog"
-                color="success"
-                size="large"
-                rounded="8"
-            >
-                <v-icon class="mr-2">mdi-food-apple</v-icon>
-                Open Growth Dialog
-            </v-btn>
-        </div>
-
-        <!-- Growth Dialog Component -->
-        <GrowthDialog
-            v-model="showDialog"
-            :weight="growthData.weight"
-            :height="growthData.height"
-            :head-circumference="growthData.headCircumference"
-            :notes="growthData.notes"
-            :loading="isLoading"
-            @update:weight="growthData.weight = $event"
-            @update:height="growthData.height = $event"
-            @update:head-circumference="growthData.headCircumference = $event"
-            @update:notes="growthData.notes = $event"
-            @save="handleSave"
-            @close="closeDialog"
-        />
-
-        <!-- Data Preview (if any data exists) -->
-        <div v-if="hasData" class="data-preview">
-            <h3>Current Data:</h3>
-            <v-card variant="outlined" class="pa-4">
-                <div v-if="growthData.weight"><strong>Weight:</strong> {{ growthData.weight }} kg</div>
-                <div v-if="growthData.height"><strong>Height:</strong> {{ growthData.height }} cm</div>
-                <div v-if="growthData.headCircumference"><strong>Head Circumference:</strong> {{ growthData.headCircumference }} cm</div>
-                <div v-if="growthData.notes"><strong>Notes:</strong> {{ growthData.notes }}</div>
-            </v-card>
-        </div>
+  <div class="dialog-page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Dialog Components</h1>
+      <p class="page-subtitle">Growth Dialog Component Demo</p>
     </div>
+
+    <!-- Button to open dialog -->
+    <div class="button-section">
+      <v-btn
+        color="success"
+        rounded="8"
+        size="large"
+        @click="openDialog"
+      >
+        <v-icon class="mr-2">mdi-food-apple</v-icon>
+        Open Growth Dialog
+      </v-btn>
+    </div>
+
+    <!-- Growth Dialog Component -->
+    <GrowthDialog
+      v-model="showDialog"
+      :head-circumference="growthData.headCircumference"
+      :height="growthData.height"
+      :loading="isLoading"
+      :notes="growthData.notes"
+      :weight="growthData.weight"
+      @close="closeDialog"
+      @save="handleSave"
+      @update:head-circumference="growthData.headCircumference = $event"
+      @update:height="growthData.height = $event"
+      @update:notes="growthData.notes = $event"
+      @update:weight="growthData.weight = $event"
+    />
+
+    <!-- Data Preview (if any data exists) -->
+    <div v-if="hasData" class="data-preview">
+      <h3>Current Data:</h3>
+      <v-card class="pa-4" variant="outlined">
+        <div v-if="growthData.weight"><strong>Weight:</strong> {{ growthData.weight }} kg</div>
+        <div v-if="growthData.height"><strong>Height:</strong> {{ growthData.height }} cm</div>
+        <div v-if="growthData.headCircumference"><strong>Head Circumference:</strong> {{ growthData.headCircumference }} cm</div>
+        <div v-if="growthData.notes"><strong>Notes:</strong> {{ growthData.notes }}</div>
+      </v-card>
+    </div>
+  </div>
 </template>
 
-<script setup>
-import { ref, reactive, computed } from 'vue'
-import GrowthDialog from '@/components/dialog/GrowthDialog.vue'
+<script setup lang="ts">
+  import { computed, reactive, ref } from 'vue'
+  import GrowthDialog from '@/components/dialog/GrowthDialog.vue'
 
-// Dialog state
-const showDialog = ref(false)
-const isLoading = ref(false)
+  // Dialog state
+  const showDialog = ref(false)
+  const isLoading = ref(false)
 
-// Growth data
-const growthData = reactive({
+  // Growth data
+  const growthData = reactive({
     weight: '',
     height: '',
     headCircumference: '',
-    notes: ''
-})
+    notes: '',
+  })
 
-// Computed
-const hasData = computed(() => {
+  // Computed
+  const hasData = computed(() => {
     return growthData.weight || growthData.height || growthData.headCircumference || growthData.notes
-})
+  })
 
-// Methods
-const openDialog = () => {
+  // Methods
+  const openDialog = () => {
     showDialog.value = true
-}
+  }
 
-const closeDialog = () => {
+  const closeDialog = () => {
     showDialog.value = false
-}
+  }
 
-const handleSave = async (data) => {
+  const handleSave = async data => {
     try {
-        isLoading.value = true
-        
-        // Simulate API call
-        console.log('Saving growth data:', data)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Update local data
-        Object.assign(growthData, data)
-        
-        // Close dialog
-        closeDialog()
-        
-        console.log('Data saved successfully!')
-        
+      isLoading.value = true
+
+      // Simulate API call
+      console.log('Saving growth data:', data)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Update local data
+      Object.assign(growthData, data)
+
+      // Close dialog
+      closeDialog()
+
+      console.log('Data saved successfully!')
+
     } catch (error) {
-        console.error('Error saving growth data:', error)
+      console.error('Error saving growth data:', error)
     } finally {
-        isLoading.value = false
+      isLoading.value = false
     }
-}
+  }
 </script>
 
 <style scoped>

@@ -5,19 +5,19 @@
       @click="triggerFileInput"
     >
       <v-avatar
-        size="120"
-        color="grey-lighten-2"
         class="profile-avatar"
+        color="grey-lighten-2"
+        size="120"
       >
         <v-img
           v-if="imagePreview"
-          :src="imagePreview"
           cover
+          :src="imagePreview"
         />
         <v-icon
           v-else
-          size="40"
           color="grey-darken-1"
+          size="40"
         >
           mdi-camera-plus
         </v-icon>
@@ -28,22 +28,21 @@
         <v-icon
           color="white"
           size="24"
-          >mdi-camera-outline</v-icon
-        >
+        >mdi-camera-outline</v-icon>
       </div>
     </div>
 
     <input
       ref="fileInput"
-      type="file"
       accept="image/*"
-      @change="handleFileSelect"
       style="display: none"
-    />
+      type="file"
+      @change="handleFileSelect"
+    >
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { ref, watch } from 'vue'
 
   const props = defineProps({
@@ -60,7 +59,7 @@
 
   watch(
     () => props.modelValue,
-    (newValue) => {
+    newValue => {
       if (newValue) {
         createImagePreview(newValue)
       } else {
@@ -74,7 +73,7 @@
     fileInput.value.click()
   }
 
-  const handleFileSelect = (event) => {
+  const handleFileSelect = event => {
     const file = event.target.files[0]
     if (file) {
       emit('update:modelValue', file)
@@ -83,9 +82,9 @@
     }
   }
 
-  const createImagePreview = (file) => {
+  const createImagePreview = file => {
     const reader = new FileReader()
-    reader.onload = (e) => {
+    reader.onload = e => {
       imagePreview.value = e.target.result
     }
     reader.readAsDataURL(file)

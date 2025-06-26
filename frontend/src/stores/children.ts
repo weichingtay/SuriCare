@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 
 export interface Child {
   id: number
@@ -78,7 +78,7 @@ export const useChildrenStore = defineStore('children', () => {
       if (ageMonths < 0) {
         ageMonths += 12
       }
-      
+
       return ageMonths === 1 ? '1 month old' : `${ageMonths} months old`
     }
 

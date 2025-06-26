@@ -10,8 +10,8 @@
     <!-- Main content area -->
     <v-main style="background-color: #faf7f2">
       <v-container
-        fluid
         class="pa-1 pt-2"
+        fluid
       >
         <!-- Welcome section -->
         <!-- <div class="mb-6">
@@ -22,59 +22,59 @@
 
         <!-- Health Issue Alert -->
         <HealthAlert
-          :currentChild="childrenStore.currentChild"
+          :current-child="childrenStore.currentChild"
           @view-more="handleHealthAlert"
         />
 
         <!-- Check-ins History section -->
         <CheckInsHistory
-          :currentChild="childrenStore.currentChild"
+          :current-child="childrenStore.currentChild"
           @view-history="handleViewHistory"
         />
 
         <!-- Today's Summary section -->
         <TodaysSummary
-          :summaryData="summaryStore.summaryData"
+          :summary-data="summaryStore.summaryData"
           @date-changed="loadDataForDate"
-          @open-meal-dialog="openMealDialog"
-          @open-sleep-dialog="openSleepDialog"
-          @open-poop-dialog="openPoopDialog"
           @open-health-dialog="openHealthDialog"
+          @open-meal-dialog="openMealDialog"
+          @open-poop-dialog="openPoopDialog"
+          @open-sleep-dialog="openSleepDialog"
         />
 
         <!-- AI Assistant section -->
         <AIAssistant @send-message="aiChat.sendMessage" />
       </v-container>
     </v-main>
-        <!-- Dialog Components -->
+    <!-- Dialog Components -->
     <MealDialog
       v-model="dialogs.meal"
-      @save="handleMealSave"
       @close="dialogs.meal = false"
+      @save="handleMealSave"
     />
 
     <SleepDialog
       v-model="dialogs.sleep"
-      @save="handleSleepSave"
       @close="dialogs.sleep = false"
+      @save="handleSleepSave"
     />
 
     <PoopDialog
       v-model="dialogs.poop"
-      @save="handlePoopSave"
       @close="dialogs.poop = false"
+      @save="handlePoopSave"
     />
 
     <SymptomDialog
       v-model="dialogs.health"
-      @save="handleHealthSave"
       @close="dialogs.health = false"
+      @save="handleHealthSave"
     />
   </v-app>
 </template>
 
-<script setup>
-  import { ref, reactive, onMounted } from 'vue'  
+<script setup lang="ts">
+  import { onMounted, reactive } from 'vue'
   import { useChildrenStore } from '@/stores/children'
   import { useSummaryStore } from '@/stores/summary'
   import { useAIChat } from '@/composables/useAIChat'
@@ -104,33 +104,31 @@
     meal: false,
     sleep: false,
     poop: false,
-    health: false
+    health: false,
   })
 
-  // Caregiver's name - in production, this would come from authentication
-  const caregiverName = ref('Wei Ching')
 
-// ===== SAVE HANDLERS =====
+  // ===== SAVE HANDLERS =====
 
-  const handleMealSave = (mealData) => {
+  const handleMealSave = mealData => {
     console.log('Saving meal data:', mealData)
     // TODO: Save to store
     dialogs.meal = false
   }
 
-  const handleSleepSave = (sleepData) => {
+  const handleSleepSave = sleepData => {
     console.log('Saving sleep data:', sleepData)
     // TODO: Save to store
     dialogs.sleep = false
   }
 
-  const handlePoopSave = (poopData) => {
+  const handlePoopSave = poopData => {
     console.log('Saving poop data:', poopData)
     // TODO: Save to store
     dialogs.poop = false
   }
 
-  const handleHealthSave = (healthData) => {
+  const handleHealthSave = healthData => {
     console.log('Saving health data:', healthData)
     // TODO: Save to store
     dialogs.health = false
@@ -155,22 +153,22 @@
   }
 
   // Load data for a specific date and current child
-  const loadDataForDate = (date) => {
+  const loadDataForDate = date => {
     // Load summary data from store
     summaryStore.loadSummaryForDate(date, childrenStore.currentChild.id)
   }
 
- // Handle health alert view more
-const handleHealthAlert = (alert) => {
-  console.log('Health alert clicked:', alert)
-  router.push({
-    path: '/guidance',
-    query: { tab: 'alert' }
-  })
-}
+  // Handle health alert view more
+  const handleHealthAlert = alert => {
+    console.log('Health alert clicked:', alert)
+    router.push({
+      path: '/guidance',
+      query: { tab: 'alert' },
+    })
+  }
 
   // Handle view history
-  const handleViewHistory = (child) => {
+  const handleViewHistory = child => {
     console.log('View history clicked:', child)
     router.push('/checkin')
     // Handle view history navigation

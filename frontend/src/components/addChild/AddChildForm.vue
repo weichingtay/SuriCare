@@ -12,8 +12,8 @@
     <!-- Profile Photo Section -->
     <ProfilePhotoUpload
       v-model="form.photo"
-      @upload="handlePhotoUpload"
       class="mb-8"
+      @upload="handlePhotoUpload"
     />
 
     <!-- Form Fields -->
@@ -24,26 +24,26 @@
     >
       <ChildNameInput
         v-model="form.name"
-        :rules="nameRules"
         class="mb-6"
+        :rules="nameRules"
       />
 
       <GenderSelect
         v-model="form.gender"
-        :rules="genderRules"
         class="mb-6"
+        :rules="genderRules"
       />
 
       <DateOfBirthPicker
         v-model="form.dateOfBirth"
-        :rules="dateRules"
         class="mb-6"
+        :rules="dateRules"
       />
 
       <RelationshipSelect
         v-model="form.relationship"
-        :rules="relationshipRules"
         class="mb-8"
+        :rules="relationshipRules"
       />
 
       <SubmitButton
@@ -55,8 +55,8 @@
   </div>
 </template>
 
-<script setup>
-  import { ref, reactive } from 'vue'
+<script setup lang="ts">
+  import { reactive, ref } from 'vue'
   import { useRoute } from 'vue-router'
   import ProfilePhotoUpload from './ProfilePhotoUpload.vue'
   import ChildNameInput from './ChildNameInput.vue'
@@ -85,17 +85,17 @@
 
   // Validation rules
   const nameRules = [
-    (v) => !!v || 'Child name is required',
-    (v) => (v && v.length >= 2) || 'Name must be at least 2 characters',
+    v => !!v || 'Child name is required',
+    v => (v && v.length >= 2) || 'Name must be at least 2 characters',
   ]
 
-  const genderRules = [(v) => !!v || 'Gender is required']
+  const genderRules = [v => !!v || 'Gender is required']
 
-  const dateRules = [(v) => !!v || 'Date of birth is required']
+  const dateRules = [v => !!v || 'Date of birth is required']
 
-  const relationshipRules = [(v) => !!v || 'Relationship is required']
+  const relationshipRules = [v => !!v || 'Relationship is required']
 
-  const handlePhotoUpload = (file) => {
+  const handlePhotoUpload = file => {
     form.photo = file
   }
 
@@ -107,7 +107,7 @@
 
       try {
         // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 1000))
 
         emit('submit', { ...form })
 

@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { Ref, ComputedRef } from 'vue'
-import axios from 'axios'
+import { computed, ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 
 interface MealPercentages {
   breakfast: number
@@ -36,14 +35,15 @@ export const useMealsStore = defineStore('meals', (): MealsStore => {
   const error = ref<string | null>(null)
 
   // Mock data generator for development
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const generateMockMealsData = (date: string): MealsData => ({
     percentages: {
       breakfast: Math.floor(Math.random() * 100),
       lunch: Math.floor(Math.random() * 100),
-      dinner: Math.floor(Math.random() * 100)
+      dinner: Math.floor(Math.random() * 100),
     },
     refusedItems: Math.random() > 0.7 ? ['yogurt', 'vegetables', 'chicken'] : [],
-    preferences: ['noodles', 'rice', 'chicken']
+    preferences: ['noodles', 'rice', 'chicken'],
   })
 
   // Getters
@@ -61,12 +61,12 @@ export const useMealsStore = defineStore('meals', (): MealsStore => {
   const fetchMealsForDate = async (date: string): Promise<void> => {
     isLoading.value = true
     error.value = null
-    
+
     try {
       // TODO: Replace with actual API call
       // const response = await axios.get<MealsData>(`/api/meals/${date}`)
       // mealsByDate.value[date] = response.data
-      
+
       // Using mock data for now
       mealsByDate.value[date] = generateMockMealsData(date)
     } catch (err) {
@@ -80,12 +80,12 @@ export const useMealsStore = defineStore('meals', (): MealsStore => {
   const updateMealsForDate = async (date: string, mealsData: MealsData): Promise<void> => {
     isLoading.value = true
     error.value = null
-    
+
     try {
       // TODO: Replace with actual API call
       // await axios.put<MealsData>(`/api/meals/${date}`, mealsData)
       // mealsByDate.value[date] = mealsData
-      
+
       // Using mock data for now
       mealsByDate.value[date] = mealsData
     } catch (err) {
@@ -105,4 +105,4 @@ export const useMealsStore = defineStore('meals', (): MealsStore => {
     updateMealsForDate,
     getMealCount,
   }
-}) 
+})

@@ -7,7 +7,7 @@ const fallbackGenderOptions = [
   { id: 2, value: 'male', label: 'Male' },
   { id: 3, value: 'female', label: 'Female' },
   { id: 4, value: 'other', label: 'Other' },
-  { id: 5, value: 'prefer_not_to_say', label: 'Prefer not to say' }
+  { id: 5, value: 'prefer_not_to_say', label: 'Prefer not to say' },
 ]
 
 const fallbackRelationshipOptions = [
@@ -19,15 +19,15 @@ const fallbackRelationshipOptions = [
   { id: 6, value: 'aunt', label: 'Aunt' },
   { id: 7, value: 'uncle', label: 'Uncle' },
   { id: 8, value: 'guardian', label: 'Guardian' },
-  { id: 9, value: 'other', label: 'Other' }
+  { id: 9, value: 'other', label: 'Other' },
 ]
 
 const fallbackAccessLevels = [
   { id: 1, value: 'full', label: 'Full Access' },
-  { id: 2, value: 'partial', label: 'Partial Access' }
+  { id: 2, value: 'partial', label: 'Partial Access' },
 ]
 
-export function useFormOptions() {
+export function useFormOptions () {
   const {
     fetchGenderOptions,
     fetchRelationshipTypes,
@@ -36,7 +36,7 @@ export function useFormOptions() {
     relationshipTypes,
     accessLevels,
     isLoading,
-    getError
+    getError,
   } = useLookupData()
 
   // Gender options with default "Select" option
@@ -47,7 +47,7 @@ export function useFormOptions() {
 
     return [
       { id: 0, value: '', label: 'Select a gender', disabled: true },
-      ...genderOptions.value
+      ...genderOptions.value,
     ]
   })
 
@@ -80,7 +80,7 @@ export function useFormOptions() {
   const accessLevelError = computed(() => getError.value('accessLevels'))
 
   // Overall loading state
-  const isLoadingOptions = computed(() => 
+  const isLoadingOptions = computed(() =>
     isGenderLoading.value || isRelationshipLoading.value || isAccessLevelLoading.value
   )
 
@@ -89,7 +89,7 @@ export function useFormOptions() {
     await Promise.allSettled([
       fetchGenderOptions(),
       fetchRelationshipTypes(),
-      fetchAccessLevels()
+      fetchAccessLevels(),
     ])
   }
 
@@ -119,24 +119,24 @@ export function useFormOptions() {
     genderOptions: genderOptionsWithDefault,
     relationshipOptions,
     accessLevelOptions,
-    
+
     // Loading states
     isGenderLoading,
     isRelationshipLoading,
     isAccessLevelLoading,
     isLoading: isLoadingOptions,
-    
+
     // Error states
     genderError,
     relationshipError,
     accessLevelError,
-    
+
     // Helper functions
     getGenderLabel,
     getRelationshipLabel,
     getAccessLevelLabel,
-    
+
     // Actions
-    loadFormOptions
+    loadFormOptions,
   }
 }

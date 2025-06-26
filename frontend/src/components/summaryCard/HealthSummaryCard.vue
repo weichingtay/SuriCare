@@ -1,52 +1,52 @@
 <template>
   <BaseSummaryCard
-    title="Health"
     icon="mdi-heart"
     :main-value="healthData?.status || 'Healthy'"
-    :status-note="healthData?.message || 'No symptoms today'"
     :status-class="statusClass"
+    :status-note="healthData?.message || 'No symptoms today'"
+    title="Health"
     @check-in="handleCheckIn"
   />
 </template>
 
-<script setup>
-import { computed } from 'vue'
-import BaseSummaryCard from './BaseSummaryCard.vue'
-import { useHealthStore } from '@/stores/health'
-import { storeToRefs } from 'pinia'
+<script setup lang="ts">
+  import { computed } from 'vue'
+  import BaseSummaryCard from './BaseSummaryCard.vue'
+  import { useHealthStore } from '@/stores/health'
+  import { storeToRefs } from 'pinia'
 
-// Get health store
-const healthStore = useHealthStore()
-const { getHealthForDate } = storeToRefs(healthStore)
+  // Get health store
+  const healthStore = useHealthStore()
+  const { getHealthForDate } = storeToRefs(healthStore)
 
-// Get current date
-const currentDate = computed(() => new Date().toISOString().split('T')[0])
+  // Get current date
+  const currentDate = computed(() => new Date().toISOString().split('T')[0])
 
-// Get health data
-const healthData = computed(() => getHealthForDate.value(currentDate.value))
+  // Get health data
+  const healthData = computed(() => getHealthForDate.value(currentDate.value))
 
-// Compute status class based on health status
-const statusClass = computed(() => {
-  if (!healthData.value) return 'status-positive'
-  
-  switch (healthData.value.status) {
-    case 'High Fever':
-      return 'status-negative'
-    case 'Low Fever':
-    case 'Cold Symptoms':
-      return 'status-warning'
-    case 'Allergies':
-      return 'status-neutral'
-    default:
-      return 'status-positive'
+  // Compute status class based on health status
+  const statusClass = computed(() => {
+    if (!healthData.value) return 'status-positive'
+
+    switch (healthData.value.status) {
+      case 'High Fever':
+        return 'status-negative'
+      case 'Low Fever':
+      case 'Cold Symptoms':
+        return 'status-warning'
+      case 'Allergies':
+        return 'status-neutral'
+      default:
+        return 'status-positive'
+    }
+  })
+
+  const emit = defineEmits(['check-in'])
+
+  const handleCheckIn = () => {
+    emit('check-in')
   }
-})
-
-const emit = defineEmits(['check-in'])
-
-const handleCheckIn = () => {
-  emit('check-in')
-}
 </script>
 
 <style scoped>

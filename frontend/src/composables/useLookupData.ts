@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { supabase } from '@/plugins/supabase'
 
 // Types for all lookup data
@@ -26,15 +26,9 @@ export interface PoopConsistency extends LookupOption {
   category: string
 }
 
-export interface GenderOption extends LookupOption {}
-
-export interface RelationshipType extends LookupOption {}
-
 export interface SymptomType extends LookupOption {
   icon: string
 }
-
-export interface AccessLevel extends LookupOption {}
 
 export interface ConsumptionLevel extends LookupOption {
   percentage: number
@@ -60,7 +54,7 @@ const lookupCache = ref<{
   relationshipTypes: [],
   symptomTypes: [],
   accessLevels: [],
-  consumptionLevels: []
+  consumptionLevels: [],
 })
 
 // Loading states for each lookup type
@@ -74,10 +68,10 @@ const errorStates = ref<{
 }>({})
 
 // Generic function to fetch lookup data
-async function fetchLookupData<T>(
-  tableName: string, 
+async function fetchLookupData<T> (
+  tableName: string,
   cacheKey: keyof typeof lookupCache.value,
-  transformer?: (data: any[]) => T[]
+  transformer?: (data: unknown[]) => T[]
 ): Promise<T[]> {
   // Return cached data if available
   if (lookupCache.value[cacheKey].length > 0) {
@@ -100,16 +94,16 @@ async function fetchLookupData<T>(
 
     // Transform data if transformer provided, otherwise use default transformation
     const transformedData = transformer ? transformer(data || []) : transformDefault(data || [])
-    
+
     // Cache the results
-    ;(lookupCache.value[cacheKey] as any[]) = transformedData
-    
+    ;(lookupCache.value[cacheKey] as unknown[]) = transformedData
+
     return transformedData as T[]
-  } catch (error) {
+  } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     errorStates.value[cacheKey] = errorMessage
     console.error(`Error fetching ${tableName}:`, errorMessage)
-    
+
     // Return empty array on error
     return []
   } finally {
@@ -118,81 +112,81 @@ async function fetchLookupData<T>(
 }
 
 // Default transformer for lookup data
-function transformDefault(data: any[]): LookupOption[] {
+function transformDefault (data: unknown[]): LookupOption[] {
   return data.map(item => ({
     id: item.id,
     value: item.value || item.category || item.time_category,
     label: item.label || item.category || item.time_category,
     icon: item.icon,
-    percentage: item.percentage
+    percentage: item.percentage,
   }))
 }
 
 // Specific transformers for different table structures
-function transformMealCategories(data: any[]): MealCategory[] {
+function transformMealCategories (data: unknown[]): MealCategory[] {
   return data.map(item => ({
     id: item.id,
     value: item.category,
     label: item.category.charAt(0).toUpperCase() + item.category.slice(1),
-    category: item.category
+    category: item.category,
   }))
 }
 
-function transformMealTimeCategories(data: any[]): MealTimeCategory[] {
+function transformMealTimeCategories (data: unknown[]): MealTimeCategory[] {
   return data.map(item => ({
     id: item.id,
     value: item.time_category,
     label: item.time_category.charAt(0).toUpperCase() + item.time_category.slice(1),
-    time_category: item.time_category
+    time_category: item.time_category,
   }))
 }
 
-function transformPoopColors(data: any[]): PoopColor[] {
+function transformPoopColors (data: unknown[]): PoopColor[] {
   return data.map(item => ({
     id: item.id,
     value: item.category,
     label: item.category.charAt(0).toUpperCase() + item.category.slice(1),
-    category: item.category
+    category: item.category,
   }))
 }
 
-function transformPoopConsistencies(data: any[]): PoopConsistency[] {
+function transformPoopConsistencies (data: unknown[]): PoopConsistency[] {
   return data.map(item => ({
     id: item.id,
     value: item.category,
     label: item.category.charAt(0).toUpperCase() + item.category.slice(1),
-    category: item.category
+    category: item.category,
   }))
 }
 
 // Main composable
-export function useLookupData() {
+export function useLookupData () {
   // Fetch functions for each lookup type
-  const fetchMealCategories = () => 
+  const fetchMealCategories = () =>
     fetchLookupData<MealCategory>('meal_category', 'mealCategories', transformMealCategories)
 
-  const fetchMealTimeCategories = () => 
+  const fetchMealTimeCategories = () =>
     fetchLookupData<MealTimeCategory>('meal_time_category', 'mealTimeCategories', transformMealTimeCategories)
 
-  const fetchPoopColors = () => 
+  const fetchPoopColors = () =>
     fetchLookupData<PoopColor>('poop_color', 'poopColors', transformPoopColors)
 
-  const fetchPoopConsistencies = () => 
+  const fetchPoopConsistencies = () =>
     fetchLookupData<PoopConsistency>('poop_consistency', 'poopConsistencies', transformPoopConsistencies)
 
-  const fetchGenderOptions = () => 
+  const fetchGenderOptions = () =>
     fetchLookupData<GenderOption>('gender_options', 'genderOptions')
 
-  const fetchRelationshipTypes = () => 
+  const fetchRelationshipTypes = () =>
     fetchLookupData<RelationshipType>('relationship_types', 'relationshipTypes')
 
-  const fetchSymptomTypes = () => 
+  const fetchSymptomTypes = () =>
     fetchLookupData<SymptomType>('symptom_types', 'symptomTypes')
 
-  const fetchAccessLevels = () => 
+  const fetchAccessLevels = () =>
     fetchLookupData<AccessLevel>('access_levels', 'accessLevels')
 
-  const fetchConsumptionLevels = () => 
+  const fetchConsumptionLevels = () =>
     fetchLookupData<ConsumptionLevel>('consumption_levels', 'consumptionLevels')
 
   // Computed getters for cached data
@@ -213,11 +207,11 @@ export function useLookupData() {
   // Clear cache function (useful for refreshing data)
   const clearCache = (cacheKey?: keyof typeof lookupCache.value) => {
     if (cacheKey) {
-      ;(lookupCache.value[cacheKey] as any[]) = []
+      (lookupCache.value[cacheKey] as unknown[]) = []
     } else {
       // Clear all cache
       Object.keys(lookupCache.value).forEach(key => {
-        ;(lookupCache.value[key as keyof typeof lookupCache.value] as any[]) = []
+        (lookupCache.value[key as keyof typeof lookupCache.value] as unknown[]) = []
       })
     }
   }
@@ -233,7 +227,7 @@ export function useLookupData() {
       fetchRelationshipTypes(),
       fetchSymptomTypes(),
       fetchAccessLevels(),
-      fetchConsumptionLevels()
+      fetchConsumptionLevels(),
     ])
   }
 
@@ -248,7 +242,7 @@ export function useLookupData() {
     fetchSymptomTypes,
     fetchAccessLevels,
     fetchConsumptionLevels,
-    
+
     // Cached data
     mealCategories,
     mealTimeCategories,
@@ -259,11 +253,11 @@ export function useLookupData() {
     symptomTypes,
     accessLevels,
     consumptionLevels,
-    
+
     // Utility functions
     isLoading,
     getError,
     clearCache,
-    preloadAllLookupData
+    preloadAllLookupData,
   }
 }

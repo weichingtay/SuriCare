@@ -5,20 +5,20 @@
     </v-label>
     <v-select
       v-model="selectedRelationship"
-      :items="relationshipOptions"
-      placeholder="Select a relationship"
-      variant="outlined"
-      :rules="rules"
-      hide-details="auto"
-      :loading="isRelationshipLoading"
       :disabled="isRelationshipLoading"
-      @update:modelValue="handleSelection"
+      hide-details="auto"
+      :items="relationshipOptions"
+      :loading="isRelationshipLoading"
+      placeholder="Select a relationship"
+      :rules="rules"
+      variant="outlined"
+      @update:model-value="handleSelection"
     />
   </div>
 </template>
 
-<script setup>
-  import { ref, watch, computed } from 'vue'
+<script setup lang="ts">
+  import { computed, ref, watch } from 'vue'
 
   const props = defineProps({
     modelValue: {
@@ -40,20 +40,20 @@
 
   const {
     relationshipOptions: relationshipOptionsData,
-    isLoading: isRelationshipLoading
+    isLoading: isRelationshipLoading,
   } = useFormOptions()
 
   // Transform to match expected format for VSelect
-  const relationshipOptions = computed(() => 
+  const relationshipOptions = computed(() =>
     relationshipOptionsData.value.map(option => ({
       title: option.label,
-      value: option.value
+      value: option.value,
     }))
   )
 
   watch(
     () => props.modelValue,
-    (newValue) => {
+    newValue => {
       selectedRelationship.value = newValue
     }
   )

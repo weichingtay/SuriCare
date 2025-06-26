@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { useChildrenStore } from '@/stores/children'
 
-export function useGrowthDialog() {
+export function useGrowthDialog () {
   const childrenStore = useChildrenStore()
   const growthDialog = ref(false)
   const growthFormData = ref({
@@ -38,9 +38,9 @@ export function useGrowthDialog() {
     const height = parseFloat(growthFormData.value.height)
     const weight = parseFloat(growthFormData.value.weight)
     const headCircumference = parseFloat(growthFormData.value.headCircumference)
-    
+
     childrenStore.updateChildGrowth(childrenStore.currentChild.id, height, weight, headCircumference)
-    
+
     growthDialog.value = false
     console.log('Growth data updated:', childrenStore.currentChild.growth)
   }
@@ -50,6 +50,6 @@ export function useGrowthDialog() {
     growthFormData,
     formatGrowthUpdate,
     handleOpenGrowthDialog,
-    saveGrowthData
+    saveGrowthData,
   }
-} 
+}

@@ -2,40 +2,40 @@
   <div class="chat-content d-flex flex-column flex-grow-1">
     <!-- Messages Area -->
     <div
-      class="messages-container flex-grow-1 pa-4"
       ref="messagesContainer"
+      class="messages-container flex-grow-1 pa-4"
     >
+      <!-- Suggested Prompts -->
       <div
         v-if="messages.length === 0"
         class="empty-state"
       >
-        <!-- Suggested Prompts -->
         <div class="suggested-prompts mb-8">
           <h1 class="text-h4 font-weight-normal text-center mb-7">
             What can I help with?
           </h1>
 
           <v-row
-            justify="center"
             class="mb-1"
+            justify="center"
           >
             <v-col
               cols="12"
-              md="8"
               lg="8"
+              md="8"
             >
               <v-row>
                 <v-col
                   v-for="(prompt, index) in suggestedPrompts"
                   :key="index"
+                  class="pa-2"
                   cols="12"
                   sm="3"
-                  class="pa-2"
                 >
                   <v-card
                     class="prompt-card rounded-lg pa-4 text-left"
-                    variant="outlined"
                     hover
+                    variant="outlined"
                     @click="selectPrompt(prompt)"
                   >
                     <div class="text-body-2">{{ prompt }}</div>
@@ -44,47 +44,13 @@
               </v-row>
             </v-col>
           </v-row>
-
-          <v-row justify="center">
-            <v-col
-              cols="12"
-              md="8"
-              lg="8"
-            >
-              <v-card
-                class="input-card"
-                variant="outlined"
-              >
-                <div class="d-flex align-center px-4 py-2">
-                  <v-text-field
-                    v-model="inputMessage"
-                    placeholder="Type your questions here"
-                    variant="plain"
-                    hide-details
-                    class="flex-grow-1 centered-input"
-                    @keydown.enter="sendMessage"
-                  />
-                  <v-btn
-                    icon
-                    variant="text"
-                    color="#D87179"
-                    @click="sendMessage"
-                    :disabled="!inputMessage.trim()"
-                    class="ml-2"
-                  >
-                    <v-icon>mdi-send</v-icon>
-                  </v-btn>
-                </div>
-              </v-card>
-            </v-col>
-          </v-row>
         </div>
       </div>
 
       <!-- Chat Messages -->
       <div
-        v-else
         class="messages-list"
+        :class="{ 'mt-12': messages.length === 0 }"
       >
         <div
           v-for="message in messages"
@@ -95,8 +61,8 @@
           <v-card
             class="message-card pa-4"
             :class="message.sender === 'user' ? 'user-card' : 'ai-card'"
-            variant="flat"
             rounded="lg"
+            variant="flat"
           >
             <div class="text-body-1">{{ message.text }}</div>
           </v-card>
@@ -105,16 +71,13 @@
     </div>
 
     <!-- Input Area -->
-    <div
-      class="input-section pa-4"
-      v-if="messages.length !== 0"
-    >
+    <div class="input-section pa-4">
       <v-container class="pa-0">
         <v-row justify="center">
           <v-col
             cols="12"
-            md="12"
             lg="12"
+            md="12"
           >
             <v-card
               class="input-card"
@@ -123,19 +86,19 @@
               <div class="d-flex align-center px-4 py-2">
                 <v-text-field
                   v-model="inputMessage"
+                  class="flex-grow-1 centered-input"
+                  hide-details
                   placeholder="Type your questions here"
                   variant="plain"
-                  hide-details
-                  class="flex-grow-1 centered-input"
                   @keydown.enter="sendMessage"
                 />
                 <v-btn
+                  class="ml-2"
+                  color="#D87179"
+                  :disabled="!inputMessage.trim()"
                   icon
                   variant="text"
-                  color="#D87179"
                   @click="sendMessage"
-                  :disabled="!inputMessage.trim()"
-                  class="ml-2"
                 >
                   <v-icon>mdi-send</v-icon>
                 </v-btn>
@@ -148,8 +111,8 @@
   </div>
 </template>
 
-<script setup>
-  import { ref, watch, nextTick } from 'vue'
+<script setup lang="ts">
+  import { nextTick, ref, watch } from 'vue'
 
   const props = defineProps({
     messages: {
@@ -174,7 +137,7 @@
     }
   }
 
-  const selectPrompt = (prompt) => {
+  const selectPrompt = prompt => {
     emit('send-message', prompt)
   }
 

@@ -1,21 +1,21 @@
 <!-- TODO: USE AI HERE INSTEAD OF HEALTH!! -->
 
 <template>
-  <div class="mb-6" v-if="hasHealthAlert">
+  <div v-if="hasHealthAlert" class="mb-6">
     <h2 class="text-body-1 font-weight-medium mb-3">
       {{ currentChild.name }}'s Smart Alert
     </h2>
 
     <v-alert
+      class="health-alert"
       color="error"
       variant="tonal"
-      class="health-alert"
     >
       <div class="d-flex align-center justify-space-between">
         <div class="d-flex align-center">
           <v-icon
-            color="error"
             class="mr-3 ml-1"
+            color="error"
           >mdi-alert-circle</v-icon>
           <div>
             <div class="text-body-1 font-weight-medium mb-1">
@@ -33,10 +33,10 @@
           </div>
         </div>
         <v-btn
+          class="text-white mr-3"
+          color="error"
           size="small"
           variant="flat"
-          color="error"
-          class="text-white mr-3"
           @click="handleViewMore"
         >
           View More
@@ -46,22 +46,22 @@
   </div>
 </template>
 
-<script setup>
-import { useHealthAlert } from '@/composables/useHealthAlert'
+<script setup lang="ts">
+  import { useHealthAlert } from '@/composables/useHealthAlert'
 
-const props = defineProps({
-  currentChild: {
-    type: Object,
-    required: true
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const props = defineProps({
+    currentChild: {
+      type: Object,
+      required: true,
+    },
+  })
+
+  const emit = defineEmits(['view-more'])
+
+  const { healthData, hasHealthAlert } = useHealthAlert()
+
+  const handleViewMore = () => {
+    emit('view-more', healthData.value)
   }
-})
-
-const emit = defineEmits(['view-more'])
-
-const { healthData, hasHealthAlert } = useHealthAlert()
-
-const handleViewMore = () => {
-  emit('view-more', healthData.value)
-}
 </script>
- 

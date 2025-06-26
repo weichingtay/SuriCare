@@ -5,19 +5,19 @@
     </v-label>
     <v-select
       v-model="selectedGender"
-      :items="genderOptions"
-      variant="outlined"
-      :rules="rules"
-      hide-details="auto"
-      :loading="isGenderLoading"
       :disabled="isGenderLoading"
-      @update:modelValue="handleSelection"
+      hide-details="auto"
+      :items="genderOptions"
+      :loading="isGenderLoading"
+      :rules="rules"
+      variant="outlined"
+      @update:model-value="handleSelection"
     />
   </div>
 </template>
 
-<script setup>
-  import { ref, watch, computed } from 'vue'
+<script setup lang="ts">
+  import { computed, ref, watch } from 'vue'
 
   const props = defineProps({
     modelValue: {
@@ -39,21 +39,21 @@
 
   const {
     genderOptions: genderOptionsData,
-    isLoading: isGenderLoading
+    isLoading: isGenderLoading,
   } = useFormOptions()
 
   // Transform to match expected format for VSelect
-  const genderOptions = computed(() => 
+  const genderOptions = computed(() =>
     genderOptionsData.value.map(option => ({
       title: option.label,
       value: option.value,
-      disabled: option.disabled || false
+      disabled: option.disabled || false,
     }))
   )
 
   watch(
     () => props.modelValue,
-    (newValue) => {
+    newValue => {
       selectedGender.value = newValue
     }
   )

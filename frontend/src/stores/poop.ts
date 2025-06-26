@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { Ref, ComputedRef } from 'vue'
-import axios from 'axios'
+import { computed, ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 
 export interface PoopData {
   count: number
@@ -31,11 +30,12 @@ export const usePoopStore = defineStore('poop', (): PoopStore => {
 
   // HACK: This will eventually be connected to our database
   // Mock data generator for development
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const generateMockPoopData = (date: string): PoopData => ({
     count: Math.floor(Math.random() * 4) + 1, // 1-4 times
     unusual: Math.random() > 0.7 ? 1 : 0, // 30% chance of unusual
     normal: Math.floor(Math.random() * 3) + 1, // 1-3 normal
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
   })
 
   // Getters
@@ -47,12 +47,12 @@ export const usePoopStore = defineStore('poop', (): PoopStore => {
   const fetchPoopForDate = async (date: string): Promise<void> => {
     isLoading.value = true
     error.value = null
-    
+
     try {
       // TODO: Replace with actual API call
       // const response = await axios.get<PoopData>(`/api/poop/${date}`)
       // poopByDate.value[date] = response.data
-      
+
       // Using mock data for now
       poopByDate.value[date] = generateMockPoopData(date)
     } catch (err) {
@@ -66,12 +66,12 @@ export const usePoopStore = defineStore('poop', (): PoopStore => {
   const updatePoopForDate = async (date: string, poopData: PoopData): Promise<void> => {
     isLoading.value = true
     error.value = null
-    
+
     try {
       // TODO: Replace with actual API call
       // await axios.put<PoopData>(`/api/poop/${date}`, poopData)
       // poopByDate.value[date] = poopData
-      
+
       // Using mock data for now
       poopByDate.value[date] = poopData
     } catch (err) {
@@ -88,6 +88,6 @@ export const usePoopStore = defineStore('poop', (): PoopStore => {
     error,
     getPoopForDate,
     fetchPoopForDate,
-    updatePoopForDate
+    updatePoopForDate,
   }
-}) 
+})

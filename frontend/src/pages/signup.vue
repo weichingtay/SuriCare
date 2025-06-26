@@ -1,26 +1,26 @@
 <template>
   <v-container
-    fluid
     class="fill-height pa-0"
+    fluid
   >
     <v-row
-      no-gutters
       class="fill-height"
+      no-gutters
     >
       <!-- Left Side - Welcome Section -->
       <v-col
+        class="d-flex align-center justify-center"
         cols="12"
         md="6"
-        class="d-flex align-center justify-center"
       >
         <WelcomeSection />
       </v-col>
 
       <!-- Right side - Sign up form -->
       <v-col
+        class="d-flex align-center justify-center pa-8"
         cols="12"
         md="6"
-        class="d-flex align-center justify-center pa-8"
       >
         <div
           class="w-100"
@@ -28,28 +28,28 @@
         >
           <AccountTypeSelector v-model="accountType" />
           <SignUpFormFields
-            v-model:form="form"
             v-if="accountType === 'Legal Guardian'"
-            :showPassword="showPassword"
-            :showConfirmPassword="showConfirmPassword"
-            @toggle-password="showPassword = !showPassword"
+            v-model:form="form"
+            :show-confirm-password="showConfirmPassword"
+            :show-password="showPassword"
             @toggle-confirm-password="
               showConfirmPassword = !showConfirmPassword
             "
+            @toggle-password="showPassword = !showPassword"
           />
           <SignUpFormFieldsWithInvitationCode
-            v-model:form="form"
             v-else
-            :showPassword="showPassword"
-            :showConfirmPassword="showConfirmPassword"
-            @toggle-password="showPassword = !showPassword"
+            v-model:form="form"
+            :show-confirm-password="showConfirmPassword"
+            :show-password="showPassword"
             @toggle-confirm-password="
               showConfirmPassword = !showConfirmPassword
             "
+            @toggle-password="showPassword = !showPassword"
           />
           <SignUpActions
-            @sign-up="handleSignUp"
             @google-sign-up="handleGoogleSignUp"
+            @sign-up="handleSignUp"
           />
         </div>
       </v-col>
@@ -57,8 +57,8 @@
   </v-container>
 </template>
 
-<script setup>
-  import { ref, reactive } from 'vue'
+<script setup lang="ts">
+  import { reactive, ref } from 'vue'
   import WelcomeSection from '../components/login/WelcomeSection.vue'
   import AccountTypeSelector from '../components/signup/AccountTypeSelector.vue'
   import SignUpFormFields from '../components/signup/SignUpFormFields.vue'
@@ -81,7 +81,7 @@
   })
 
   const isFormComplete = () => {
-    return Object.values(form).every((value) => value.trim() !== '')
+    return Object.values(form).every(value => value.trim() !== '')
   }
 
   const handleSignUp = () => {
@@ -98,7 +98,7 @@
     console.log('Sign up with:', form)
     router.push({
       path: '/addChild',
-      query: { action: 'signup'},
+      query: { action: 'signup' },
     })
   }
 

@@ -1,39 +1,39 @@
 <template>
   <v-app class="custom-app">
     <!-- Background -->
-    <div class="app-background"></div>
+    <div class="app-background" />
 
     <!-- Navigation sidebar -->
     <AppNavigation
-      :activeTab="activeTab"
-      @nav-change="handleNavChange"
       v-if="!hideComponent.includes(route.name)"
+      :active-tab="activeTab"
+      @nav-change="handleNavChange"
     />
 
     <!-- Header -->
     <AppHeader
       v-if="!hideComponent.includes(route.name) && childrenStore.children.length"
-      :currentChild="childrenStore.currentChild"
       :children="childrenStore.children"
+      :current-child="childrenStore.currentChild"
       @child-selected="childrenStore.selectChild"
     />
 
     <v-main
-      class="custom-main"
       v-if="!hideComponent.includes(route.name)"
+      class="custom-main"
     >
-      <div class="chatbot-content" v-if="chatbotPage.includes(route.name)">
+      <div v-if="chatbotPage.includes(route.name)" class="chatbot-content">
         <router-view />
       </div>
-    
-      <div class="custom-main-content" v-else>
+
+      <div v-else class="custom-main-content">
         <router-view />
       </div>
     </v-main>
 
     <v-main
-      class="custom-main-wo-header-nav"
       v-else
+      class="custom-main-wo-header-nav"
     >
       <router-view />
     </v-main>
@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, onMounted } from 'vue'
+  import { onMounted, ref } from 'vue'
   // import AppHeader from '@/components/AppHeader.vue'
   // import AppNavigation from '@/components/AppNavigation.vue'
   import { useChildrenStore } from '@/stores/children'

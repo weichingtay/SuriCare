@@ -8,7 +8,7 @@ const fallbackColorOptions = [
   { id: 3, value: 'brown', label: 'Brown', hex: '#8D6E63' },
   { id: 4, value: 'green', label: 'Green', hex: '#43A047' },
   { id: 5, value: 'black', label: 'Black', hex: '#424242' },
-  { id: 6, value: 'gray', label: 'Gray', hex: '#9E9E9E' }
+  { id: 6, value: 'gray', label: 'Gray', hex: '#9E9E9E' },
 ]
 
 const fallbackTextureOptions = [
@@ -18,7 +18,7 @@ const fallbackTextureOptions = [
   { id: 4, value: 'smooth', label: 'Smooth', image: '/assets/textures/smooth.png' },
   { id: 5, value: 'soft', label: 'Soft', image: '/assets/textures/soft.png' },
   { id: 6, value: 'mushy', label: 'Mushy', image: '/assets/textures/mushy.png' },
-  { id: 7, value: 'watery', label: 'Watery', image: '/assets/textures/watery.png' }
+  { id: 7, value: 'watery', label: 'Watery', image: '/assets/textures/watery.png' },
 ]
 
 // Color mapping for hex values
@@ -28,7 +28,7 @@ const colorHexMap: { [key: string]: string } = {
   'brown': '#8D6E63',
   'green': '#43A047',
   'black': '#424242',
-  'gray': '#9E9E9E'
+  'gray': '#9E9E9E',
 }
 
 // Texture image mapping
@@ -39,17 +39,17 @@ const textureImageMap: { [key: string]: string } = {
   'smooth': '/assets/textures/smooth.png',
   'soft': '/assets/textures/soft.png',
   'mushy': '/assets/textures/mushy.png',
-  'watery': '/assets/textures/watery.png'
+  'watery': '/assets/textures/watery.png',
 }
 
-export function usePoopOptions() {
+export function usePoopOptions () {
   const {
     fetchPoopColors,
     fetchPoopConsistencies,
     poopColors,
     poopConsistencies,
     isLoading,
-    getError
+    getError,
   } = useLookupData()
 
   // Enhanced color options with hex values
@@ -60,7 +60,7 @@ export function usePoopOptions() {
 
     return poopColors.value.map(item => ({
       ...item,
-      hex: colorHexMap[item.value] || '#9E9E9E' // fallback to gray
+      hex: colorHexMap[item.value] || '#9E9E9E', // fallback to gray
     }))
   })
 
@@ -72,7 +72,7 @@ export function usePoopOptions() {
 
     return poopConsistencies.value.map(item => ({
       ...item,
-      image: textureImageMap[item.value] || '/assets/textures/smooth.png' // fallback
+      image: textureImageMap[item.value] || '/assets/textures/smooth.png', // fallback
     }))
   })
 
@@ -91,7 +91,7 @@ export function usePoopOptions() {
   const loadPoopOptions = async () => {
     await Promise.allSettled([
       fetchPoopColors(),
-      fetchPoopConsistencies()
+      fetchPoopConsistencies(),
     ])
   }
 
@@ -114,21 +114,21 @@ export function usePoopOptions() {
     // Options
     colorOptions,
     textureOptions,
-    
+
     // Loading states
     isColorLoading,
     isTextureLoading,
     isLoading: isLoadingOptions,
-    
+
     // Error states
     colorError,
     textureError,
-    
+
     // Helper functions
     getColorHex,
     getTextureImage,
-    
+
     // Actions
-    loadPoopOptions
+    loadPoopOptions,
   }
 }

@@ -5,7 +5,7 @@ import { useLookupData } from './useLookupData'
 const fallbackMealTimeOptions = [
   { id: 1, value: 'breakfast', label: 'Breakfast', icon: 'mdi-weather-sunny' },
   { id: 2, value: 'lunch', label: 'Lunch', icon: 'mdi-white-balance-sunny' },
-  { id: 3, value: 'dinner', label: 'Dinner', icon: 'mdi-weather-night' }
+  { id: 3, value: 'dinner', label: 'Dinner', icon: 'mdi-weather-night' },
 ]
 
 const fallbackConsumptionOptions = [
@@ -13,22 +13,22 @@ const fallbackConsumptionOptions = [
   { id: 2, value: '25', label: '25% (Partial)', percentage: 25 },
   { id: 3, value: '50', label: '50% (Partial)', percentage: 50 },
   { id: 4, value: '75', label: '75% (Partial)', percentage: 75 },
-  { id: 5, value: '100', label: '100% (Full)', percentage: 100 }
+  { id: 5, value: '100', label: '100% (Full)', percentage: 100 },
 ]
 
 const fallbackMealCategoryOptions = [
   { id: 1, value: 'milk', label: 'Milk', icon: 'mdi-cup' },
   { id: 2, value: 'solid', label: 'Solid', icon: 'mdi-food-apple' },
   { id: 3, value: 'mixed', label: 'Mixed', icon: 'mdi-bowl-mix' },
-  { id: 4, value: 'others', label: 'Others', icon: 'mdi-dots-horizontal' }
+  { id: 4, value: 'others', label: 'Others', icon: 'mdi-dots-horizontal' },
 ]
 
 const fallbackMilkSubCategories = [
   { id: 1, value: 'breast_milk', label: 'Breast Milk' },
-  { id: 2, value: 'formula', label: 'Formula' }
+  { id: 2, value: 'formula', label: 'Formula' },
 ]
 
-export function useMealOptions() {
+export function useMealOptions () {
   const {
     fetchMealCategories,
     fetchMealTimeCategories,
@@ -37,7 +37,7 @@ export function useMealOptions() {
     mealTimeCategories,
     consumptionLevels,
     isLoading,
-    getError
+    getError,
   } = useLookupData()
 
   // Enhanced meal time options with icons
@@ -49,9 +49,9 @@ export function useMealOptions() {
     return mealTimeCategories.value.map(item => ({
       ...item,
       icon: item.value === 'breakfast' ? 'mdi-weather-sunny' :
-            item.value === 'lunch' ? 'mdi-white-balance-sunny' :
-            item.value === 'dinner' ? 'mdi-weather-night' :
-            'mdi-silverware-fork-knife'
+        item.value === 'lunch' ? 'mdi-white-balance-sunny' :
+          item.value === 'dinner' ? 'mdi-weather-night' :
+            'mdi-silverware-fork-knife',
     }))
   })
 
@@ -64,9 +64,9 @@ export function useMealOptions() {
     return mealCategories.value.map(item => ({
       ...item,
       icon: item.value === 'milk' ? 'mdi-cup' :
-            item.value === 'solid' ? 'mdi-food-apple' :
-            item.value === 'mixed' ? 'mdi-bowl-mix' :
-            'mdi-dots-horizontal'
+        item.value === 'solid' ? 'mdi-food-apple' :
+          item.value === 'mixed' ? 'mdi-bowl-mix' :
+            'mdi-dots-horizontal',
     }))
   })
 
@@ -93,7 +93,7 @@ export function useMealOptions() {
   const consumptionError = computed(() => getError.value('consumptionLevels'))
 
   // Overall loading state
-  const isLoadingOptions = computed(() => 
+  const isLoadingOptions = computed(() =>
     isMealTimeLoading.value || isMealCategoryLoading.value || isConsumptionLoading.value
   )
 
@@ -102,7 +102,7 @@ export function useMealOptions() {
     await Promise.allSettled([
       fetchMealCategories(),
       fetchMealTimeCategories(),
-      fetchConsumptionLevels()
+      fetchConsumptionLevels(),
     ])
   }
 
@@ -117,19 +117,19 @@ export function useMealOptions() {
     mealCategoryOptions,
     consumptionOptions,
     milkSubCategories,
-    
+
     // Loading states
     isMealTimeLoading,
     isMealCategoryLoading,
     isConsumptionLoading,
     isLoading: isLoadingOptions,
-    
+
     // Error states
     mealTimeError,
     mealCategoryError,
     consumptionError,
-    
+
     // Actions
-    loadMealOptions
+    loadMealOptions,
   }
 }

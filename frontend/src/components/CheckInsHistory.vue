@@ -12,8 +12,8 @@
         </p>
       </div>
       <v-btn
-        size="small"
         class="btn-light-blue"
+        size="small"
         variant="flat"
         @click="handleViewHistory"
       >
@@ -23,18 +23,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 
-const props = defineProps({
-  currentChild: {
-    type: Object,
-    required: true
+  const props = defineProps({
+    currentChild: {
+      type: Object,
+      required: true,
+    },
+  })
+
+  const emit = defineEmits(['view-history'])
+
+  const handleViewHistory = () => {
+    emit('view-history', props.currentChild)
   }
-})
-
-const emit = defineEmits(['view-history'])
-
-const handleViewHistory = () => {
-  emit('view-history', props.currentChild)
-}
 </script>

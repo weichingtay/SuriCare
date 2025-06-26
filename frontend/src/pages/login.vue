@@ -1,26 +1,26 @@
 <template>
   <v-container
-    fluid
     class="fill-height pa-0"
+    fluid
   >
     <v-row
-      no-gutters
       class="fill-height"
+      no-gutters
     >
       <!-- Left Side - Welcome Section -->
       <v-col
+        class="d-flex align-center justify-center"
         cols="12"
         md="6"
-        class="d-flex align-center justify-center"
       >
         <WelcomeSection />
       </v-col>
 
       <!-- Right Side - Login Form -->
       <v-col
+        class="d-flex align-center justify-center"
         cols="12"
         md="6"
-        class="d-flex align-center justify-center"
       >
         <LoginForm />
       </v-col>
@@ -28,7 +28,7 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import WelcomeSection from '../components/login/WelcomeSection.vue'
   import LoginForm from '../components/login/LoginForm.vue'
 </script>

@@ -1,12 +1,12 @@
 <template>
-  <v-navigation-drawer permanent width="280" class="chat-sidebar" color="#F5F5F5">
+  <v-navigation-drawer class="chat-sidebar" color="#F5F5F5" permanent width="280">
     <!-- Header -->
     <div class="pa-4 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
         <span class="text-h6 font-weight-medium">Chat History</span>
       </div>
 
-      <v-btn icon variant="text" size="small" class="d-flex align-right">
+      <v-btn class="d-flex align-right" icon size="small" variant="text">
         <v-icon>mdi-menu</v-icon>
       </v-btn>
     </div>
@@ -21,15 +21,15 @@
         </div>
 
         <div class="chat-list px-2">
-          <v-list density="compact" class="py-0 transparent">
+          <v-list class="py-0 transparent" density="compact">
             <v-list-item
               v-for="chat in dateGroup"
               :key="chat.id"
-              :value="chat.id"
-              @click="$emit('select-chat', chat.id)"
               class="chat-item mb-1"
               :class="{ 'active-chat': isActiveChat(chat.id) }"
               rounded="lg"
+              :value="chat.id"
+              @click="$emit('select-chat', chat.id)"
             >
               <v-list-item-title class="text-body-2 text-truncate">
                 {{ chat.title }}
@@ -42,36 +42,37 @@
   </v-navigation-drawer>
 </template>
 
-<script setup>
-import { computed } from 'vue'
+<script setup lang="ts">
+  import { computed } from 'vue'
 
-const props = defineProps({
-  chatHistory: {
-    type: Array,
-    required: true
-  },
-  activeChatId: {
-    type: Number,
-    default: null
-  }
-})
-
-const emit = defineEmits(['new-chat', 'select-chat'])
-
-const groupedChats = computed(() => {
-  const groups = {}
-  props.chatHistory.forEach(chat => {
-    if (!groups[chat.date]) {
-      groups[chat.date] = []
-    }
-    groups[chat.date].push(chat)
+  const props = defineProps({
+    chatHistory: {
+      type: Array,
+      required: true,
+    },
+    activeChatId: {
+      type: Number,
+      default: null,
+    },
   })
-  return groups
-})
 
-const isActiveChat = (chatId) => {
-  return chatId === props.activeChatId
-}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const emit = defineEmits(['new-chat', 'select-chat'])
+
+  const groupedChats = computed(() => {
+    const groups = {}
+    props.chatHistory.forEach(chat => {
+      if (!groups[chat.date]) {
+        groups[chat.date] = []
+      }
+      groups[chat.date].push(chat)
+    })
+    return groups
+  })
+
+  const isActiveChat = chatId => {
+    return chatId === props.activeChatId
+  }
 </script>
 
 <style scoped>

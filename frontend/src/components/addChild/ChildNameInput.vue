@@ -5,16 +5,16 @@
     </v-label>
     <v-text-field
       v-model="inputValue"
-      placeholder="Input child name"
-      variant="outlined"
-      :rules="rules"
       hide-details="auto"
+      placeholder="Input child name"
+      :rules="rules"
+      variant="outlined"
       @input="handleInput"
     />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { ref, watch } from 'vue'
 
   const props = defineProps({
@@ -34,7 +34,7 @@
 
   watch(
     () => props.modelValue,
-    (newValue) => {
+    newValue => {
       inputValue.value = newValue
     }
   )

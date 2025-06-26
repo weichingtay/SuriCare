@@ -5,9 +5,9 @@
       class="text-center py-12"
     >
       <v-icon
-        size="64"
-        color="grey-lighten-2"
         class="mb-4"
+        color="grey-lighten-2"
+        size="64"
       >
         mdi-heart-outline
       </v-icon>
@@ -31,7 +31,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { inject } from 'vue'
   import ArticleCard from './ArticleCard.vue'
 

@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="dialog" max-width="480" persistent scrollable>
-    <v-card style="border-radius: 16px; overflow: hidden;" class="dialog-card">
+    <v-card class="dialog-card" style="border-radius: 16px; overflow: hidden;">
       <!-- Header with close button -->
       <div class="dialog-header">
         <div class="header-left">
@@ -11,11 +11,11 @@
           </div>
         </div>
         <v-btn
-          icon
-          variant="text"
-          size="small"
-          @click="dialog = false"
           class="close-btn"
+          icon
+          size="small"
+          variant="text"
+          @click="dialog = false"
         >
           <v-icon size="20">mdi-close</v-icon>
         </v-btn>
@@ -46,7 +46,7 @@
               <label class="field-label">Role</label>
               <div class="field-display">
                 <v-icon class="field-icon" size="18">mdi-shield-account</v-icon>
-                <v-chip size="small" color="light-blue" variant="flat">{{ userProfile.role }}</v-chip>
+                <v-chip color="light-blue" size="small" variant="flat">{{ userProfile.role }}</v-chip>
               </div>
             </div>
           </div>
@@ -56,7 +56,7 @@
         <div class="content-section">
           <h3 class="section-title">My Caregivers</h3>
           <div class="caregiver-list">
-            <div class="caregiver-item" v-for="caregiver in caregivers" :key="caregiver.id">
+            <div v-for="caregiver in caregivers" :key="caregiver.id" class="caregiver-item">
               <div class="caregiver-info">
                 <div class="caregiver-avatar">
                   <v-icon size="18">mdi-account</v-icon>
@@ -68,19 +68,19 @@
               </div>
               <v-select
                 v-model="caregiver.accessLevel"
-                :items="accessLevels"
-                variant="outlined"
+                class="access-selector"
                 density="compact"
                 hide-details
-                class="access-selector"
+                :items="accessLevels"
+                variant="outlined"
               />
             </div>
           </div>
-          <div class="save-changes" v-if="hasAccessChanges">
-            <v-btn 
-              color="black" 
-              variant="flat" 
+          <div v-if="hasAccessChanges" class="save-changes">
+            <v-btn
+              color="black"
               size="small"
+              variant="flat"
               @click="saveAccessLevels"
             >
               Save Changes
@@ -90,33 +90,33 @@
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-          <v-btn 
-            color="#c85862" 
-            variant="flat" 
-            prepend-icon="mdi-pencil" 
-            block 
-            @click="editProfile"
+          <v-btn
+            block
             class="action-btn"
+            color="#c85862"
+            prepend-icon="mdi-pencil"
+            variant="flat"
+            @click="editProfile"
           >
             Edit Profile
           </v-btn>
-          <v-btn 
-            color="#c85862" 
-            variant="flat" 
-            prepend-icon="mdi-key" 
-            block 
-            @click="changePassword"
+          <v-btn
+            block
             class="action-btn"
+            color="#c85862"
+            prepend-icon="mdi-key"
+            variant="flat"
+            @click="changePassword"
           >
             Change Password
           </v-btn>
-          <v-btn 
-            color="#c85862"
-            variant="flat" 
-            prepend-icon="mdi-logout" 
-            block 
-            @click="signOut"
+          <v-btn
+            block
             class="action-btn"
+            color="#c85862"
+            prepend-icon="mdi-logout"
+            variant="flat"
+            @click="signOut"
           >
             Sign Out
           </v-btn>
@@ -126,62 +126,62 @@
   </v-dialog>
 </template>
 
-<script setup>
-import { computed, ref } from 'vue'
+<script setup lang="ts">
+  import { computed, ref } from 'vue'
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false }
-})
-
-const emit = defineEmits(['update:modelValue'])
-
-const userProfile = {
-  name: 'Sarah Johnson',
-  email: 'sarah.johnson@example.com',
-  role: 'Guardian'
-}
-
-const accessLevels = [
-  { title: 'Full', value: 'full' },
-  { title: 'Partial', value: 'partial' }
-]
-
-const caregivers = ref([
-  { id: 1, name: 'Maria Garcia', email: 'maria.garcia@example.com', accessLevel: 'full', originalAccess: 'full' },
-  { id: 2, name: 'John Smith', email: 'john.smith@example.com', accessLevel: 'partial', originalAccess: 'partial' },
-  { id: 3, name: 'Lisa Chen', email: 'lisa.chen@example.com', accessLevel: 'full', originalAccess: 'full' }
-])
-
-const hasAccessChanges = computed(() => {
-  return caregivers.value.some(caregiver => caregiver.accessLevel !== caregiver.originalAccess)
-})
-
-const dialog = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
-})
-
-const saveAccessLevels = () => {
-  const changes = caregivers.value
-    .filter(caregiver => caregiver.accessLevel !== caregiver.originalAccess)
-    .map(caregiver => ({
-      id: caregiver.id,
-      name: caregiver.name,
-      newAccess: caregiver.accessLevel,
-      oldAccess: caregiver.originalAccess
-    }))
-  
-  console.log('Saving access level changes:', changes)
-  
-  // Update original access levels after save
-  caregivers.value.forEach(caregiver => {
-    caregiver.originalAccess = caregiver.accessLevel
+  const props = defineProps({
+    modelValue: { type: Boolean, default: false },
   })
-}
 
-const editProfile = () => console.log('Edit profile clicked')
-const changePassword = () => console.log('Change password clicked')
-const signOut = () => console.log('Sign out clicked')
+  const emit = defineEmits(['update:modelValue'])
+
+  const userProfile = {
+    name: 'Sarah Johnson',
+    email: 'sarah.johnson@example.com',
+    role: 'Guardian',
+  }
+
+  const accessLevels = [
+    { title: 'Full', value: 'full' },
+    { title: 'Partial', value: 'partial' },
+  ]
+
+  const caregivers = ref([
+    { id: 1, name: 'Maria Garcia', email: 'maria.garcia@example.com', accessLevel: 'full', originalAccess: 'full' },
+    { id: 2, name: 'John Smith', email: 'john.smith@example.com', accessLevel: 'partial', originalAccess: 'partial' },
+    { id: 3, name: 'Lisa Chen', email: 'lisa.chen@example.com', accessLevel: 'full', originalAccess: 'full' },
+  ])
+
+  const hasAccessChanges = computed(() => {
+    return caregivers.value.some(caregiver => caregiver.accessLevel !== caregiver.originalAccess)
+  })
+
+  const dialog = computed({
+    get: () => props.modelValue,
+    set: value => emit('update:modelValue', value),
+  })
+
+  const saveAccessLevels = () => {
+    const changes = caregivers.value
+      .filter(caregiver => caregiver.accessLevel !== caregiver.originalAccess)
+      .map(caregiver => ({
+        id: caregiver.id,
+        name: caregiver.name,
+        newAccess: caregiver.accessLevel,
+        oldAccess: caregiver.originalAccess,
+      }))
+
+    console.log('Saving access level changes:', changes)
+
+    // Update original access levels after save
+    caregivers.value.forEach(caregiver => {
+      caregiver.originalAccess = caregiver.accessLevel
+    })
+  }
+
+  const editProfile = () => console.log('Edit profile clicked')
+  const changePassword = () => console.log('Change password clicked')
+  const signOut = () => console.log('Sign out clicked')
 </script>
 
 <style lang="scss" scoped>
@@ -365,19 +365,19 @@ const signOut = () => console.log('Sign out clicked')
   display: flex;
   justify-content: flex-end;
   margin-top: 8px;
-  
+
 }
 
 .action-buttons {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  
+
 }
 
 .action-btn {
   height: 44px !important;
-  
+
 }
 
 :deep(.v-btn--variant-flat) {
