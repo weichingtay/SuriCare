@@ -64,6 +64,7 @@ export function useShareChild () {
       await navigator.clipboard.writeText(text)
       copyMessage.value = 'Copied!'
     } catch (e: unknown) {
+
       copyMessage.value = 'Failed to copy'
     }
 

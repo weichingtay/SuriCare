@@ -11,9 +11,9 @@
         :close-on-content-click="false"
         location="bottom"
       >
-        <template #activator="{ props }">
+        <template #activator="{ props: menuProps }">
           <v-btn
-            v-bind="props"
+            v-bind="menuProps"
             class="date-picker-btn"
             size="small"
             variant="outlined"

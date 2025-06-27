@@ -18,9 +18,9 @@
         <!-- Child selector -->
         <div>
           <v-menu class="dropdown-menu">
-            <template #activator="{ props }">
+            <template #activator="{ props: menuProps }">
               <v-btn
-                v-bind="props"
+                v-bind="menuProps"
                 class="child-selector-btn"
                 height="48"
                 style="justify-content: flex-start"

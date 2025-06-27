@@ -190,6 +190,7 @@
       }
       return null
     } catch (error) {
+      errors.value = 'Invalid time'
       return null
     }
   })

@@ -101,7 +101,6 @@ const handleCheckIn = () => {
 
     const total = parseFloat(totalHours.value)
     const wakeCount = data.wakeCount || 0
-    const nightHours = data.nightHours || 0
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const napHours = data.napHours || 0
 

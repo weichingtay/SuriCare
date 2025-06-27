@@ -34,6 +34,10 @@ export interface ConsumptionLevel extends LookupOption {
   percentage: number
 }
 
+export interface GenderOption extends LookupOption {}
+export interface RelationshipType extends LookupOption {}
+export interface AccessLevel extends LookupOption {}
+
 // Cache for lookup data
 const lookupCache = ref<{
   mealCategories: MealCategory[]
