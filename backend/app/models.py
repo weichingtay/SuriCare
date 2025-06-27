@@ -5,10 +5,11 @@ from datetime import datetime
 
 class Primary_Care_Giver(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
+    auth_user_id: str | None = Field(default=None, unique=True)  # Supabase Auth UUID
     username: str
     email: str
     contact_number: str
-    password: str
+    password: str | None = Field(default=None)  # Optional now since we use Supabase Auth
     relationship: str
 
 
