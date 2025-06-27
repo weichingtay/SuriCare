@@ -1,7 +1,9 @@
 {
-  "singleAttributePerLine": true,
-  "printWidth": 80,
-  "semi": false,
-  "singleQuote": true,
-  "vueIndentScriptAndStyle": true
+    'singleAttributePerLine': true,
+    'printWidth': 80,
+    'semi': false,
+    'singleQuote': true,
+    'vueIndentScriptAndStyle': true,
+    'indentSize': 2,
+    'indentStyle': space,
 }

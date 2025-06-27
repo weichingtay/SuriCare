@@ -72,9 +72,9 @@ const chatHistory = ref([
 const currentChatId = ref(1);
 const suggestedPrompts = ref([
   "How do I treat a mild rash at home?",
-  "How do I treat a mild rash at home?",
-  "How do I treat a mild rash at home?",
-  "How do I treat a mild rash at home?",
+  "Where can I find a good doctor?",
+  "What are good activies for the motor skills of my child?",
+  "What are the best ways to help my child with their sleep?",
 ]);
 
 // Computed
