@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 from db import get_session
 from models import Primary_Care_Giver
 from pydantic import BaseModel
+import hashlib
 
 router = APIRouter(
     prefix="/user-profile",
@@ -24,6 +25,19 @@ class UserProfileResponse(BaseModel):
     email: str
     contact_number: str
     relationship: str
+
+class DirectLoginRequest(BaseModel):
+    email: str
+    password: str
+
+class DirectLoginResponse(BaseModel):
+    success: bool
+    user: UserProfileResponse | None = None
+    message: str | None = None
+
+def hash_password(password: str) -> str:
+    """Simple password hashing for development. In production, use proper password hashing."""
+    return hashlib.sha256(password.encode()).hexdigest()
 
 @router.get('/{user_id}', response_model=Primary_Care_Giver)
 def user_profile(*, user_id: int, session: Session = Depends(get_session)):
@@ -85,3 +99,42 @@ def new_user(*, session: Session = Depends(get_session), user: Primary_Care_Give
     session.commit()
     session.refresh(user)
     return user
+
+@router.post('/auth/direct-login', response_model=DirectLoginResponse)
+def direct_login(*, session: Session = Depends(get_session), login_data: DirectLoginRequest):
+    """
+    Direct authentication against primary_care_giver table for development.
+    This bypasses Supabase Auth and authenticates directly with your database.
+    """
+    try:
+        # Find user by email
+        statement = select(Primary_Care_Giver).where(Primary_Care_Giver.email == login_data.email)
+        user = session.exec(statement).first()
+        
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # Check password (in production, use proper password hashing/comparison)
+        if user.password and user.password == login_data.password:
+            # Return user profile without password
+            user_response = UserProfileResponse(
+                id=user.id,
+                auth_user_id=user.auth_user_id or f"direct-{user.id}",
+                username=user.username,
+                email=user.email,
+                contact_number=user.contact_number,
+                relationship=user.relationship
+            )
+            
+            return DirectLoginResponse(
+                success=True,
+                user=user_response,
+                message="Login successful"
+            )
+        else:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")

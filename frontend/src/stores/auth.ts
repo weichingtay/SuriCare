@@ -196,32 +196,97 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Direct login against Supabase primary_care_giver table
+  const directLogin = async (email: string, password: string) => {
+    try {
+      setLoading(true)
+      clearError()
+
+      // Query the primary_care_giver table in Supabase
+      const { data: users, error: queryError } = await supabase
+        .from('primary_care_giver')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .limit(1)
+
+      if (queryError) {
+        throw new Error(`Database query failed: ${queryError.message}`)
+      }
+
+      if (!users || users.length === 0) {
+        throw new Error('Invalid email or password')
+      }
+
+      const userRecord = users[0]
+
+      // Create mock Supabase user and session for compatibility with rest of app
+      user.value = {
+        id: userRecord.auth_user_id || `supabase-user-${userRecord.id}`,
+        email: userRecord.email,
+        user_metadata: { name: userRecord.username }
+      } as unknown as User
+      
+      session.value = {
+        access_token: `supabase-token-${userRecord.id}`,
+        user: user.value
+      } as Session
+      
+      // Set user profile directly from Supabase table
+      userProfile.value = {
+        id: userRecord.id,
+        username: userRecord.username,
+        email: userRecord.email,
+        contact_number: userRecord.contact_number,
+        relationship: userRecord.relationship
+      }
+
+      console.log('✅ Supabase table login successful:', userProfile.value)
+      return { success: true }
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Login failed'
+      setError(errorMessage)
+      console.error('Supabase table login error:', err)
+      return { success: false, error: errorMessage }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Login with email and password
   const login = async (email: string, password: string) => {
     try {
       setLoading(true)
       clearError()
 
-      // Development mode - bypass Supabase auth
-      if (isDevelopmentMode) {
-        console.log('🔧 Development mode: bypassing Supabase auth')
-        
-        // Create mock user and session
-        user.value = {
-          id: 'dev-user-123',
-          email: email,
-          user_metadata: { name: 'Dev User' }
-        } as unknown as User
-        
-        session.value = {
-          access_token: 'dev-token-123',
-          user: user.value
-        } as Session
-        
-        await fetchUserProfile()
-        return { success: true }
+      // TODO: Migration to Supabase Auth
+      // When ready to switch to real Supabase Auth, set VITE_USE_SUPABASE_AUTH=true
+      // This will use proper password hashing, JWT tokens, and session management
+      const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true'
+      
+      if (useSupabaseAuth) {
+        console.log('🔐 Using Supabase Auth (secure authentication)')
+        return await supabaseAuthLogin(email, password)
+      } else {
+        console.log('🗄️ Using direct table authentication (development mode)')
+        return await directLogin(email, password)
       }
 
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Login failed'
+      setError(errorMessage)
+      console.error('Login error:', err)
+      return { success: false, error: errorMessage }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // TODO: Implement proper Supabase Auth login (for future migration)
+  const supabaseAuthLogin = async (email: string, password: string) => {
+    try {
+      // This will use real Supabase Auth when implemented
       const { data, error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -234,19 +299,20 @@ export const useAuthStore = defineStore('auth', () => {
       if (data.user && data.session) {
         user.value = data.user
         session.value = data.session
+        
+        // TODO: When migrating, link Supabase Auth user to primary_care_giver table
+        // via auth_user_id field or create profile sync
         await fetchUserProfile()
         return { success: true }
       }
 
-      throw new Error('Login failed - no user data returned')
+      throw new Error('Supabase Auth login failed - no user data returned')
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed'
+      const errorMessage = err instanceof Error ? err.message : 'Supabase Auth login failed'
       setError(errorMessage)
-      console.error('Login error:', err)
+      console.error('Supabase Auth login error:', err)
       return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -256,32 +322,16 @@ export const useAuthStore = defineStore('auth', () => {
       setLoading(true)
       clearError()
 
-      const { data, error: signupError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: additionalData
-        }
-      })
-
-      if (signupError) {
-        throw signupError
+      // TODO: Add registration mode switch when migrating to Supabase Auth
+      const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true'
+      
+      if (useSupabaseAuth) {
+        console.log('🔐 Using Supabase Auth registration')
+        return await supabaseAuthRegister(email, password, additionalData)
+      } else {
+        console.log('🗄️ Using direct table registration')
+        return await directRegister(email, password, additionalData)
       }
-
-      if (data.user) {
-        user.value = data.user
-        session.value = data.session
-        
-        // Create user profile in backend if additional data provided
-        if (additionalData) {
-          // TODO: Call backend API to create user profile
-          console.log('Would create user profile with data:', additionalData)
-        }
-        
-        return { success: true }
-      }
-
-      throw new Error('Registration failed - no user data returned')
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed'
@@ -291,6 +341,43 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  // TODO: Implement Supabase Auth registration (for future migration)
+  const supabaseAuthRegister = async (email: string, password: string, additionalData?: Partial<UserProfile>) => {
+    const { data, error: signupError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: additionalData
+      }
+    })
+
+    if (signupError) {
+      throw signupError
+    }
+
+    if (data.user) {
+      user.value = data.user
+      session.value = data.session
+      
+      // TODO: When migrating, create linked profile in primary_care_giver table
+      if (additionalData) {
+        console.log('Would create linked user profile with data:', additionalData)
+      }
+      
+      return { success: true }
+    }
+
+    throw new Error('Supabase Auth registration failed')
+  }
+
+  // TODO: Implement direct table registration (for current mode)
+  const directRegister = async (email: string, password: string, additionalData?: Partial<UserProfile>) => {
+    // For now, just direct table insert (add when needed)
+    // This would insert directly into primary_care_giver table
+    console.log('Direct registration not implemented yet')
+    throw new Error('Direct registration not implemented yet - use Supabase dashboard to add users')
   }
 
   // Login with Google OAuth
@@ -406,7 +493,11 @@ export const useAuthStore = defineStore('auth', () => {
     initializeAuth,
     fetchUserProfile,
     login,
+    directLogin,
+    supabaseAuthLogin, // TODO: Placeholder for future Supabase Auth
     register,
+    directRegister, // TODO: Placeholder for direct table registration
+    supabaseAuthRegister, // TODO: Placeholder for future Supabase Auth registration
     loginWithGoogle,
     logout,
     resetPassword,
