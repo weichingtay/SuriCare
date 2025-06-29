@@ -35,7 +35,7 @@
   // State
   const ownerId = ref(1); // Placeholder for the current user's ID
   const chatHistory = ref([]);
-  const currentChatId = ref(null);
+  const currentChatId = ref<number | null>(null);
   const suggestedPrompts = ref([
     'How do I treat a mild rash at home?',
     'What are the activities to help my child with motor skills?',
@@ -45,16 +45,12 @@
 
   // Computed
   const currentChat = computed(() =>
-    chatHistory.value.find(chat => chat.id === currentChatId.value)
+    chatHistory.value.find((chat: any) => chat.id === currentChatId.value)
   );
 
-const currentChatId = ref(1);
-const suggestedPrompts = ref([
-  "How do I treat a mild rash at home?",
-  "Where can I find a good doctor?",
-  "What are good activies for the motor skills of my child?",
-  "What are the best ways to help my child with their sleep?",
-]);
+  const currentMessages = computed(() => 
+    currentChat.value?.messages || []
+  );
 
   // Methods
   const handleNewChat = async () => {
@@ -73,7 +69,7 @@ const suggestedPrompts = ref([
     }
   };
 
-  const handleSelectChat = async chatId => {
+  const handleSelectChat = async (chatId: number) => {
     currentChatId.value = chatId;
     try {
       const response = await axios.get(`http://localhost:8000/chats/${chatId}/messages`);
@@ -100,7 +96,7 @@ const suggestedPrompts = ref([
     }
   });
 
-  const handleSendMessage = async message => {
+  const handleSendMessage = async (message: string) => {
     const currentChatIndex = chatHistory.value.findIndex(
       chat => chat.id === currentChatId.value
     );
