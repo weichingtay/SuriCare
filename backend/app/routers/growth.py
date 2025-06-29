@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
-from sqlmodel import Session
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, select
 from app.db import engine, get_session
 from app.models import Growth
+from typing import Optional
 import pandas as pd
 import numpy as np
 import json
@@ -52,6 +53,23 @@ def growth_metrics(child_id: int):
         )
 
     return json.loads(df.to_json(orient='records'))
+
+@router.get('/growth/latest/{child_id}', response_model=Optional[Growth])
+def get_latest_growth(*, session: Session = Depends(get_session), child_id: int):
+    """Get the most recent growth record for a specific child"""
+    try:
+        statement = select(Growth).where(Growth.child_id == child_id).order_by(Growth.check_in.desc()).limit(1)
+        latest_growth = session.exec(statement).first()
+        
+        if not latest_growth:
+            raise HTTPException(status_code=404, detail=f"No growth data found for child {child_id}")
+            
+        return latest_growth
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get growth data: {str(e)}")
 
 @router.post('/growth', response_model=Growth)
 def new_growth(*, session: Session = Depends(get_session), growth: Growth):

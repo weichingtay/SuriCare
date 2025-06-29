@@ -38,6 +38,8 @@ SuriCare is a child health monitoring application for parents and caregivers. Th
 - Use Pinia stores for state management
 - Keep all CSS in the style directory @ `src/styles/`
 - All global styles should be defined in `src/styles/_variables.scss`
+- **AVOID creating unnecessary files or functions** - use and extend existing ones
+- **MAINTAIN logical data hierarchies** - prefer `currentChild.growth?.height` over flattened structures
 
 # Key configs
 
