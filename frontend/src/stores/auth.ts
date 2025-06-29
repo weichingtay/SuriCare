@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, readonly } from 'vue'
 import { supabase } from '@/plugins/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 
@@ -18,8 +18,9 @@ export const useAuthStore = defineStore('auth', () => {
   const session = ref<Session | null>(null)
   const isLoading = ref<boolean>(false)
   const error = ref<string | null>(null)
+  const isInitialized = ref<boolean>(false)
 
-  // Computed
+  // Computed - user is authenticated if they have a valid session
   const isAuthenticated = computed(() => !!user.value && !!session.value)
   const userId = computed(() => userProfile.value?.id || null)
   const userEmail = computed(() => user.value?.email || null)
@@ -39,54 +40,81 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Initialize auth state
   const initializeAuth = async (): Promise<void> => {
+    // Prevent double initialization
+    if (isInitialized.value || isLoading.value) {
+      console.log('Auth already initialized or loading, skipping...')
+      return
+    }
+
     try {
+      console.log('Starting auth initialization...')
       setLoading(true)
       clearError()
 
+      // Listen for auth changes (only set up once)
+      if (!isInitialized.value) {
+        supabase.auth.onAuthStateChange(async (event, currentSession) => {
+          console.log('Auth state changed:', event)
+          
+          session.value = currentSession
+          user.value = currentSession?.user || null
+
+          if (event === 'SIGNED_IN' && currentSession) {
+            await fetchUserProfile()
+          } else if (event === 'SIGNED_OUT') {
+            userProfile.value = null
+          }
+        })
+      }
+
       // Get current session
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+      
+      console.log('Got session from Supabase:', !!currentSession, sessionError)
       
       if (sessionError) {
         throw sessionError
       }
 
       if (currentSession) {
+        console.log('Session found, setting user data...')
         session.value = currentSession
         user.value = currentSession.user
-        await fetchUserProfile()
+        console.log('User authenticated with session. isAuthenticated:', isAuthenticated.value)
+        
+        // Try to fetch profile, but don't fail auth if it fails
+        try {
+          await fetchUserProfile()
+          console.log('User profile fetched successfully')
+        } catch (profileError) {
+          console.log('Profile fetch failed, but user is still authenticated:', profileError)
+        }
+      } else {
+        console.log('No active session found')
       }
 
-      // Listen for auth changes
-      supabase.auth.onAuthStateChange(async (event, currentSession) => {
-        console.log('Auth state changed:', event)
-        
-        session.value = currentSession
-        user.value = currentSession?.user || null
-
-        if (event === 'SIGNED_IN' && currentSession) {
-          await fetchUserProfile()
-        } else if (event === 'SIGNED_OUT') {
-          userProfile.value = null
-        }
-      })
+      isInitialized.value = true
+      console.log('Auth initialization completed. Final authenticated state:', isAuthenticated.value)
 
     } catch (err) {
       console.error('Auth initialization error:', err)
       setError(err instanceof Error ? err.message : 'Failed to initialize authentication')
     } finally {
       setLoading(false)
+      console.log('Auth loading finished. Final state - authenticated:', isAuthenticated.value, 'initialized:', isInitialized.value)
     }
   }
 
   // Fetch user profile from backend
   const fetchUserProfile = async (): Promise<void> => {
     if (!user.value?.id) {
+      console.log('No user ID available for profile fetch')
       setError('No user authentication ID available')
       return
     }
 
     try {
-      setLoading(true)
+      console.log('Fetching user profile for auth ID:', user.value.id)
       clearError()
 
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -94,8 +122,11 @@ export const useAuthStore = defineStore('auth', () => {
       // Get user profile by auth_user_id
       const response = await fetch(`${baseUrl}/user-profile/by-auth-id/${user.value.id}`)
       
+      console.log('Profile fetch response status:', response.status)
+      
       if (!response.ok) {
         if (response.status === 404) {
+          console.log('Profile not found, creating new profile...')
           // Auto-create profile for new users
           await createUserProfile()
           return
@@ -112,13 +143,22 @@ export const useAuthStore = defineStore('auth', () => {
         relationship: profile.relationship
       }
 
-      console.log('User profile loaded:', userProfile.value)
+      console.log('User profile loaded successfully:', userProfile.value)
 
     } catch (err) {
       console.error('Error fetching user profile:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch user profile')
-    } finally {
-      setLoading(false)
+      // Don't fail auth just because profile fetch failed - user is still authenticated
+      if (!userProfile.value && user.value) {
+        console.log('Setting fallback profile from auth user data')
+        userProfile.value = {
+          id: 0, // Temporary ID
+          username: user.value.user_metadata?.name || user.value.email?.split('@')[0] || 'User',
+          email: user.value.email || '',
+          contact_number: '',
+          relationship: 'Parent'
+        }
+      }
     }
   }
 
@@ -286,6 +326,7 @@ export const useAuthStore = defineStore('auth', () => {
     session: readonly(session),
     isLoading: readonly(isLoading),
     error: readonly(error),
+    isInitialized: readonly(isInitialized),
     
     // Computed
     isAuthenticated,

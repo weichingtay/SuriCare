@@ -19,9 +19,24 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
   
+  console.log('Router guard - Path:', to.path, 'Authenticated:', authStore.isAuthenticated, 'Initialized:', authStore.isInitialized, 'Loading:', authStore.isLoading)
+  
   // Public pages that don't require authentication
   const publicPages = ['/login', '/signup', '/', '/index']
   const isPublicPage = publicPages.includes(to.path)
+  
+  // Always initialize auth if not done yet
+  if (!authStore.isInitialized) {
+    console.log('Initializing auth...')
+    try {
+      await authStore.initializeAuth()
+      // Give a moment for reactive values to update
+      await new Promise(resolve => setTimeout(resolve, 10))
+      console.log('Auth initialized - Authenticated:', authStore.isAuthenticated, 'Initialized:', authStore.isInitialized)
+    } catch (error) {
+      console.error('Failed to initialize auth:', error)
+    }
+  }
   
   // If not a public page and user is not authenticated, redirect to login
   if (!isPublicPage && !authStore.isAuthenticated) {
@@ -34,6 +49,8 @@ router.beforeEach(async (to) => {
     console.log('Redirecting to dashboard - user already authenticated')
     return '/dashboard'
   }
+  
+  console.log('Route guard passed for:', to.path)
 })
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
