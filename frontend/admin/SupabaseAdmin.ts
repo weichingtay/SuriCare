@@ -22,6 +22,14 @@ export interface AdminUserResult {
   message: string
 }
 
+export interface Child {
+  id?: number
+  name: string
+  birth_date: string
+  gender: string
+  carer_id: number
+}
+
 export class SupabaseAdmin {
   private supabase: SupabaseClient
   

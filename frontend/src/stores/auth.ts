@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 import { supabase } from '@/plugins/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 
-// Type definitions for our user data structure
 export interface UserProfile {
   id: number
   username: string
@@ -12,19 +11,7 @@ export interface UserProfile {
   relationship: string
 }
 
-export interface AuthState {
-  user: User | null
-  userProfile: UserProfile | null
-  session: Session | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  error: string | null
-}
-
 export const useAuthStore = defineStore('auth', () => {
-  // Development mode - set this to true to bypass Supabase auth
-  const isDevelopmentMode = import.meta.env.VITE_DEV_MODE === 'true'
-  
   // State
   const user = ref<User | null>(null)
   const userProfile = ref<UserProfile | null>(null)
@@ -32,12 +19,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref<boolean>(false)
   const error = ref<string | null>(null)
 
-  // Computed properties
+  // Computed
   const isAuthenticated = computed(() => !!user.value && !!session.value)
   const userId = computed(() => userProfile.value?.id || null)
   const userEmail = computed(() => user.value?.email || null)
 
-  // Actions
+  // Helper functions
   const setError = (message: string | null) => {
     error.value = message
   }
@@ -50,30 +37,11 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = loading
   }
 
-  // Initialize auth state from Supabase session
-  const initializeAuth = async () => {
+  // Initialize auth state
+  const initializeAuth = async (): Promise<void> => {
     try {
       setLoading(true)
       clearError()
-
-      // Development mode - create mock session
-      if (isDevelopmentMode) {
-        console.log('🔧 Development mode: using mock session')
-        user.value = {
-          id: 'dev-user-123',
-          email: 'dev@example.com',
-          user_metadata: { name: 'Dev User' }
-        } as unknown as User
-        
-        session.value = {
-          access_token: 'dev-token-123',
-          user: user.value
-        } as Session
-        
-        await fetchUserProfile()
-        setLoading(false)
-        return
-      }
 
       // Get current session
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
@@ -85,14 +53,12 @@ export const useAuthStore = defineStore('auth', () => {
       if (currentSession) {
         session.value = currentSession
         user.value = currentSession.user
-        
-        // Fetch user profile from our database
         await fetchUserProfile()
       }
 
       // Listen for auth changes
       supabase.auth.onAuthStateChange(async (event, currentSession) => {
-        console.log('Auth state changed:', event, currentSession)
+        console.log('Auth state changed:', event)
         
         session.value = currentSession
         user.value = currentSession?.user || null
@@ -112,8 +78,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Fetch user profile from backend database
-  const fetchUserProfile = async () => {
+  // Fetch user profile from backend
+  const fetchUserProfile = async (): Promise<void> => {
     if (!user.value?.id) {
       setError('No user authentication ID available')
       return
@@ -125,41 +91,47 @@ export const useAuthStore = defineStore('auth', () => {
 
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
       
-      // Development mode - use fixed test user
-      if (isDevelopmentMode) {
-        console.log('🔧 Development mode: using fixed test user profile')
-        userProfile.value = {
-          id: 1,
-          username: 'Dev User',
-          email: 'dev@example.com',
-          contact_number: '+1234567890',
-          relationship: 'Parent'
-        }
-        return
-      }
+      // Get user profile by auth_user_id
+      const response = await fetch(`${baseUrl}/user-profile/by-auth-id/${user.value.id}`)
       
-      // First, try to get existing user profile by auth_user_id
-      try {
-        const response = await fetch(`${baseUrl}/user-profile/by-auth-id/${user.value.id}`)
-        
-        if (response.ok) {
-          const profile = await response.json()
-          userProfile.value = {
-            id: profile.id,
-            username: profile.username,
-            email: profile.email,
-            contact_number: profile.contact_number,
-            relationship: profile.relationship
-          }
-          console.log('Existing user profile loaded:', userProfile.value)
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Auto-create profile for new users
+          await createUserProfile()
           return
         }
-      } catch (err) {
-        console.log('No existing profile found, will create new one')
+        throw new Error(`Failed to fetch user profile: ${response.statusText}`)
       }
 
-      // If no existing profile, create a new one linked to the Supabase Auth user
-      const createProfileResponse = await fetch(`${baseUrl}/user-profile/link-auth`, {
+      const profile = await response.json()
+      userProfile.value = {
+        id: profile.id,
+        username: profile.username,
+        email: profile.email,
+        contact_number: profile.contact_number,
+        relationship: profile.relationship
+      }
+
+      console.log('User profile loaded:', userProfile.value)
+
+    } catch (err) {
+      console.error('Error fetching user profile:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch user profile')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Create user profile for new Supabase Auth users
+  const createUserProfile = async (): Promise<void> => {
+    if (!user.value) {
+      throw new Error('No authenticated user')
+    }
+
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+      
+      const response = await fetch(`${baseUrl}/user-profile/link-auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -173,11 +145,11 @@ export const useAuthStore = defineStore('auth', () => {
         })
       })
 
-      if (!createProfileResponse.ok) {
-        throw new Error(`Failed to create user profile: ${createProfileResponse.statusText}`)
+      if (!response.ok) {
+        throw new Error(`Failed to create user profile: ${response.statusText}`)
       }
 
-      const newProfile = await createProfileResponse.json()
+      const newProfile = await response.json()
       userProfile.value = {
         id: newProfile.id,
         username: newProfile.username,
@@ -189,104 +161,17 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('New user profile created:', userProfile.value)
 
     } catch (err) {
-      console.error('Error fetching/creating user profile:', err)
-      setError(err instanceof Error ? err.message : 'Failed to fetch user profile')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Direct login against Supabase primary_care_giver table
-  const directLogin = async (email: string, password: string) => {
-    try {
-      setLoading(true)
-      clearError()
-
-      // Query the primary_care_giver table in Supabase
-      const { data: users, error: queryError } = await supabase
-        .from('primary_care_giver')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .limit(1)
-
-      if (queryError) {
-        throw new Error(`Database query failed: ${queryError.message}`)
-      }
-
-      if (!users || users.length === 0) {
-        throw new Error('Invalid email or password')
-      }
-
-      const userRecord = users[0]
-
-      // Create mock Supabase user and session for compatibility with rest of app
-      user.value = {
-        id: userRecord.auth_user_id || `supabase-user-${userRecord.id}`,
-        email: userRecord.email,
-        user_metadata: { name: userRecord.username }
-      } as unknown as User
-      
-      session.value = {
-        access_token: `supabase-token-${userRecord.id}`,
-        user: user.value
-      } as Session
-      
-      // Set user profile directly from Supabase table
-      userProfile.value = {
-        id: userRecord.id,
-        username: userRecord.username,
-        email: userRecord.email,
-        contact_number: userRecord.contact_number,
-        relationship: userRecord.relationship
-      }
-
-      console.log('✅ Supabase table login successful:', userProfile.value)
-      return { success: true }
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed'
-      setError(errorMessage)
-      console.error('Supabase table login error:', err)
-      return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
+      console.error('Error creating user profile:', err)
+      throw err
     }
   }
 
   // Login with email and password
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setLoading(true)
       clearError()
 
-      // TODO: Migration to Supabase Auth
-      // When ready to switch to real Supabase Auth, set VITE_USE_SUPABASE_AUTH=true
-      // This will use proper password hashing, JWT tokens, and session management
-      const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true'
-      
-      if (useSupabaseAuth) {
-        console.log('🔐 Using Supabase Auth (secure authentication)')
-        return await supabaseAuthLogin(email, password)
-      } else {
-        console.log('🗄️ Using direct table authentication (development mode)')
-        return await directLogin(email, password)
-      }
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed'
-      setError(errorMessage)
-      console.error('Login error:', err)
-      return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // TODO: Implement proper Supabase Auth login (for future migration)
-  const supabaseAuthLogin = async (email: string, password: string) => {
-    try {
-      // This will use real Supabase Auth when implemented
       const { data, error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -299,39 +184,49 @@ export const useAuthStore = defineStore('auth', () => {
       if (data.user && data.session) {
         user.value = data.user
         session.value = data.session
-        
-        // TODO: When migrating, link Supabase Auth user to primary_care_giver table
-        // via auth_user_id field or create profile sync
         await fetchUserProfile()
         return { success: true }
       }
 
-      throw new Error('Supabase Auth login failed - no user data returned')
+      throw new Error('Login failed - no user data returned')
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Supabase Auth login failed'
+      const errorMessage = err instanceof Error ? err.message : 'Login failed'
       setError(errorMessage)
-      console.error('Supabase Auth login error:', err)
+      console.error('Login error:', err)
       return { success: false, error: errorMessage }
+    } finally {
+      setLoading(false)
     }
   }
 
   // Register new user
-  const register = async (email: string, password: string, additionalData?: Partial<UserProfile>) => {
+  const register = async (email: string, password: string, additionalData?: { name?: string }): Promise<{ success: boolean; error?: string }> => {
     try {
       setLoading(true)
       clearError()
 
-      // TODO: Add registration mode switch when migrating to Supabase Auth
-      const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true'
-      
-      if (useSupabaseAuth) {
-        console.log('🔐 Using Supabase Auth registration')
-        return await supabaseAuthRegister(email, password, additionalData)
-      } else {
-        console.log('🗄️ Using direct table registration')
-        return await directRegister(email, password, additionalData)
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: additionalData
+        }
+      })
+
+      if (signupError) {
+        throw signupError
       }
+
+      if (data.user) {
+        user.value = data.user
+        session.value = data.session
+        
+        // Profile will be created automatically when user confirms email
+        return { success: true }
+      }
+
+      throw new Error('Registration failed')
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed'
@@ -343,74 +238,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // TODO: Implement Supabase Auth registration (for future migration)
-  const supabaseAuthRegister = async (email: string, password: string, additionalData?: Partial<UserProfile>) => {
-    const { data, error: signupError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: additionalData
-      }
-    })
-
-    if (signupError) {
-      throw signupError
-    }
-
-    if (data.user) {
-      user.value = data.user
-      session.value = data.session
-      
-      // TODO: When migrating, create linked profile in primary_care_giver table
-      if (additionalData) {
-        console.log('Would create linked user profile with data:', additionalData)
-      }
-      
-      return { success: true }
-    }
-
-    throw new Error('Supabase Auth registration failed')
-  }
-
-  // TODO: Implement direct table registration (for current mode)
-  const directRegister = async (email: string, password: string, additionalData?: Partial<UserProfile>) => {
-    // For now, just direct table insert (add when needed)
-    // This would insert directly into primary_care_giver table
-    console.log('Direct registration not implemented yet')
-    throw new Error('Direct registration not implemented yet - use Supabase dashboard to add users')
-  }
-
-  // Login with Google OAuth
-  const loginWithGoogle = async () => {
-    try {
-      setLoading(true)
-      clearError()
-
-      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      })
-
-      if (oauthError) {
-        throw oauthError
-      }
-
-      return { success: true }
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Google login failed'
-      setError(errorMessage)
-      console.error('Google login error:', err)
-      return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
-    }
-  }
-
   // Logout
-  const logout = async () => {
+  const logout = async (): Promise<{ success: boolean; error?: string }> => {
     try {
       setLoading(true)
       clearError()
@@ -438,34 +267,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Reset password
-  const resetPassword = async (email: string) => {
-    try {
-      setLoading(true)
-      clearError()
-
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      })
-
-      if (resetError) {
-        throw resetError
-      }
-
-      return { success: true, message: 'Password reset email sent' }
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Password reset failed'
-      setError(errorMessage)
-      console.error('Password reset error:', err)
-      return { success: false, error: errorMessage }
-    } finally {
-      setLoading(false)
-    }
-  }
-
   // Get authorization headers for API calls
-  const getAuthHeaders = () => {
+  const getAuthHeaders = (): Record<string, string> => {
     if (!session.value?.access_token) {
       return {}
     }
@@ -493,16 +296,10 @@ export const useAuthStore = defineStore('auth', () => {
     initializeAuth,
     fetchUserProfile,
     login,
-    directLogin,
-    supabaseAuthLogin, // TODO: Placeholder for future Supabase Auth
     register,
-    directRegister, // TODO: Placeholder for direct table registration
-    supabaseAuthRegister, // TODO: Placeholder for future Supabase Auth registration
-    loginWithGoogle,
     logout,
-    resetPassword,
     getAuthHeaders,
     setError,
     clearError
   }
-}) 
+})

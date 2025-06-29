@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from db import get_session
-from models import ChatbotChat, ChatMessage
+from app.db import get_session
+from app.models import ChatbotChat, ChatMessage
 from pydantic import BaseModel
 from uuid import UUID
 # from chatbot.app.model import generate_reply

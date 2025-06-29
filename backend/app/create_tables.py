@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from sqlmodel import SQLModel, create_engine
 
 # Import all models here so SQLModel knows about them
-from models import *
+from app.models import *
 
 def create_db_and_tables():
     """
