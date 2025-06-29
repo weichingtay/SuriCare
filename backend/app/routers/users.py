@@ -39,6 +39,17 @@ def hash_password(password: str) -> str:
     """Simple password hashing for development. In production, use proper password hashing."""
     return hashlib.sha256(password.encode()).hexdigest()
 
+def to_user_profile_response(user: Primary_Care_Giver) -> UserProfileResponse:
+    """Convert Primary_Care_Giver model to UserProfileResponse, handling UUID conversion"""
+    return UserProfileResponse(
+        id=user.id,
+        auth_user_id=str(user.auth_user_id) if user.auth_user_id else "",
+        username=user.username,
+        email=user.email,
+        contact_number=user.contact_number,
+        relationship=user.relationship
+    )
+
 @router.get('/{user_id}', response_model=Primary_Care_Giver)
 def user_profile(*, user_id: int, session: Session = Depends(get_session)):
     user = session.get(Primary_Care_Giver, user_id)
@@ -53,7 +64,8 @@ def get_user_by_auth_id(*, auth_user_id: str, session: Session = Depends(get_ses
     user = session.exec(statement).first()
     if not user:
         raise HTTPException(status_code=404, detail="User profile not found")
-    return user
+    
+    return to_user_profile_response(user)
 
 @router.post('/link-auth', response_model=UserProfileResponse)
 def link_or_create_user_profile(*, session: Session = Depends(get_session), profile_data: UserProfileRequest):
@@ -77,7 +89,8 @@ def link_or_create_user_profile(*, session: Session = Depends(get_session), prof
         session.add(existing_user)
         session.commit()
         session.refresh(existing_user)
-        return existing_user
+        
+        return to_user_profile_response(existing_user)
     
     # Create new user profile
     new_user = Primary_Care_Giver(
@@ -91,7 +104,8 @@ def link_or_create_user_profile(*, session: Session = Depends(get_session), prof
     session.add(new_user)
     session.commit()
     session.refresh(new_user)
-    return new_user
+    
+    return to_user_profile_response(new_user)
 
 @router.post('/', response_model=Primary_Care_Giver)
 def new_user(*, session: Session = Depends(get_session), user: Primary_Care_Giver):
