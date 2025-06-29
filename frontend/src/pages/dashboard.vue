@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, reactive } from 'vue'
+  import { onMounted, reactive, ref, computed } from 'vue'
   import axios from 'axios'
 
   // Setup initial reference for actual weight, height, head_circumference, sleep time
