@@ -45,16 +45,18 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref } from 'vue'
+  import { onMounted, ref, watch } from 'vue'
   // import AppHeader from '@/components/AppHeader.vue'
   // import AppNavigation from '@/components/AppNavigation.vue'
   import { useChildrenStore } from '@/stores/children'
+  import { useAuthStore } from '@/stores/auth'
   import { useRoute } from 'vue-router'
 
   const route = useRoute()
 
-  // Use the children store
+  // Use the stores
   const childrenStore = useChildrenStore()
+  const authStore = useAuthStore()
 
   const activeTab = ref('')
 
@@ -65,10 +67,27 @@
   const hideComponent = ['/login', '/addChild', '/signup']
   const chatbotPage = ['/chatbot']
 
-  onMounted(() => {
-    if (childrenStore.children.length === 0) {
-      childrenStore.loadChildren()
+  // Load children when user is authenticated
+  const loadChildrenIfAuthenticated = async () => {
+    if (authStore.isAuthenticated && childrenStore.children.length === 0) {
+      console.log('User authenticated, loading children...')
+      await childrenStore.loadChildren()
     }
+  }
+
+  // Watch for authentication changes
+  watch(() => authStore.isAuthenticated, (isAuthenticated) => {
+    if (isAuthenticated) {
+      loadChildrenIfAuthenticated()
+    } else {
+      // Clear children when user logs out
+      childrenStore.children.splice(0, childrenStore.children.length)
+    }
+  }, { immediate: true })
+
+  onMounted(async () => {
+    // Load children if already authenticated
+    await loadChildrenIfAuthenticated()
   })
 </script>
 

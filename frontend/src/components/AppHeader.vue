@@ -239,23 +239,21 @@
   import { useGrowthDialog } from '@/composables/useGrowthDialog'
   import GrowthDialog from '../components/dialog/GrowthDialog.vue'
 
-  // Props
-  const props = defineProps({
-    currentChild: {
-      type: Object,
-      required: true,
-    },
-    children: {
-      type: Array,
-      required: true,
-    },
-  })
+  import type { Child } from '@/stores/children'
 
-  // Emits (no longer need open-growth-dialog)
-  const emit = defineEmits(['child-selected'])
+  // Props
+  const props = defineProps<{
+    currentChild: Child
+    children: Child[]
+  }>()
+
+  // Emits
+  const emit = defineEmits<{
+    'child-selected': [child: Child]
+  }>()
 
   // Methods
-  const selectChild = child => {
+  const selectChild = (child: Child) => {
     emit('child-selected', child)
   }
 
