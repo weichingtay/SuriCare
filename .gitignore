@@ -5,6 +5,7 @@ node_modules/
 src/typed-router.d.ts
 # Python cache
 __pycache__/
+venv/
 *.py[cod]
 *.so
 .env.*
