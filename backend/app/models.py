@@ -1,13 +1,15 @@
-from sqlmodel import SQLModel, Field, Column, DateTime
+from sqlmodel import SQLModel, Field, Column, DateTime, TEXT
+from uuid import UUID, uuid4
 from datetime import datetime
 
 
 class Primary_Care_Giver(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
+    auth_user_id: str | None = Field(default=None, unique=True)  # Supabase Auth UUID
     username: str
     email: str
     contact_number: str
-    password: str
+    password: str | None = Field(default=None)  # Optional now since we use Supabase Auth
     relationship: str
 
 
@@ -100,3 +102,20 @@ class Symptom(SQLModel, table=True):
     note: str | None
 
     child_id: int = Field(default=None, foreign_key="child.id")
+
+class ChatbotChat(SQLModel, table=True):
+    __tablename__ = "chatbot_chats"
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    title: str | None = None
+    owner_id: int = Field(foreign_key="primary_care_giver.id")
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    updated_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+class ChatMessage(SQLModel, table=True):
+    __tablename__ = "chat_messages"
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    chat_id: UUID = Field(foreign_key="chatbot_chats.id")
+    message: str = Field(sa_column=Column(TEXT))
+    sender: str
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))

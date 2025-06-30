@@ -1,13 +1,24 @@
 <template>
-  <v-navigation-drawer permanent width="280" class="chat-sidebar" color="#F5F5F5">
+  <v-navigation-drawer class="chat-sidebar" color="#F5F5F5" permanent width="280">
     <!-- Header -->
-    <div class="pa-4 d-flex align-center justify-space-between">
-      <div class="d-flex align-center">
+    <div class="pa-4">
+      <div class="d-flex align-center justify-space-between mb-3">
         <span class="text-h6 font-weight-medium">Chat History</span>
+        <v-btn class="d-flex align-right" icon size="small" variant="text">
+          <v-icon>mdi-menu</v-icon>
+        </v-btn>
       </div>
-
-      <v-btn icon variant="text" size="small" class="d-flex align-right">
-        <v-icon>mdi-menu</v-icon>
+      
+      <!-- New Chat Button -->
+      <v-btn
+        class="new-chat-btn"
+        color="primary"
+        prepend-icon="mdi-plus"
+        variant="outlined"
+        block
+        @click="$emit('new-chat')"
+      >
+        New Chat
       </v-btn>
     </div>
 
@@ -21,15 +32,15 @@
         </div>
 
         <div class="chat-list px-2">
-          <v-list density="compact" class="py-0 transparent">
+          <v-list class="py-0 transparent" density="compact">
             <v-list-item
               v-for="chat in dateGroup"
               :key="chat.id"
-              :value="chat.id"
-              @click="$emit('select-chat', chat.id)"
               class="chat-item mb-1"
               :class="{ 'active-chat': isActiveChat(chat.id) }"
               rounded="lg"
+              :value="chat.id"
+              @click="$emit('select-chat', chat.id)"
             >
               <v-list-item-title class="text-body-2 text-truncate">
                 {{ chat.title }}
@@ -42,36 +53,37 @@
   </v-navigation-drawer>
 </template>
 
-<script setup>
-import { computed } from 'vue'
+<script setup lang="ts">
+  import { computed } from 'vue'
 
-const props = defineProps({
-  chatHistory: {
-    type: Array,
-    required: true
-  },
-  activeChatId: {
-    type: Number,
-    default: null
+  interface Chat {
+    id: number
+    title: string
+    date: string
   }
-})
 
-const emit = defineEmits(['new-chat', 'select-chat'])
+  const props = defineProps<{
+    chatHistory: Chat[]
+    activeChatId: number | null
+  }>()
 
-const groupedChats = computed(() => {
-  const groups = {}
-  props.chatHistory.forEach(chat => {
-    if (!groups[chat.date]) {
-      groups[chat.date] = []
-    }
-    groups[chat.date].push(chat)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const emit = defineEmits(['new-chat', 'select-chat'])
+
+  const groupedChats = computed(() => {
+    const groups: Record<string, Chat[]> = {}
+    props.chatHistory.forEach((chat: Chat) => {
+      if (!groups[chat.date]) {
+        groups[chat.date] = []
+      }
+      groups[chat.date].push(chat)
+    })
+    return groups
   })
-  return groups
-})
 
-const isActiveChat = (chatId) => {
-  return chatId === props.activeChatId
-}
+  const isActiveChat = (chatId: number) => {
+    return chatId === props.activeChatId
+  }
 </script>
 
 <style scoped>
@@ -121,6 +133,11 @@ const isActiveChat = (chatId) => {
 
 .chat-history {
   overflow-y: auto;
-  height: calc(100vh - 140px);
+  height: calc(100vh - 200px);
+}
+
+.new-chat-btn {
+  text-transform: none;
+  font-weight: 500;
 }
 </style>

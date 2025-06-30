@@ -1,9 +1,9 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 
-export function useDatePicker(initialDate?: Date) {
+export function useDatePicker (initialDate?: Date) {
   // Selected date for viewing summaries
   const selectedDate = ref(initialDate || new Date())
-  
+
   // Controls visibility of date picker menu
   const datePickerMenu = ref(false)
 
@@ -21,9 +21,9 @@ export function useDatePicker(initialDate?: Date) {
   const handleDateChange = (newDate: Date, callback?: (date: Date) => void) => {
     selectedDate.value = newDate
     datePickerMenu.value = false
-    
+
     console.log('Date changed to:', newDate)
-    
+
     // Execute callback if provided
     if (callback) {
       callback(newDate)
@@ -36,4 +36,4 @@ export function useDatePicker(initialDate?: Date) {
     formattedSelectedDate,
     handleDateChange,
   }
-} 
+}

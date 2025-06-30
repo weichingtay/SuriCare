@@ -1,287 +1,248 @@
 <template>
-    <BaseCheckInDialog
-        :model-value="modelValue"
-        @update:model-value="handleDialogUpdate"
-        max-width="600px"
-        icon="mdi-emoticon-poop"
-        icon-color="#000000"
-        title="Poop"
-        subtitle="Poop check for Jennie"
-        :notes="notes"
-        @update:notes="$emit('update:notes', $event)"
-        :loading="loading"
-        @save="handleSave"
-        @close="handleClose"
-    >
-        <template #custom-content>
-            <div class="poop-content">
-                <!-- Color Selection -->
-                <div class="color-section">
-                    <label class="section-label">Color</label>
-                    <div class="color-options">
-                        <div
-                            v-for="color in colorOptions"
-                            :key="color.value"
-                            class="color-option"
-                            :class="{ 'selected': localColor === color.value }"
-                            @click="selectColor(color.value)"
-                        >
-                            <div 
-                                class="color-circle"
-                                :style="{
-                                    backgroundColor: color.hex,
-                                    
-                                }"
-                            ></div>
-                            <div class="color-label">
-                                {{ color.label }}
-                            </div>
-                        </div>
-                    </div>
-                    <div v-if="errors.color" class="error-message">
-                        {{ errors.color }}
-                    </div>
-                </div>
-
-                <!-- Texture Selection -->
-                <div class="texture-section">
-                    <label class="section-label">Consistency</label>
-                    <div class="texture-options">
-                        <div
-                            v-for="texture in textureOptions"
-                            :key="texture.value"
-                            class="texture-option"
-                            :class="{ 'selected': localTexture === texture.value }"
-                            @click="selectTexture(texture.value)"
-                        >
-                            <!-- Texture Visual -->
-                            <div class="texture-visual-img">
-                            <img 
-                                :src="texture.image" 
-                                alt="texture" 
-                                class="texture-image"
-                            />
-                            <div class="texture-label">
-                                {{ texture.label }}
-                            </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-                    <div v-if="errors.texture" class="error-message">
-                        {{ errors.texture }}
-                    </div>
-                </div>
+  <BaseCheckInDialog
+    icon="mdi-emoticon-poop"
+    icon-color="#000000"
+    :loading="loading"
+    max-width="600px"
+    :model-value="modelValue"
+    :notes="notes"
+    subtitle="Poop check for Jennie"
+    title="Poop"
+    @close="handleClose"
+    @save="handleSave"
+    @update:model-value="handleDialogUpdate"
+    @update:notes="$emit('update:notes', $event)"
+  >
+    <template #custom-content>
+      <div class="poop-content">
+        <!-- Color Selection -->
+        <div class="color-section">
+          <label class="section-label">Color</label>
+          <div class="color-options">
+            <div v-if="isPoopOptionsLoading" class="d-flex justify-center pa-4">
+              <v-progress-circular indeterminate size="20" />
             </div>
-        </template>
-    </BaseCheckInDialog>
+            <div
+              v-for="poopColor in colorOptions"
+              v-else
+              :key="poopColor.value"
+              class="color-option"
+              :class="{ 'selected': localColor === poopColor.value }"
+              @click="selectColor(poopColor.value)"
+            >
+              <div
+                class="color-circle"
+                :style="{
+                  backgroundColor: poopColor.hex,
+
+                }"
+              />
+              <div class="color-label">
+                {{ poopColor.label }}
+              </div>
+            </div>
+          </div>
+          <div v-if="errors.color" class="error-message">
+            {{ errors.color }}
+          </div>
+        </div>
+
+        <!-- Texture Selection -->
+        <div class="texture-section">
+          <label class="section-label">Consistency</label>
+          <div class="texture-options">
+            <div v-if="isPoopOptionsLoading" class="d-flex justify-center pa-4">
+              <v-progress-circular indeterminate size="20" />
+            </div>
+            <div
+              v-for="poopTexture in textureOptions"
+              v-else
+              :key="poopTexture.value"
+              class="texture-option"
+              :class="{ 'selected': localTexture === poopTexture.value }"
+              @click="selectTexture(poopTexture.value)"
+            >
+              <!-- Texture Visual -->
+              <div class="texture-visual-img">
+                <img
+                  alt="texture"
+                  class="texture-image"
+                  :src="poopTexture.image"
+                >
+                <div class="texture-label">
+                  {{ poopTexture.label }}
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div v-if="errors.texture" class="error-message">
+            {{ errors.texture }}
+          </div>
+        </div>
+      </div>
+    </template>
+  </BaseCheckInDialog>
 </template>
 
-<script setup>
-import { ref, watch, nextTick } from 'vue'
-import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
+<script setup lang="ts">
+  import { nextTick, ref, watch } from 'vue'
+  import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
 
-const props = defineProps({
+  const props = defineProps({
     modelValue: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     color: {
-        type: String,
-        default: ''
+      type: String,
+      default: '',
     },
     texture: {
-        type: String,
-        default: ''
+      type: String,
+      default: '',
     },
     notes: {
-        type: String,
-        default: ''
+      type: String,
+      default: '',
     },
     loading: {
-        type: Boolean,
-        default: false
-    }
-})
+      type: Boolean,
+      default: false,
+    },
+  })
 
-const emit = defineEmits([
+  const emit = defineEmits([
     'update:modelValue',
     'update:color',
     'update:texture',
     'update:notes',
     'save',
-    'close'
-])
+    'close',
+  ])
 
-// Color options exactly as shown in image
-const colorOptions = [
-    { value: 'yellow', label: 'Yellow', hex: '#FDD835' },
-    { value: 'red', label: 'Red', hex: '#E53935' },
-    { value: 'brown', label: 'Brown', hex: '#8D6E63' },
-    { value: 'green', label: 'Green', hex: '#43A047' },
-    { value: 'black', label: 'Black', hex: '#424242' },
-    { value: 'gray', label: 'Gray', hex: '#9E9E9E' }
-]
+  // Use dynamic options from database
+  import { usePoopOptions } from '@/composables/usePoopOptions'
 
-// Texture options with visual representations exactly as shown in image
-const textureOptions = [
-    { 
-        value: 'pellets', 
-        label: 'Pellets',
-        image: '/assets/textures/pellets.png'
-    },
-    { 
-        value: 'lumpy', 
-        label: 'Lumpy',
-        image: '/assets/textures/lumpy.png'
-    },
-    { 
-        value: 'cracked', 
-        label: 'Cracked',
-        image: '/assets/textures/cracked.png'
-    },
-    { 
-        value: 'smooth', 
-        label: 'Smooth',
-        image: '/assets/textures/smooth.png'
-    },
-    { 
-        value: 'soft', 
-        label: 'Soft',
-        image: '/assets/textures/soft.png'
-    },
-    { 
-        value: 'mushy', 
-        label: 'Mushy',
-        image: '/assets/textures/mushy.png'
-    },
-    { 
-        value: 'watery', 
-        label: 'Watery',
-        image: '/assets/textures/watery.png'
-    }
-]
+  const {
+    colorOptions,
+    textureOptions,
+    isLoading: isPoopOptionsLoading,
+  } = usePoopOptions()
 
-const localColor = ref('')
-const localTexture = ref('')
-const errors = ref({})
+  const localColor = ref('')
+  const localTexture = ref('')
+  const errors = ref({})
 
-let colorTimeout = null
-let textureTimeout = null
+  let colorTimeout = null
+  let textureTimeout = null
 
-watch(() => props.modelValue, (newValue) => {
+  watch(() => props.modelValue, newValue => {
     if (newValue) {
-        localColor.value = props.color || ''
-        localTexture.value = props.texture || ''
-        errors.value = {}
+      localColor.value = props.color || ''
+      localTexture.value = props.texture || ''
+      errors.value = {}
     }
-}, { immediate: true })
+  }, { immediate: true })
 
-// 🔧 修改5: 条件性监听props变化
-watch(() => props.color, (newValue) => {
+  watch(() => props.color, newValue => {
     if (props.modelValue) {
-        localColor.value = newValue || ''
+      localColor.value = newValue || ''
     }
-})
+  })
 
-watch(() => props.texture, (newValue) => {
+  watch(() => props.texture, newValue => {
     if (props.modelValue) {
-        localTexture.value = newValue || ''
+      localTexture.value = newValue || ''
     }
-})
+  })
 
-// 🔧 修改6: 防抖动emit处理
-watch(localColor, (newValue) => {
+  watch(localColor, newValue => {
     if (colorTimeout) clearTimeout(colorTimeout)
     colorTimeout = setTimeout(() => {
-        emit('update:color', newValue)
-        if (newValue && errors.value.color) {
-            delete errors.value.color
-        }
+      emit('update:color', newValue)
+      if (newValue && errors.value.color) {
+        delete errors.value.color
+      }
     }, 100)
-})
+  })
 
-watch(localTexture, (newValue) => {
+  watch(localTexture, newValue => {
     if (textureTimeout) clearTimeout(textureTimeout)
     textureTimeout = setTimeout(() => {
-        emit('update:texture', newValue)
-        if (newValue && errors.value.texture) {
-            delete errors.value.texture
-        }
+      emit('update:texture', newValue)
+      if (newValue && errors.value.texture) {
+        delete errors.value.texture
+      }
     }, 100)
-})
+  })
 
-// 🔧 修改7: 改进选择方法 - 确保触发reactivity
-const selectColor = (color) => {
+  const selectColor = color => {
     localColor.value = color
-}
+  }
 
-const selectTexture = (texture) => {
+  const selectTexture = texture => {
     localTexture.value = texture
-}
+  }
 
-// Validation
-const validateColor = () => {
+  // Validation
+  const validateColor = () => {
     if (!localColor.value) {
-        errors.value.color = 'Please select a color'
-        return false
+      errors.value.color = 'Please select a color'
+      return false
     }
     delete errors.value.color
     return true
-}
+  }
 
-const validateTexture = () => {
+  const validateTexture = () => {
     if (!localTexture.value) {
-        errors.value.texture = 'Please select a texture'
-        return false
+      errors.value.texture = 'Please select a texture'
+      return false
     }
     delete errors.value.texture
     return true
-}
+  }
 
-// 🔧 修改8: 重写validateForm - 先清除所有错误
-const validateForm = () => {
+  const validateForm = () => {
     errors.value = {}
     const isColorValid = validateColor()
     const isTextureValid = validateTexture()
     return isColorValid && isTextureValid
-}
+  }
 
-// 🔧 修改9: 重写handleDialogUpdate
-const handleDialogUpdate = (value) => {
+  const handleDialogUpdate = value => {
     emit('update:modelValue', value)
     if (!value) {
-        nextTick(() => {
-            errors.value = {}
-            localColor.value = ''
-            localTexture.value = ''
-        })
+      nextTick(() => {
+        errors.value = {}
+        localColor.value = ''
+        localTexture.value = ''
+      })
     }
-}
+  }
 
-// 🔧 修改10: 重写handleClose
-const handleClose = () => {
+  const handleClose = () => {
     errors.value = {}
     localColor.value = ''
     localTexture.value = ''
     emit('close')
-}
+  }
 
-// 🔧 修改11: 重写handleSave
-const handleSave = () => {
+  const handleSave = () => {
     if (!validateForm()) {
-        return
+      return
     }
 
     const poopData = {
-        color: localColor.value,
-        texture: localTexture.value,
-        notes: props.notes
+      color: localColor.value,
+      texture: localTexture.value,
+      notes: props.notes,
     }
-    
+
     errors.value = {}
     emit('save', poopData)
-}
+  }
 </script>
 
 <style scoped>

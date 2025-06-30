@@ -2,9 +2,9 @@
   <v-card
     class="alert-card"
     :class="{ 'alert-card-border': !isExpanded }"
+    color="white"
     elevation="0"
     rounded="lg"
-    color="white"
   >
     <!-- Alert Header Section -->
     <v-card-text
@@ -15,9 +15,9 @@
       <div class="d-flex justify-space-between align-center">
         <div class="d-flex align-start">
           <v-icon
+            class="mt-1 mr-3"
             color="#FF5252"
             size="20"
-            class="mt-1 mr-3"
           >
             mdi-alert
           </v-icon>
@@ -32,14 +32,14 @@
         </div>
         <v-btn
           icon
-          variant="text"
           size="small"
+          variant="text"
           @click="toggleExpanded"
         >
           <v-icon
+            :class="{ 'rotate-180': isExpanded }"
             color="grey-darken-2"
             size="20"
-            :class="{ 'rotate-180': isExpanded }"
             style="transition: transform 0.2s ease"
           >
             mdi-chevron-down
@@ -56,13 +56,13 @@
         style="position: relative"
       >
         <v-btn
+          class="close-btn"
           density="comfortable"
           icon="$close"
-          variant="plain"
-          class="close-btn"
           style="position: absolute; top: 12px; right: 12px; z-index: 1"
+          variant="plain"
           @click="$emit('read-alert')"
-        ></v-btn>
+        />
 
         <div class="pa-6">
           <div
@@ -72,8 +72,8 @@
           >
             <div class="d-flex align-center mb-3">
               <v-icon
-                size="28"
                 class="mr-1"
+                size="28"
               >
                 mdi-lightbulb-variant
               </v-icon>
@@ -94,9 +94,10 @@
   </v-card>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { ref } from 'vue'
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const props = defineProps({
     alert: {
       type: Object,

@@ -1,4 +1,3 @@
-
 import { defineStore } from 'pinia'
 
 // TypeScript Interfaces
@@ -69,23 +68,23 @@ export const useCheckinStore = defineStore('checkin', {
     symptomsData: {
       symptoms: [], // Array for multiple selection
       photo: null,
-      notes: ''
+      notes: '',
     },
-    
-    // Poop data  
+
+    // Poop data
     poopData: {
       color: '',
       texture: '',
-      notes: ''
+      notes: '',
     },
-    
+
     // Sleep data
     sleepData: {
       bedTime: '',
       awakeTime: '',
-      notes: ''
+      notes: '',
     },
-    
+
     // Meal data
     mealData: {
       mealTime: '',
@@ -93,25 +92,25 @@ export const useCheckinStore = defineStore('checkin', {
       mealCategory: '',
       subCategory: '', // For Breast Milk/Formula
       customMeal: '', // For "Others" input
-      notes: ''
+      notes: '',
     },
-    
+
     // Growth data
     growthData: {
       weight: '',
       height: '',
       headCircumference: '',
-      notes: ''
+      notes: '',
     },
-    
+
     // History for each type
     history: {
       symptoms: [],
       poop: [],
       sleep: [],
       meal: [],
-      growth: []
-    }
+      growth: [],
+    },
   }),
 
   getters: {
@@ -121,46 +120,46 @@ export const useCheckinStore = defineStore('checkin', {
     latestSleep: (state): SleepEntry | null => state.history.sleep[0] || null,
     latestMeal: (state): MealEntry | null => state.history.meal[0] || null,
     latestGrowth: (state): GrowthEntry | null => state.history.growth[0] || null,
-    
+
     // Get today's entries
-    todaysEntries: (state) => {
+    todaysEntries: state => {
       const today = new Date().toDateString()
       return {
-        symptoms: state.history.symptoms.filter(entry => 
+        symptoms: state.history.symptoms.filter(entry =>
           new Date(entry.timestamp).toDateString() === today
         ),
-        poop: state.history.poop.filter(entry => 
+        poop: state.history.poop.filter(entry =>
           new Date(entry.timestamp).toDateString() === today
         ),
-        sleep: state.history.sleep.filter(entry => 
+        sleep: state.history.sleep.filter(entry =>
           new Date(entry.timestamp).toDateString() === today
         ),
-        meal: state.history.meal.filter(entry => 
+        meal: state.history.meal.filter(entry =>
           new Date(entry.timestamp).toDateString() === today
         ),
-        growth: state.history.growth.filter(entry => 
+        growth: state.history.growth.filter(entry =>
           new Date(entry.timestamp).toDateString() === today
-        )
+        ),
       }
     },
 
     // Get total count for each type
-    totalCounts: (state) => ({
+    totalCounts: state => ({
       symptoms: state.history.symptoms.length,
       poop: state.history.poop.length,
       sleep: state.history.sleep.length,
       meal: state.history.meal.length,
-      growth: state.history.growth.length
-    })
+      growth: state.history.growth.length,
+    }),
   },
 
   actions: {
     // Save symptoms data
-    saveSymptoms(data: SymptomsData): SymptomsEntry {
+    saveSymptoms (data: SymptomsData): SymptomsEntry {
       const entry: SymptomsEntry = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
-        ...data
+        ...data,
       }
       this.history.symptoms.unshift(entry)
       this.clearSymptomsForm()
@@ -169,11 +168,11 @@ export const useCheckinStore = defineStore('checkin', {
     },
 
     // Save poop data
-    savePoop(data: PoopData): PoopEntry {
+    savePoop (data: PoopData): PoopEntry {
       const entry: PoopEntry = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
-        ...data
+        ...data,
       }
       this.history.poop.unshift(entry)
       this.clearPoopForm()
@@ -182,11 +181,11 @@ export const useCheckinStore = defineStore('checkin', {
     },
 
     // Save sleep data
-    saveSleep(data: SleepData): SleepEntry {
+    saveSleep (data: SleepData): SleepEntry {
       const entry: SleepEntry = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
-        ...data
+        ...data,
       }
       this.history.sleep.unshift(entry)
       this.clearSleepForm()
@@ -195,11 +194,11 @@ export const useCheckinStore = defineStore('checkin', {
     },
 
     // Save meal data
-    saveMeal(data: MealData): MealEntry {
+    saveMeal (data: MealData): MealEntry {
       const entry: MealEntry = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
-        ...data
+        ...data,
       }
       this.history.meal.unshift(entry)
       this.clearMealForm()
@@ -208,11 +207,11 @@ export const useCheckinStore = defineStore('checkin', {
     },
 
     // Save growth data
-    saveGrowth(data: GrowthData): GrowthEntry {
+    saveGrowth (data: GrowthData): GrowthEntry {
       const entry: GrowthEntry = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
-        ...data
+        ...data,
       }
       this.history.growth.unshift(entry)
       this.clearGrowthForm()
@@ -221,52 +220,52 @@ export const useCheckinStore = defineStore('checkin', {
     },
 
     // Clear form methods
-    clearSymptomsForm(): void {
+    clearSymptomsForm (): void {
       this.symptomsData = {
         symptoms: [],
         photo: null,
-        notes: ''
+        notes: '',
       }
     },
 
-    clearPoopForm(): void {
+    clearPoopForm (): void {
       this.poopData = {
         color: '',
         texture: '',
-        notes: ''
+        notes: '',
       }
     },
 
-    clearSleepForm(): void {
+    clearSleepForm (): void {
       this.sleepData = {
         bedTime: '',
         awakeTime: '',
-        notes: ''
+        notes: '',
       }
     },
 
-    clearMealForm(): void {
+    clearMealForm (): void {
       this.mealData = {
         mealTime: '',
         consumptionLevel: '',
         mealCategory: '',
         subCategory: '',
         customMeal: '',
-        notes: ''
+        notes: '',
       }
     },
 
-    clearGrowthForm(): void {
+    clearGrowthForm (): void {
       this.growthData = {
         weight: '',
         height: '',
         headCircumference: '',
-        notes: ''
+        notes: '',
       }
     },
 
     // Delete entry methods
-    deleteEntry(type: 'symptoms' | 'poop' | 'sleep' | 'meal' | 'growth', id: number): boolean {
+    deleteEntry (type: 'symptoms' | 'poop' | 'sleep' | 'meal' | 'growth', id: number): boolean {
       const index = this.history[type].findIndex(entry => entry.id === id)
       if (index > -1) {
         this.history[type].splice(index, 1)
@@ -277,21 +276,21 @@ export const useCheckinStore = defineStore('checkin', {
     },
 
     // Clear all history
-    clearAllHistory(): void {
+    clearAllHistory (): void {
       this.history = {
         symptoms: [],
         poop: [],
         sleep: [],
         meal: [],
-        growth: []
+        growth: [],
       }
       console.log('All history cleared')
     },
 
     // Clear today's entries only
-    clearTodaysEntries(): void {
+    clearTodaysEntries (): void {
       const today = new Date().toDateString()
-      
+
       this.history.symptoms = this.history.symptoms.filter(entry =>
         new Date(entry.timestamp).toDateString() !== today
       )
@@ -307,20 +306,20 @@ export const useCheckinStore = defineStore('checkin', {
       this.history.growth = this.history.growth.filter(entry =>
         new Date(entry.timestamp).toDateString() !== today
       )
-      
+
       console.log('✅ Today\'s entries cleared')
     },
 
     // Export data for backup
-    exportData(): string {
+    exportData (): string {
       return JSON.stringify({
         history: this.history,
-        exportDate: new Date().toISOString()
+        exportDate: new Date().toISOString(),
       }, null, 2)
     },
 
     // Import data from backup
-    importData(jsonData: string): boolean {
+    importData (jsonData: string): boolean {
       try {
         const data = JSON.parse(jsonData)
         if (data.history) {
@@ -335,6 +334,6 @@ export const useCheckinStore = defineStore('checkin', {
       }
     },
 
-  
-  }
+
+  },
 })

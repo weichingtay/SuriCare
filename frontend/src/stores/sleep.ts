@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { Ref, ComputedRef } from 'vue'
-import axios from 'axios'
+import { computed, ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 
 export interface SleepData {
   nightHours: number
@@ -31,11 +30,12 @@ export const useSleepStore = defineStore('sleep', (): SleepStore => {
 
   // HACK: This will eventually be connected to our database
   // Mock data generator for development
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const generateMockSleepData = (date: string): SleepData => ({
     nightHours: Math.floor(Math.random() * 4) + 5, // 5-8 hours
     napHours: Math.floor(Math.random() * 3) + 2, // 2-4 hours
     wakeCount: Math.random() > 0.7 ? Math.floor(Math.random() * 3) : 0, // 30% chance of wake-ups
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
   })
 
   // Getters
@@ -47,12 +47,12 @@ export const useSleepStore = defineStore('sleep', (): SleepStore => {
   const fetchSleepForDate = async (date: string): Promise<void> => {
     isLoading.value = true
     error.value = null
-    
+
     try {
       // TODO: Replace with actual API call
       // const response = await axios.get<SleepData>(`/api/sleep/${date}`)
       // sleepByDate.value[date] = response.data
-      
+
       // Using mock data for now
       sleepByDate.value[date] = generateMockSleepData(date)
     } catch (err) {
@@ -66,12 +66,12 @@ export const useSleepStore = defineStore('sleep', (): SleepStore => {
   const updateSleepForDate = async (date: string, sleepData: SleepData): Promise<void> => {
     isLoading.value = true
     error.value = null
-    
+
     try {
       // TODO: Replace with actual API call
       // await axios.put<SleepData>(`/api/sleep/${date}`, sleepData)
       // sleepByDate.value[date] = sleepData
-      
+
       // Using mock data for now
       sleepByDate.value[date] = sleepData
     } catch (err) {
@@ -88,6 +88,6 @@ export const useSleepStore = defineStore('sleep', (): SleepStore => {
     error,
     getSleepForDate,
     fetchSleepForDate,
-    updateSleepForDate
+    updateSleepForDate,
   }
-}) 
+})

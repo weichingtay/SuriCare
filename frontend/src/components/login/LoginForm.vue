@@ -9,19 +9,29 @@
     </v-card-title>
 
     <v-form @submit.prevent="handleLogin">
+      <!-- Error Message -->
+      <v-alert
+        v-if="errorMessage || authStore.error"
+        type="error"
+        class="mb-4"
+        density="compact"
+      >
+        {{ errorMessage || authStore.error }}
+      </v-alert>
+
       <!-- Email Field -->
       <div class="mb-4">
         <label class="field-label">Email</label>
         <v-text-field
           v-model="email"
-          placeholder="Input your email"
-          variant="outlined"
-          density="comfortable"
-          hide-details="auto"
           bg-color="white"
           color="#9E9E9E"
+          density="comfortable"
+          hide-details="auto"
+          placeholder="Input your email"
           :rules="emailRules"
-        ></v-text-field>
+          variant="outlined"
+        />
       </div>
 
       <!-- Password Field -->
@@ -29,11 +39,11 @@
         <div class="d-flex justify-space-between align-start">
           <label class="field-label">Password</label>
           <v-btn
-            variant="text"
-            size="small"
-            color="primary"
             class="pa-0 forgot-password-btn text-capitalize"
+            color="primary"
             height="21px"
+            size="small"
+            variant="text"
             @click="handleForgotPassword"
           >
             Forgot Password?
@@ -41,22 +51,22 @@
         </div>
         <v-text-field
           v-model="password"
-          placeholder="Input your password"
-          :type="showPassword ? 'text' : 'password'"
-          variant="outlined"
-          density="comfortable"
-          hide-details="auto"
           bg-color="white"
           color="#9E9E9E"
+          density="comfortable"
+          hide-details="auto"
+          placeholder="Input your password"
           :rules="passwordRules"
+          :type="showPassword ? 'text' : 'password'"
+          variant="outlined"
         >
           <template #append-inner>
             <v-btn
               :icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
-              variant="text"
               size="small"
+              variant="text"
               @click="showPassword = !showPassword"
-            ></v-btn>
+            />
           </template>
         </v-text-field>
       </div>
@@ -65,11 +75,11 @@
       <div class="text-center align-start mb-4">
         <span class="text-body-2">Don't have an account? </span>
         <v-btn
-          variant="text"
-          size="small"
-          color="primary"
           class="pa-0 signup-btn text-capitalize"
+          color="primary"
           height="16.8px"
+          size="small"
+          variant="text"
           @click="handleSignUp"
         >
           Sign Up
@@ -78,31 +88,31 @@
 
       <!-- Divider -->
       <div class="divider-container mb-4">
-        <hr class="divider-line" />
+        <hr class="divider-line">
         <span class="divider-text">OR</span>
-        <hr class="divider-line" />
+        <hr class="divider-line">
       </div>
 
       <!-- Google Login Button -->
       <v-btn
-        variant="outlined"
-        size="large"
         block
         class="mb-4 google-btn"
+        size="large"
+        variant="outlined"
         @click="handleGoogleLogin"
       >
-        <div class="google-icon mr-3"></div>
+        <div class="google-icon mr-3" />
         Continue with Google
       </v-btn>
 
       <!-- Login Button -->
       <v-btn
-        type="submit"
-        variant="flat"
-        size="large"
         block
         class="login-btn"
         :loading="loading"
+        size="large"
+        type="submit"
+        variant="flat"
       >
         Login
       </v-btn>
@@ -110,60 +120,102 @@
   </v-card>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { ref } from 'vue'
+  import { useAuthStore } from '@/stores/auth'
 
   const router = useRouter()
+  const authStore = useAuthStore()
 
   // Reactive variables
   const email = ref('')
   const password = ref('')
   const showPassword = ref(false)
   const loading = ref(false)
+  const errorMessage = ref('')
 
   // Validation rules
   const emailRules = [
-    (v) => !!v || 'Email is required',
-    (v) => /.+@.+\..+/.test(v) || 'Email must be valid',
+    (v: string) => !!v || 'Email is required',
+    (v: string) => /.+@.+\..+/.test(v) || 'Email must be valid',
   ]
 
   const passwordRules = [
-    (v) => !!v || 'Password is required',
-    (v) => v.length >= 6 || 'Password must be at least 6 characters',
+    (v: string) => !!v || 'Password is required',
+    (v: string) => v.length >= 6 || 'Password must be at least 6 characters',
   ]
 
   // Event handlers
   const handleLogin = async () => {
+    // Clear any previous errors
+    errorMessage.value = ''
+    authStore.clearError()
+    
     loading.value = true
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log('Login attempt:', {
-        email: email.value,
-        password: password.value,
-      })
-      // Handle successful login here
+      const result = await authStore.login(email.value, password.value)
+      
+      if (result.success) {
+        console.log('Login successful!')
+        // Navigate to dashboard
+        await router.push('/dashboard')
+      } else {
+        errorMessage.value = result.error || 'Login failed. Please check your credentials.'
+      }
     } catch (error) {
       console.error('Login error:', error)
+      errorMessage.value = 'An unexpected error occurred. Please try again.'
     } finally {
       loading.value = false
     }
   }
 
-  const handleGoogleLogin = () => {
-    console.log('Google login clicked')
-    // Handle Google OAuth here
+  const handleGoogleLogin = async () => {
+    try {
+      loading.value = true
+      const result = await authStore.loginWithGoogle()
+      
+      if (result.success) {
+        console.log('Google login initiated')
+        // Google login will redirect automatically
+      } else {
+        errorMessage.value = result.error || 'Google login failed'
+      }
+    } catch (error) {
+      console.error('Google login error:', error)
+      errorMessage.value = 'Google login failed. Please try again.'
+    } finally {
+      loading.value = false
+    }
   }
 
-  const handleForgotPassword = () => {
-    console.log('Forgot password clicked')
-    // Handle forgot password logic here
+  const handleForgotPassword = async () => {
+    if (!email.value) {
+      errorMessage.value = 'Please enter your email address first'
+      return
+    }
+    
+    try {
+      loading.value = true
+      const result = await authStore.resetPassword(email.value)
+      
+      if (result.success) {
+        errorMessage.value = ''
+        // Show success message (you might want to use a toast notification instead)
+        alert('Password reset email sent! Please check your inbox.')
+      } else {
+        errorMessage.value = result.error || 'Failed to send reset email'
+      }
+    } catch (error) {
+      console.error('Password reset error:', error)
+      errorMessage.value = 'Failed to send reset email. Please try again.'
+    } finally {
+      loading.value = false
+    }
   }
 
   const handleSignUp = () => {
     router.push('/signup')
-    console.log('Sign up clicked')
-    // Handle navigation to sign up page
   }
 </script>
 

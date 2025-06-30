@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { Ref, ComputedRef } from 'vue'
-import axios from 'axios'
+import { computed, ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 
 export interface HealthData {
   status: string
@@ -30,7 +29,7 @@ const healthStatuses = [
   { status: 'Low Fever', message: 'Mild fever detected' },
   { status: 'High Fever', message: 'High fever detected' },
   { status: 'Cold Symptoms', message: 'Showing signs of cold' },
-  { status: 'Allergies', message: 'Allergic reaction detected' }
+  { status: 'Allergies', message: 'Allergic reaction detected' },
 ]
 
 // Possible symptoms
@@ -44,7 +43,7 @@ const possibleSymptoms = [
   'Loss of Appetite',
   'Vomiting',
   'Diarrhea',
-  'Ear Pain'
+  'Ear Pain',
 ]
 
 export const useHealthStore = defineStore('health', (): HealthStore => {
@@ -55,23 +54,24 @@ export const useHealthStore = defineStore('health', (): HealthStore => {
 
   // Mock data generator for development
   // HACK: TEMPORARY RANDOMIZER WHILE DATABASE IS BEING DEVELOPED
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const generateMockHealthData = (date: string): HealthData => {
     // 70% chance of being healthy
     const isHealthy = Math.random() > 0.9
-    
+
     if (isHealthy) {
       return {
         status: 'Healthy',
         message: 'No symptoms today',
         symptoms: [],
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       }
     }
 
     // Generate random health status
     const statusIndex = Math.floor(Math.random() * (healthStatuses.length - 1)) + 1 // Skip 'Healthy'
     const selectedStatus = healthStatuses[statusIndex]
-    
+
     // Generate random symptoms (1-3 symptoms)
     const numSymptoms = Math.floor(Math.random() * 3) + 1
     const selectedSymptoms = possibleSymptoms
@@ -87,7 +87,7 @@ export const useHealthStore = defineStore('health', (): HealthStore => {
       ...selectedStatus,
       symptoms: selectedSymptoms,
       temperature,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     }
   }
 
@@ -100,12 +100,12 @@ export const useHealthStore = defineStore('health', (): HealthStore => {
   const fetchHealthForDate = async (date: string): Promise<void> => {
     isLoading.value = true
     error.value = null
-    
+
     try {
       // TODO: Replace with actual API call
       // const response = await axios.get<HealthData>(`/api/health/${date}`)
       // healthByDate.value[date] = response.data
-      
+
       // Using mock data for now
       healthByDate.value[date] = generateMockHealthData(date)
     } catch (err) {
@@ -119,12 +119,12 @@ export const useHealthStore = defineStore('health', (): HealthStore => {
   const updateHealthForDate = async (date: string, healthData: HealthData): Promise<void> => {
     isLoading.value = true
     error.value = null
-    
+
     try {
       // TODO: Replace with actual API call
       // await axios.put<HealthData>(`/api/health/${date}`, healthData)
       // healthByDate.value[date] = healthData
-      
+
       // Using mock data for now
       healthByDate.value[date] = healthData
     } catch (err) {
@@ -141,6 +141,6 @@ export const useHealthStore = defineStore('health', (): HealthStore => {
     error,
     getHealthForDate,
     fetchHealthForDate,
-    updateHealthForDate
+    updateHealthForDate,
   }
-}) 
+})

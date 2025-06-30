@@ -6,31 +6,30 @@
       slider-color="#D87179"
     >
       <v-tab
-        value="guidance"
         class="text-capitalize text-subtitle-1"
         :class="{ inactive: activeTab != 'guidance' }"
+        value="guidance"
       >
         Guidance
       </v-tab>
       <v-tab
-        value="alert"
         class="text-capitalize text-subtitle-1"
+        value="alert"
       >
         <div class="d-flex align-center">
           <v-badge
+            v-show="alertsCount > 0"
+            class="ml-2"
             color="#FF5252"
             :content="alertsCount"
-            class="ml-2"
             floating
-            v-show="alertsCount > 0"
-            >Alert</v-badge
-          >
+          >Alert</v-badge>
         </div>
       </v-tab>
       <v-tab
-        value="saved"
         class="text-capitalize text-subtitle-1"
         :class="{ inactive: activeTab != 'saved' }"
+        value="saved"
       >
         Saved
       </v-tab>
@@ -38,8 +37,8 @@
   </div>
 </template>
 
-<script setup>
-  import { ref, onMounted, watch } from 'vue'
+<script setup lang="ts">
+  import { onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useGuidanceAlert } from '@/composables/useGuidanceAlert'
 
@@ -62,17 +61,17 @@
   })
 
   // Watch for tab changes and emit to parent + update URL
-  watch(activeTab, (newTab) => {
+  watch(activeTab, newTab => {
     emit('tab-changed', newTab)
-    
+
     // Update URL query parameter without triggering navigation
     router.replace({
-      query: { ...route.query, tab: newTab }
+      query: { ...route.query, tab: newTab },
     })
   })
 
   // Watch for route changes (e.g., browser back/forward)
-  watch(() => route.query.tab, (newTab) => {
+  watch(() => route.query.tab, newTab => {
     if (newTab && ['guidance', 'alert', 'saved'].includes(newTab)) {
       activeTab.value = newTab
       emit('tab-changed', newTab)

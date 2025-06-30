@@ -1,200 +1,206 @@
 <template>
-    <BaseCheckInDialog
-        :model-value="modelValue"
-        @update:model-value="handleDialogUpdate"
-        class="mealdialog"
-        icon="mdi-food"
-        icon-color="#000000"
-        title="Log Meal"
-        subtitle="What did Jennie eat?"
-        :notes="notes"
-        @update:notes="$emit('update:notes', $event)"
-        :loading="loading"
-        @save="handleSave"
-        @close="handleClose"
-        max-width="1000px"
+  <BaseCheckInDialog
+    class="mealdialog"
+    icon="mdi-food"
+    icon-color="#000000"
+    :loading="loading"
+    max-width="1000px"
+    :model-value="modelValue"
+    :notes="notes"
+    subtitle="What did Jennie eat?"
+    title="Log Meal"
+    @close="handleClose"
+    @save="handleSave"
+    @update:model-value="handleDialogUpdate"
+    @update:notes="$emit('update:notes', $event)"
+  >
+    <template #custom-content>
+      <div class="meal-content">
 
-    >
-        <template #custom-content>
-            <div class="meal-content">
-
-                <!-- Meal Time and Consumption Level Row -->
-                <div class="meal-time-consumption">
-                    <!-- Meal Time -->
-                    <div class="meal-time-section">
-                        <label class="section-label">Meal Time</label>
-                        <div class="meal-time-buttons">
-                            <v-btn
-                                v-for="time in mealTimeOptions"
-                                :key="time.value"
-                                :variant="localMealTime === time.value ? 'flat' : 'outlined'"
-                                :color="localMealTime === time.value ? 'primary' : 'default'"
-                                size="small"
-                                @click="selectMealTime(time.value)"
-                                :disabled="loading"
-                                class="meal-time-btn"
-                            >
-                                <v-icon 
-                                    :icon="time.icon" 
-                                    size="14" 
-                                    class="mr-1"
-                                />
-                                {{ time.label }}
-                            </v-btn>
-                        </div>
-                        <div v-if="errors.mealTime" class="error-message">
-                            {{ errors.mealTime }}
-                        </div>
-                    </div>
-
-                    <div class="consumption-section">
-                        <label class="section-label">Consumption Level</label>
-                        <v-select
-                            v-model="localConsumptionLevel"
-                            :items="consumptionOptions"
-                            item-title="label"
-                            item-value="value"
-                            placeholder="0% (Refused)"
-                            variant="outlined"
-                            hide-details
-                            :disabled="loading"
-                            density="compact"
-                            :error="!!errors.consumptionLevel"
-                            class="consumption-select"
-                            @update:model-value="clearError('consumptionLevel')"
-                        >
-                            <template #prepend-inner>
-                                <v-icon size="16" color="grey-darken-1" class="mr-1">
-                                    mdi-percent
-                                </v-icon>
-                            </template>
-                        </v-select>
-                        <div v-if="errors.consumptionLevel" class="error-message">
-                            {{ errors.consumptionLevel }}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Consumption Level -->
-                    
-
-
-                <!-- Meal Category -->
-                <div class="meal-category-section">
-                    <label class="section-label">Meal Category</label>
-                    <div class="meal-category-buttons">
-                        <v-btn
-                            v-for="category in mealCategoryOptions"
-                            :key="category.value"
-                            :variant="localMealCategory === category.value ? 'flat' : 'outlined'"
-                            :color="localMealCategory === category.value ? 'primary' : 'default'"
-                            size="small"
-                            rounded="20"
-                            @click="selectMealCategory(category.value)"
-                            :disabled="loading"
-                            class="meal-category-btn"
-                        >
-                            <v-icon 
-                                :icon="category.icon" 
-                                size="14" 
-                                class="mr-1"
-                            />
-                            {{ category.label }}
-                        </v-btn>
-                    </div>
-                    <div v-if="errors.mealCategory" class="error-message">
-                        {{ errors.mealCategory }}
-                    </div>
-                </div>
-
-                <!-- Sub Categories for Milk -->
-                <div v-if="localMealCategory === 'milk'" class="milk-subcategory">
-                    <div class="milk-buttons">
-                        <v-btn
-                            v-for="subCat in milkSubCategories"
-                            :key="subCat.value"
-                            :variant="localSubCategory === subCat.value ? 'flat' : 'outlined'"
-                            :color="localSubCategory === subCat.value ? 'primary' : 'default'"
-                            size="small"
-                            rounded="20"
-                            @click="selectSubCategory(subCat.value)"
-                            :disabled="loading"
-                            class="milk-sub-btn"
-                        >
-                            {{ subCat.label }}
-                        </v-btn>
-                    </div>
-                </div>
-
-                <!-- Custom Meal Input for Others -->
-                <div v-if="localMealCategory === 'others'" class="custom-meal-section">
-                    <label class="section-label">Specify meal details</label>
-                    <v-text-field
-                        v-model="localCustomMeal"
-                        placeholder="Enter specific meal details"
-                        variant="outlined"
-                        hide-details
-                        :disabled="loading"
-                        density="compact"
-                        :error="!!errors.customMeal"
-                        class="custom-meal-input"
-                        @input="clearError('customMeal')"
-                        @focus="clearError('customMeal')"
-                    />
-                    <div v-if="errors.customMeal" class="error-message">
-                        {{ errors.customMeal }}
-                    </div>
-                </div>
+        <!-- Meal Time and Consumption Level Row -->
+        <div class="meal-time-consumption">
+          <!-- Meal Time -->
+          <div class="meal-time-section">
+            <label class="section-label">Meal Time</label>
+            <div class="meal-time-buttons">
+              <div v-if="isMealOptionsLoading" class="d-flex justify-center pa-4">
+                <v-progress-circular indeterminate size="20" />
+              </div>
+              <v-btn
+                v-for="time in mealTimeOptions"
+                v-else
+                :key="time.value"
+                class="meal-time-btn"
+                :color="localMealTime === time.value ? 'primary' : 'default'"
+                :disabled="loading"
+                size="small"
+                :variant="localMealTime === time.value ? 'flat' : 'outlined'"
+                @click="selectMealTime(time.value)"
+              >
+                <v-icon
+                  class="mr-1"
+                  :icon="time.icon"
+                  size="14"
+                />
+                {{ time.label }}
+              </v-btn>
             </div>
-        </template>
-    </BaseCheckInDialog>
+            <div v-if="errors.mealTime" class="error-message">
+              {{ errors.mealTime }}
+            </div>
+          </div>
+
+          <div class="consumption-section">
+            <label class="section-label">Consumption Level</label>
+            <v-select
+              v-model="localConsumptionLevel"
+              class="consumption-select"
+              density="compact"
+              :disabled="loading || isMealOptionsLoading"
+              :error="!!errors.consumptionLevel"
+              hide-details
+              item-title="label"
+              item-value="value"
+              :items="consumptionOptions"
+              :loading="isMealOptionsLoading"
+              placeholder="0% (Refused)"
+              variant="outlined"
+              @update:model-value="clearError('consumptionLevel')"
+            >
+              <template #prepend-inner>
+                <v-icon class="mr-1" color="grey-darken-1" size="16">
+                  mdi-percent
+                </v-icon>
+              </template>
+            </v-select>
+            <div v-if="errors.consumptionLevel" class="error-message">
+              {{ errors.consumptionLevel }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Consumption Level -->
+
+
+        <!-- Meal Category -->
+        <div class="meal-category-section">
+          <label class="section-label">Meal Category</label>
+          <div class="meal-category-buttons">
+            <div v-if="isMealOptionsLoading" class="d-flex justify-center pa-4">
+              <v-progress-circular indeterminate size="20" />
+            </div>
+            <v-btn
+              v-for="category in mealCategoryOptions"
+              v-else
+              :key="category.value"
+              class="meal-category-btn"
+              :color="localMealCategory === category.value ? 'primary' : 'default'"
+              :disabled="loading"
+              rounded="20"
+              size="small"
+              :variant="localMealCategory === category.value ? 'flat' : 'outlined'"
+              @click="selectMealCategory(category.value)"
+            >
+              <v-icon
+                class="mr-1"
+                :icon="category.icon"
+                size="14"
+              />
+              {{ category.label }}
+            </v-btn>
+          </div>
+          <div v-if="errors.mealCategory" class="error-message">
+            {{ errors.mealCategory }}
+          </div>
+        </div>
+
+        <!-- Sub Categories for Milk -->
+        <div v-if="localMealCategory === 'milk'" class="milk-subcategory">
+          <div class="milk-buttons">
+            <v-btn
+              v-for="subCat in milkSubCategories"
+              :key="subCat.value"
+              class="milk-sub-btn"
+              :color="localSubCategory === subCat.value ? 'primary' : 'default'"
+              :disabled="loading"
+              rounded="20"
+              size="small"
+              :variant="localSubCategory === subCat.value ? 'flat' : 'outlined'"
+              @click="selectSubCategory(subCat.value)"
+            >
+              {{ subCat.label }}
+            </v-btn>
+          </div>
+        </div>
+
+        <!-- Custom Meal Input for Others -->
+        <div v-if="localMealCategory === 'others'" class="custom-meal-section">
+          <label class="section-label">Specify meal details</label>
+          <v-text-field
+            v-model="localCustomMeal"
+            class="custom-meal-input"
+            density="compact"
+            :disabled="loading"
+            :error="!!errors.customMeal"
+            hide-details
+            placeholder="Enter specific meal details"
+            variant="outlined"
+            @focus="clearError('customMeal')"
+            @input="clearError('customMeal')"
+          />
+          <div v-if="errors.customMeal" class="error-message">
+            {{ errors.customMeal }}
+          </div>
+        </div>
+      </div>
+    </template>
+  </BaseCheckInDialog>
 </template>
 
-<script setup>
-// 🔧 修改1: 添加 nextTick 导入
-import { ref, watch, nextTick } from 'vue'
-import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
+<script setup lang="ts">
+  import { nextTick, ref, watch } from 'vue'
+  import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
 
-const props = defineProps({
+  const props = defineProps({
     width: {
-        type: String,
-        default: '800px'
+      type: String,
+      default: '800px',
     },
     modelValue: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     mealTime: {
-        type: String,
-        default: ''
+      type: String,
+      default: '',
     },
     consumptionLevel: {
-        type: String,
-        default: ''
+      type: String,
+      default: '',
     },
     mealCategory: {
-        type: String,
-        default: ''
+      type: String,
+      default: '',
     },
     subCategory: {
-        type: String,
-        default: ''
+      type: String,
+      default: '',
     },
     customMeal: {
-        type: String,
-        default: ''
+      type: String,
+      default: '',
     },
     notes: {
-        type: String,
-        default: ''
+      type: String,
+      default: '',
     },
     loading: {
-        type: Boolean,
-        default: false
-    }
-})
+      type: Boolean,
+      default: false,
+    },
+  })
 
-const emit = defineEmits([
+  const emit = defineEmits([
     'update:modelValue',
     'update:mealTime',
     'update:consumptionLevel',
@@ -203,235 +209,209 @@ const emit = defineEmits([
     'update:customMeal',
     'update:notes',
     'save',
-    'close'
-])
+    'close',
+  ])
 
-// Options exactly as shown in images
-const mealTimeOptions = [
-    { value: 'breakfast', label: 'Breakfast', icon: 'mdi-weather-sunny' },
-    { value: 'lunch', label: 'Lunch', icon: 'mdi-white-balance-sunny' },
-    { value: 'dinner', label: 'Dinner', icon: 'mdi-weather-night' }
-]
+  // Use dynamic options from database
+  import { useMealOptions } from '@/composables/useMealOptions'
 
-const consumptionOptions = [
-    { value: '0', label: '0% (Refused)' },
-    { value: '25', label: '25% (Partial)' },
-    { value: '50', label: '50% (Partial)' },
-    { value: '75', label: '75% (Partial)' },
-    { value: '100', label: '100% (Full)' }
-]
+  const {
+    mealTimeOptions,
+    mealCategoryOptions,
+    consumptionOptions,
+    milkSubCategories,
+    isLoading: isMealOptionsLoading,
+  } = useMealOptions()
 
-const mealCategoryOptions = [
-    { value: 'milk', label: 'Milk', icon: 'mdi-cup' },
-    { value: 'solid', label: 'Solid', icon: 'mdi-food-apple' },
-    { value: 'mixed', label: 'Mixed', icon: 'mdi-bowl-mix' },
-    { value: 'others', label: 'Others', icon: 'mdi-dots-horizontal' }
-]
+  const localMealTime = ref('')
+  const localConsumptionLevel = ref('')
+  const localMealCategory = ref('')
+  const localSubCategory = ref('')
+  const localCustomMeal = ref('')
+  const errors = ref({})
 
-const milkSubCategories = [
-    { value: 'breast_milk', label: 'Breast Milk' },
-    { value: 'formula', label: 'Formula' }
-]
+  let mealTimeTimeout = null
+  let consumptionTimeout = null
+  let categoryTimeout = null
+  let subCategoryTimeout = null
+  let customMealTimeout = null
 
-// 🔧 修改2: 本地变量初始化为空值
-const localMealTime = ref('')
-const localConsumptionLevel = ref('')
-const localMealCategory = ref('')
-const localSubCategory = ref('')
-const localCustomMeal = ref('')
-const errors = ref({})
-
-// 🔧 修改3: 添加防抖变量
-let mealTimeTimeout = null
-let consumptionTimeout = null
-let categoryTimeout = null
-let subCategoryTimeout = null
-let customMealTimeout = null
-
-// 🔧 修改4: 监听dialog开关 - 重置所有状态
-watch(() => props.modelValue, (newValue) => {
+  watch(() => props.modelValue, newValue => {
     if (newValue) {
-        // Reset all form data when opening dialog
-        localMealTime.value = props.mealTime || ''
-        localConsumptionLevel.value = props.consumptionLevel || ''
-        localMealCategory.value = props.mealCategory || ''
-        localSubCategory.value = props.subCategory || ''
-        localCustomMeal.value = props.customMeal || ''
-        // Clear all errors when opening
-        errors.value = {}
+      // Reset all form data when opening dialog
+      localMealTime.value = props.mealTime || ''
+      localConsumptionLevel.value = props.consumptionLevel || ''
+      localMealCategory.value = props.mealCategory || ''
+      localSubCategory.value = props.subCategory || ''
+      localCustomMeal.value = props.customMeal || ''
+      // Clear all errors when opening
+      errors.value = {}
     }
-}, { immediate: true })
+  }, { immediate: true })
 
-// 🔧 修改5: 条件性监听props变化
-watch(() => props.mealTime, (newValue) => {
+  watch(() => props.mealTime, newValue => {
     if (props.modelValue) {
-        localMealTime.value = newValue || ''
+      localMealTime.value = newValue || ''
     }
-})
+  })
 
-watch(() => props.consumptionLevel, (newValue) => {
+  watch(() => props.consumptionLevel, newValue => {
     if (props.modelValue) {
-        localConsumptionLevel.value = newValue || ''
+      localConsumptionLevel.value = newValue || ''
     }
-})
+  })
 
-watch(() => props.mealCategory, (newValue) => {
+  watch(() => props.mealCategory, newValue => {
     if (props.modelValue) {
-        localMealCategory.value = newValue || ''
+      localMealCategory.value = newValue || ''
     }
-})
+  })
 
-watch(() => props.subCategory, (newValue) => {
+  watch(() => props.subCategory, newValue => {
     if (props.modelValue) {
-        localSubCategory.value = newValue || ''
+      localSubCategory.value = newValue || ''
     }
-})
+  })
 
-watch(() => props.customMeal, (newValue) => {
+  watch(() => props.customMeal, newValue => {
     if (props.modelValue) {
-        localCustomMeal.value = newValue || ''
+      localCustomMeal.value = newValue || ''
     }
-})
+  })
 
-// 🔧 修改6: 防抖动emit处理
-watch(localMealTime, (newValue) => {
+  watch(localMealTime, newValue => {
     if (mealTimeTimeout) clearTimeout(mealTimeTimeout)
     mealTimeTimeout = setTimeout(() => {
-        emit('update:mealTime', newValue)
-        if (newValue && errors.value.mealTime) {
-            delete errors.value.mealTime
-        }
+      emit('update:mealTime', newValue)
+      if (newValue && errors.value.mealTime) {
+        delete errors.value.mealTime
+      }
     }, 100)
-})
+  })
 
-watch(localConsumptionLevel, (newValue) => {
+  watch(localConsumptionLevel, newValue => {
     if (consumptionTimeout) clearTimeout(consumptionTimeout)
     consumptionTimeout = setTimeout(() => {
-        emit('update:consumptionLevel', newValue)
-        if (newValue && errors.value.consumptionLevel) {
-            delete errors.value.consumptionLevel
-        }
+      emit('update:consumptionLevel', newValue)
+      if (newValue && errors.value.consumptionLevel) {
+        delete errors.value.consumptionLevel
+      }
     }, 100)
-})
+  })
 
-watch(localMealCategory, (newValue) => {
+  watch(localMealCategory, newValue => {
     if (categoryTimeout) clearTimeout(categoryTimeout)
     categoryTimeout = setTimeout(() => {
-        emit('update:mealCategory', newValue)
-        if (newValue && errors.value.mealCategory) {
-            delete errors.value.mealCategory
-        }
-        // Clear sub-category when main category changes
-        if (newValue !== 'milk') {
-            localSubCategory.value = ''
-        }
-        if (newValue !== 'others') {
-            localCustomMeal.value = ''
-        }
+      emit('update:mealCategory', newValue)
+      if (newValue && errors.value.mealCategory) {
+        delete errors.value.mealCategory
+      }
+      // Clear sub-category when main category changes
+      if (newValue !== 'milk') {
+        localSubCategory.value = ''
+      }
+      if (newValue !== 'others') {
+        localCustomMeal.value = ''
+      }
     }, 100)
-})
+  })
 
-watch(localSubCategory, (newValue) => {
+  watch(localSubCategory, newValue => {
     if (subCategoryTimeout) clearTimeout(subCategoryTimeout)
     subCategoryTimeout = setTimeout(() => {
-        emit('update:subCategory', newValue)
+      emit('update:subCategory', newValue)
     }, 100)
-})
+  })
 
-watch(localCustomMeal, (newValue) => {
+  watch(localCustomMeal, newValue => {
     if (customMealTimeout) clearTimeout(customMealTimeout)
     customMealTimeout = setTimeout(() => {
-        emit('update:customMeal', newValue)
-        if (newValue && errors.value.customMeal) {
-            delete errors.value.customMeal
-        }
+      emit('update:customMeal', newValue)
+      if (newValue && errors.value.customMeal) {
+        delete errors.value.customMeal
+      }
     }, 100)
-})
+  })
 
-// 🔧 修改7: 添加错误清除方法
-const clearError = (field) => {
+  const clearError = field => {
     if (errors.value[field]) {
-        delete errors.value[field]
+      delete errors.value[field]
     }
-}
+  }
 
-// 🔧 修改8: 改进按钮选择方法 - 确保触发reactivity
-const selectMealTime = (time) => {
+  const selectMealTime = time => {
     localMealTime.value = time
-}
+  }
 
-const selectMealCategory = (category) => {
+  const selectMealCategory = category => {
     localMealCategory.value = category
-}
+  }
 
-const selectSubCategory = (subCat) => {
+  const selectSubCategory = subCat => {
     localSubCategory.value = subCat
-}
+  }
 
-// Validation methods
-const validateMealTime = () => {
+  // Validation methods
+  const validateMealTime = () => {
     if (!localMealTime.value) {
-        errors.value.mealTime = 'Please select meal time'
-        return false
+      errors.value.mealTime = 'Please select meal time'
+      return false
     }
     delete errors.value.mealTime
     return true
-}
+  }
 
-const validateConsumptionLevel = () => {
+  const validateConsumptionLevel = () => {
     if (!localConsumptionLevel.value && localConsumptionLevel.value !== '0') {
-        errors.value.consumptionLevel = 'Please select consumption level'
-        return false
+      errors.value.consumptionLevel = 'Please select consumption level'
+      return false
     }
     delete errors.value.consumptionLevel
     return true
-}
+  }
 
-const validateMealCategory = () => {
+  const validateMealCategory = () => {
     if (!localMealCategory.value) {
-        errors.value.mealCategory = 'Please select meal category'
-        return false
+      errors.value.mealCategory = 'Please select meal category'
+      return false
     }
     delete errors.value.mealCategory
     return true
-}
+  }
 
-const validateCustomMeal = () => {
+  const validateCustomMeal = () => {
     if (localMealCategory.value === 'others' && !localCustomMeal.value) {
-        errors.value.customMeal = 'Please enter meal details'
-        return false
+      errors.value.customMeal = 'Please enter meal details'
+      return false
     }
     delete errors.value.customMeal
     return true
-}
+  }
 
-// 🔧 修改9: 重写validateForm - 先清除所有错误
-const validateForm = () => {
+  const validateForm = () => {
     errors.value = {}
     const isMealTimeValid = validateMealTime()
     const isConsumptionValid = validateConsumptionLevel()
     const isCategoryValid = validateMealCategory()
     const isCustomMealValid = validateCustomMeal()
     return isMealTimeValid && isConsumptionValid && isCategoryValid && isCustomMealValid
-}
+  }
 
-// 🔧 修改10: 重写handleDialogUpdate
-const handleDialogUpdate = (value) => {
+  const handleDialogUpdate = value => {
     emit('update:modelValue', value)
     if (!value) {
-        nextTick(() => {
-            errors.value = {}
-            localMealTime.value = ''
-            localConsumptionLevel.value = ''
-            localMealCategory.value = ''
-            localSubCategory.value = ''
-            localCustomMeal.value = ''
-        })
+      nextTick(() => {
+        errors.value = {}
+        localMealTime.value = ''
+        localConsumptionLevel.value = ''
+        localMealCategory.value = ''
+        localSubCategory.value = ''
+        localCustomMeal.value = ''
+      })
     }
-}
+  }
 
-// 🔧 修改11: 重写handleClose
-const handleClose = () => {
+  const handleClose = () => {
     errors.value = {}
     localMealTime.value = ''
     localConsumptionLevel.value = ''
@@ -439,26 +419,25 @@ const handleClose = () => {
     localSubCategory.value = ''
     localCustomMeal.value = ''
     emit('close')
-}
+  }
 
-// 🔧 修改12: 重写handleSave
-const handleSave = () => {
+  const handleSave = () => {
     if (!validateForm()) {
-        return
+      return
     }
 
     const mealData = {
-        mealTime: localMealTime.value,
-        consumptionLevel: localConsumptionLevel.value,
-        mealCategory: localMealCategory.value,
-        subCategory: localSubCategory.value,
-        customMeal: localCustomMeal.value,
-        notes: props.notes
+      mealTime: localMealTime.value,
+      consumptionLevel: localConsumptionLevel.value,
+      mealCategory: localMealCategory.value,
+      subCategory: localSubCategory.value,
+      customMeal: localCustomMeal.value,
+      notes: props.notes,
     }
-    
+
     errors.value = {}
     emit('save', mealData)
-}
+  }
 </script>
 
 <style scoped>

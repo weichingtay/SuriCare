@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 
 export interface Child {
   id: number
@@ -78,7 +78,7 @@ export const useChildrenStore = defineStore('children', () => {
       if (ageMonths < 0) {
         ageMonths += 12
       }
-      
+
       return ageMonths === 1 ? '1 month old' : `${ageMonths} months old`
     }
 
@@ -86,38 +86,87 @@ export const useChildrenStore = defineStore('children', () => {
     return ageYears === 1 ? '1 year old' : `${ageYears} years old`
   }
 
-  // Action: load children from Supabase
-  const loadChildren = async () => {
-    const { supabase } = await import('@/plugins/supabase') // lazy import to avoid circular deps
-    const { data, error } = await supabase
-      .from('child')
-      .select('*')
+  // Action: load children for authenticated user
+  const loadChildren = async (): Promise<void> => {
+    const { useAuthStore } = await import('@/stores/auth')
+    const authStore = useAuthStore()
 
-    if (error) {
-      console.error('Failed to load children', error.message)
+    if (!authStore.isAuthenticated || !authStore.user) {
+      console.log('No authenticated user - using demo children')
       children.value = demoChildren
       return
     }
 
-    if (!data || data.length === 0) {
-      children.value = demoChildren
-      return
-    }
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
-    children.value = data.map(row => ({
-      id: row.id,
-      name: row.name,
-      age: calcAge(row.birth_date),
-      avatar: 'https://images.pexels.com/photos/2806752/pexels-photo-2806752.jpeg', // placeholder; swap if you store avatars
-      growth: {
-        // connect height & weight to the right tables
-        height: 0,
-        weight: 0,
-        headCircumference: 0,
-        // lastUpdated date is wrong
-        lastUpdated: new Date(row.birth_date),
-      },
-    }))
+      // Use auth user ID to get user-specific children
+      const response = await fetch(`${baseUrl}/child-profile/my-children-by-auth/${authStore.user.id}`)
+
+      if (!response.ok) {
+        console.error('Failed to load user children:', response.statusText)
+        children.value = demoChildren
+        return
+      }
+
+      const data = await response.json()
+
+      if (!data || data.length === 0) {
+        console.log('No children found for user - using demo children')
+        children.value = demoChildren
+        return
+      }
+
+      // Map children and fetch their latest growth data
+      const childrenWithGrowth = await Promise.all(
+        data.map(async (row: any) => {
+          const child = {
+            id: row.id,
+            name: row.name,
+            age: calcAge(row.birth_date),
+            avatar: 'https://images.pexels.com/photos/2806752/pexels-photo-2806752.jpeg', // placeholder
+            growth: {
+              height: 0,
+              weight: 0,
+              headCircumference: 0,
+              lastUpdated: new Date(row.birth_date),
+            },
+          }
+
+          // Fetch latest growth data for this child
+          try {
+            const growthResponse = await fetch(`${baseUrl}/growth/latest/${row.id}`)
+            if (growthResponse.ok) {
+              const growthData = await growthResponse.json()
+              child.growth = {
+                height: growthData.height,
+                weight: growthData.weight,
+                headCircumference: growthData.head_circumference,
+                lastUpdated: new Date(growthData.check_in),
+              }
+            }
+          } catch (err) {
+            console.warn(`Failed to load growth data for child ${row.id}:`, err)
+            // Keep default values if growth fetch fails
+          }
+
+          return child
+        })
+      )
+
+      children.value = childrenWithGrowth
+
+      console.log(`Loaded ${children.value.length} children for user`)
+
+      // Auto-select first child if none selected
+      if (children.value.length > 0 && !currentChild.value) {
+        currentChildId.value = children.value[0].id
+      }
+
+    } catch (err) {
+      console.error('Error loading children:', err)
+      children.value = demoChildren
+    }
   }
 
   // Getters

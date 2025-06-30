@@ -2,8 +2,8 @@
   <v-app>
     <v-main>
       <v-container
-        fluid
         class="pa-6"
+        fluid
       >
         <div class="mb-8">
           <h1 class="text-h4 mb-2">Guidance</h1>
@@ -20,10 +20,9 @@
   </v-app>
 </template>
 
-<script setup>
-  import { ref, onMounted, provide } from 'vue'
+<script setup lang="ts">
+  import { onMounted, provide, ref } from 'vue'
   import { useRoute } from 'vue-router'
-  import AppHeader from '../components/AppHeader.vue'
   import NavigationTabs from '../components/guidance/NavigationTabs.vue'
   import ArticleGrid from '../components/guidance/ArticleGrid.vue'
   import AlertsView from '../components/guidance/AlertsView.vue'
@@ -40,7 +39,7 @@
     }
   })
 
-  const handleTabChange = (tab) => {
+  const handleTabChange = tab => {
     currentTab.value = tab
   }
 
@@ -50,9 +49,9 @@
   // Provide the saved articles state to child components
   provide('savedArticles', savedArticles)
 
-  const toggleSaveArticle = (article) => {
+  const toggleSaveArticle = article => {
     const existingIndex = savedArticles.value.findIndex(
-      (saved) => saved.id === article.id
+      saved => saved.id === article.id
     )
 
     if (existingIndex > -1) {
@@ -66,8 +65,8 @@
 
   provide('toggleSaveArticle', toggleSaveArticle)
 
-  const isArticleSaved = (articleId) => {
-    return savedArticles.value.some((saved) => saved.id === articleId)
+  const isArticleSaved = articleId => {
+    return savedArticles.value.some(saved => saved.id === articleId)
   }
 
   provide('isArticleSaved', isArticleSaved)

@@ -1,20 +1,33 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 /**
  * Provides reactive state and helper functions for generating and sharing a child access code/URL.
  * NOTE: This is placeholder logic for prototyping. In production, replace the random code
  * generation with a secure backend-driven implementation.
  */
-export function useShareChild() {
+import { useFormOptions } from './useFormOptions'
+
+export function useShareChild () {
   // Dialog visibility
   const showShareDialog = ref(false)
 
+  // Use dynamic options from database
+  const {
+    accessLevelOptions,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isLoading: isAccessLevelLoading,
+  } = useFormOptions()
+
   // Access level selector
   const shareAccessType = ref<'full' | 'partial'>('partial')
-  const accessOptions = [
-    { title: 'Full Access', value: 'full' },
-    { title: 'Partial Access', value: 'partial' },
-  ] as const
+
+  // Transform to match expected format
+  const accessOptions = computed(() =>
+    accessLevelOptions.value.map(option => ({
+      title: option.label,
+      value: option.value,
+    }))
+  )
 
   // Generated data
   const shareCode = ref('')
@@ -50,7 +63,8 @@ export function useShareChild() {
     try {
       await navigator.clipboard.writeText(text)
       copyMessage.value = 'Copied!'
-    } catch (e) {
+    } catch (e: unknown) {
+
       copyMessage.value = 'Failed to copy'
     }
 
@@ -71,4 +85,4 @@ export function useShareChild() {
     closeDialog,
     copyToClipboard,
   }
-} 
+}

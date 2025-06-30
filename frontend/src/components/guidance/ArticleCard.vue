@@ -1,8 +1,8 @@
 <template>
   <v-card
     class="mx-auto article-card"
-    variant="outlined"
     rounded="lg"
+    variant="outlined"
   >
     <v-card-text class="pa-5">
       <div class="d-flex justify-space-between align-center mb-4">
@@ -11,8 +11,8 @@
         </p>
         <v-btn
           icon
-          variant="text"
           size="small"
+          variant="text"
           @click="handleToggleSave"
         >
           <v-icon
@@ -33,19 +33,19 @@
           <v-chip
             v-for="tag in article.tags"
             :key="tag"
-            variant="flat"
-            color="#E6E2DF"
             class="text-caption"
+            color="#E6E2DF"
+            variant="flat"
           >
             {{ tag }}
           </v-chip>
         </div>
 
         <v-btn
-          color="#D87179"
-          variant="flat"
-          rounded="lg"
           class="text-capitalize px-4 font-weight-regular text-body-2"
+          color="#D87179"
+          rounded="lg"
+          variant="flat"
         >
           Read Article
         </v-btn>
@@ -54,8 +54,8 @@
   </v-card>
 </template>
 
-<script setup>
-  import { ref, inject, computed } from 'vue'
+<script setup lang="ts">
+  import { computed, inject } from 'vue'
 
   const props = defineProps({
     article: {

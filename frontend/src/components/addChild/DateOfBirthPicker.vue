@@ -5,12 +5,12 @@
     </v-label>
     <v-text-field
       v-model="dateValue"
-      placeholder="Select date of birth"
-      variant="outlined"
-      :rules="rules"
       hide-details="auto"
-      readonly
+      placeholder="Select date of birth"
       prepend-inner-icon="mdi-calendar"
+      readonly
+      :rules="rules"
+      variant="outlined"
       @click="openDatePicker"
     />
 
@@ -25,7 +25,7 @@
             v-model="selectedDate"
             color="primary"
             show-adjacent-months
-            @update:modelValue="handleDateSelection"
+            @update:model-value="handleDateSelection"
           />
         </v-card-text>
         <v-card-actions>
@@ -48,7 +48,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { ref, watch } from 'vue'
 
   const props = defineProps({
@@ -70,7 +70,7 @@
 
   watch(
     () => props.modelValue,
-    (newValue) => {
+    newValue => {
       dateValue.value = newValue
       if (newValue) {
         // Convert string date to Date object for picker
@@ -86,7 +86,7 @@
     datePickerDialog.value = true
   }
 
-  const handleDateSelection = (date) => {
+  const handleDateSelection = date => {
     selectedDate.value = date
   }
 
@@ -99,7 +99,7 @@
     datePickerDialog.value = false
   }
 
-  const formatDate = (date) => {
+  const formatDate = date => {
     const options = {
       day: 'numeric',
       month: 'long',
