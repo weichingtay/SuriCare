@@ -6,13 +6,13 @@
   backdrop-filter: blur($glass-blur-md);
   border: 1px solid $app-primary-light;
   border-radius: $child-border-radius;
-  min-width: $child-min-width;
+  min-width: 180px; // Reduced from $child-min-width
   box-shadow: $child-shadow-base;
   transition: $transition-base;
-  padding: 0 $spacing-md;
+  padding: 0 $spacing-sm; // Reduced from $spacing-md
   display: flex;
   align-items: center; 
-  gap: $spacing-md;
+  gap: $spacing-sm; // Reduced from $spacing-md
 
   &::before {
     background: white;
@@ -35,13 +35,14 @@
   border: 1px solid $glass-border !important;
   border-radius: $child-border-radius !important;
   box-shadow: $child-shadow-dropdown !important;
-  min-width: $child-dropdown-min-width !important;
+  min-width: 180px !important; // Reduced from $child-dropdown-min-width
   margin-top: $spacing-xs !important;
 }
 
 .child-dropdown-item {
   border-radius: $child-border-radius-sm;
-  margin: $spacing-xs $spacing-sm;
+  margin: $spacing-xs $spacing-xs; // Reduced side margins
+  padding: $spacing-xs $spacing-sm; // Added smaller padding
   transition: $transition-base;
 
   &:hover {
@@ -56,17 +57,21 @@
 
 .dropdown-avatar {
   border: $child-avatar-border;
+  width: 24px; // Reduced from default 32px
+  height: 24px; // Reduced from default 32px
 }
 
 .dropdown-name {
   font-family: $font-child;
   font-weight: 500;
   color: $app-text-primary;
+  font-size: 13px; // Slightly smaller
 }
 
 .dropdown-age {
   font-family: $font-primary;
   color: rgba($app-text-primary, 0.6);
+  font-size: 11px; // Slightly smaller
 }
 
 .dropdown-icon {
@@ -74,12 +79,15 @@
   transition: transform 0.2s ease;
   flex-shrink: 0;
   margin-left: auto;
-  padding-left: $spacing-sm;
+  padding-left: $spacing-xs; // Reduced from $spacing-sm
+  font-size: 14px; // Slightly smaller
 }
 
 .child-avatar {
   border: $child-avatar-border;
   flex-shrink: 0;
+  width: 24px; // Reduced from default 32px
+  height: 24px; // Reduced from default 32px
 }
 
 .child-info {
@@ -87,18 +95,26 @@
   flex-direction: column;
   align-items: flex-start;
   flex: 1;
-  margin-right: $spacing-sm;
+  margin-right: $spacing-xs; // Reduced from $spacing-sm
+}
+
+.child-name {
+  font-size: 13px; // Slightly smaller
+}
+
+.child-age {
+  font-size: 11px; // Slightly smaller
 }
 
 // Growth Card styles
 .growth-icon {
-  width: $child-icon-size;
-  height: $child-icon-size;
+  width: 28px; // Reduced from $child-icon-size (32px)
+  height: 28px; // Reduced from $child-icon-size (32px)
   border-radius: $child-border-radius-sm;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: $spacing-md;
+  margin-right: $spacing-sm; // Reduced from $spacing-md
   position: relative;
   z-index: 1;
   flex-shrink: 0;
