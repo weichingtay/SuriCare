@@ -8,15 +8,15 @@
 
     <v-alert
       class="health-alert"
-      color="error"
+      color="#FFF2F0"
       variant="tonal"
     >
       <div class="d-flex align-center justify-space-between">
         <div class="d-flex align-center">
           <v-icon
             class="mr-3 ml-1"
-            color="error"
-          >mdi-alert-circle</v-icon>
+            color="#FF5252"
+          >mdi-alert</v-icon>
           <div>
             <div class="text-body-1 font-weight-medium mb-1">
               {{ healthData.status }}
@@ -34,7 +34,7 @@
         </div>
         <v-btn
           class="text-white mr-3"
-          color="error"
+          color="#FF5252"
           size="small"
           variant="flat"
           @click="handleViewMore"

@@ -10,7 +10,7 @@
     <v-card-text
       class="pt-3 pb-3 ps-4 alert-header"
       :class="{ 'header-border': isExpanded }"
-      style="background-color: #ffebeb"
+      style="background-color: #FFF2F0"
     >
       <div class="d-flex justify-space-between align-center">
         <div class="d-flex align-start">
