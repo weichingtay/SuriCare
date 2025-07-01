@@ -139,7 +139,10 @@
       </div>
 
       <!-- Right section: Share functionality -->
-      <div class="right-section">
+      <div 
+        class="right-section"
+        style="display: flex; align-items: center;"
+      >
         <!-- Share button -->
         <v-btn
           class="share-child-btn"
@@ -262,7 +265,8 @@
 
   // Emits
   const emit = defineEmits<{
-    'child-selected': [child: Child]
+    'child-selected': [child: Child],
+    'add-child-requested': []
   }>()
 
   // Methods
@@ -271,8 +275,8 @@
   }
 
   const addNewChild = () => {
-    // Add your logic here to open add child dialog or navigate to add child page
-    console.log('Add new child clicked')
+    // Add your logic here - could emit an event or open a dialog
+    emit('add-child-requested')
   }
 
   // Growth dialog logic
@@ -308,25 +312,10 @@
 </script>
 
 <style lang="scss" scoped>
-  .header-container {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-  }
-
-  .left-section {
-    flex: 0 0 auto !important;
-  }
-
-  .right-section {
-    flex: 0 0 auto !important;
-    margin-left: auto !important;
-  }
-
-  // Force dropdown button to be smaller
+  // Only target child selector button - leave share button alone
   :deep(.child-selector-btn) {
-    max-width: 180px !important;
-    min-width: unset !important;
+    width: 180px !important;
+    min-width: 180px !important;
     
     .v-btn__content {
       justify-content: space-between !important;
@@ -342,38 +331,19 @@
     }
   }
 
-  // Force share button text to align right
-  :deep(.share-child-btn) {
-    max-width: 180px !important;
-    min-width: 180px !important;
+  :deep(.child-dropdown) {
     width: 180px !important;
-    
-    .v-btn__content {
-      justify-content: flex-end !important;
-      text-align: right !important;
-      width: 100% !important;
-    }
-  }
-
-  // Alternative targeting for share button
-  :deep(.v-btn.share-child-btn) {
     max-width: 180px !important;
-    min-width: 180px !important;
-    width: 180px !important;
+    overflow: hidden !important;
   }
 
-  // Alternative approach - use global styles
-  :deep(.v-btn.child-selector-btn) {
-    max-width: 180px !important;
-    width: auto !important;
-  }
-
-  :deep(.v-btn.share-child-btn) {
-    justify-content: flex-end !important;
-    
-    .v-btn__content {
-      justify-content: flex-end !important;
-      margin-left: auto !important;
-    }
+  // Fix Add Child item to stay within dropdown bounds
+  :deep(.add-child-item) {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 </style>
