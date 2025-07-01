@@ -4,6 +4,7 @@ from app.db import get_session
 from app.models import ChatbotChat, ChatMessage
 from pydantic import BaseModel
 from uuid import UUID
+from datetime import datetime
 # from chatbot.app.model import generate_reply
 
 router = APIRouter(
@@ -50,3 +51,37 @@ def create_message_for_chat(*, chat_id: UUID, message: ChatMessage, session: Ses
     session.commit()
     session.refresh(message)
     return message
+
+class ChatUpdateRequest(BaseModel):
+    title: str
+
+@router.put('/chats/{chat_id}', response_model=ChatbotChat)
+def update_chat(*, chat_id: UUID, chat_update: ChatUpdateRequest, session: Session = Depends(get_session)):
+    """Update chat title"""
+    chat = session.exec(select(ChatbotChat).where(ChatbotChat.id == chat_id)).first()
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    
+    chat.title = chat_update.title
+    chat.updated_at = datetime.utcnow()
+    session.add(chat)
+    session.commit()
+    session.refresh(chat)
+    return chat
+
+@router.delete('/chats/{chat_id}')
+def delete_chat(*, chat_id: UUID, session: Session = Depends(get_session)):
+    """Delete a chat and all its messages"""
+    # First, delete all messages associated with this chat
+    messages = session.exec(select(ChatMessage).where(ChatMessage.chat_id == chat_id)).all()
+    for message in messages:
+        session.delete(message)
+    
+    # Then delete the chat itself
+    chat = session.exec(select(ChatbotChat).where(ChatbotChat.id == chat_id)).first()
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    
+    session.delete(chat)
+    session.commit()
+    return {"message": "Chat deleted successfully"}
