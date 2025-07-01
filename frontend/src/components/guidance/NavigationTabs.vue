@@ -18,12 +18,19 @@
       >
         <div class="d-flex align-center">
           <v-badge
-            v-show="alertsCount > 0"
+            v-if="alertsCount > 0"
             class="ml-2"
             color="#FF5252"
             :content="alertsCount"
             floating
-          >Alert</v-badge>
+            >Alert</v-badge
+          >
+          <div
+            v-else
+            :class="{ inactive: activeTab != 'alert' }"
+          >
+            Alert
+          </div>
         </div>
       </v-tab>
       <v-tab
@@ -61,7 +68,7 @@
   })
 
   // Watch for tab changes and emit to parent + update URL
-  watch(activeTab, newTab => {
+  watch(activeTab, (newTab) => {
     emit('tab-changed', newTab)
 
     // Update URL query parameter without triggering navigation
@@ -71,12 +78,15 @@
   })
 
   // Watch for route changes (e.g., browser back/forward)
-  watch(() => route.query.tab, newTab => {
-    if (newTab && ['guidance', 'alert', 'saved'].includes(newTab)) {
-      activeTab.value = newTab
-      emit('tab-changed', newTab)
+  watch(
+    () => route.query.tab,
+    (newTab) => {
+      if (newTab && ['guidance', 'alert', 'saved'].includes(newTab)) {
+        activeTab.value = newTab
+        emit('tab-changed', newTab)
+      }
     }
-  })
+  )
 </script>
 
 <style scoped>
