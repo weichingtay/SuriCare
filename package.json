@@ -21,9 +21,6 @@
     "devDependencies": {
         "concurrently": "^8.2.2"
     },
-    "workspaces": [
-        "frontend"
-    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/weichingtay/SuriCare.git"
