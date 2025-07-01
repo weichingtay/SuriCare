@@ -1,0 +1,142 @@
+{
+  "growth_development": [
+    {
+      "topic": "Normal Weight Gain",
+      "content": "Newborns typically lose 5-10% of birth weight in first week, then gain 5-7 oz per week for first 6 months. Breastfed babies may gain weight more slowly than formula-fed babies.",
+      "age_range": "0-6 months",
+      "tags": ["weight", "growth", "newborn"]
+    },
+    {
+      "topic": "Height Development",
+      "content": "Babies grow about 10 inches (25 cm) in their first year. Growth spurts occur around 2-3 weeks, 6 weeks, 3 months, and 6 months.",
+      "age_range": "0-12 months",
+      "tags": ["height", "growth", "development"]
+    },
+    {
+      "topic": "Head Circumference",
+      "content": "Head circumference increases rapidly in first year - about 2 cm per month for first 3 months, then 1 cm per month until 6 months.",
+      "age_range": "0-12 months",
+      "tags": ["head", "growth", "development"]
+    }
+  ],
+  "sleep_patterns": [
+    {
+      "topic": "Newborn Sleep",
+      "content": "Newborns sleep 14-17 hours per day in short bursts of 2-4 hours. Sleep patterns are irregular and day-night confusion is normal.",
+      "age_range": "0-3 months",
+      "tags": ["sleep", "newborn", "patterns"]
+    },
+    {
+      "topic": "Infant Sleep Schedule",
+      "content": "By 3-6 months, babies can sleep 4-6 hour stretches. Total sleep: 12-15 hours including naps. Night sleep becomes more consolidated.",
+      "age_range": "3-6 months",
+      "tags": ["sleep", "infant", "schedule"]
+    },
+    {
+      "topic": "Toddler Sleep Needs",
+      "content": "Toddlers need 11-14 hours of sleep including 1-3 hour afternoon nap. Bedtime routines become very important.",
+      "age_range": "12-36 months",
+      "tags": ["sleep", "toddler", "routine"]
+    }
+  ],
+  "nutrition_feeding": [
+    {
+      "topic": "Breastfeeding Frequency",
+      "content": "Newborns breastfeed 8-12 times per 24 hours. Feeding sessions last 15-45 minutes. Cluster feeding in evenings is normal.",
+      "age_range": "0-6 months",
+      "tags": ["breastfeeding", "feeding", "frequency"]
+    },
+    {
+      "topic": "Formula Feeding Guidelines",
+      "content": "Formula-fed babies eat 2-3 oz per feeding initially, increasing to 4-5 oz by 2 months. Feed every 3-4 hours.",
+      "age_range": "0-6 months",
+      "tags": ["formula", "feeding", "amounts"]
+    },
+    {
+      "topic": "Starting Solids",
+      "content": "Introduce solid foods around 6 months when baby can sit up, shows interest in food, and has lost tongue-thrust reflex. Start with single-ingredient foods.",
+      "age_range": "6-12 months",
+      "tags": ["solids", "weaning", "introduction"]
+    }
+  ],
+  "common_symptoms": [
+    {
+      "topic": "Diaper Rash Treatment",
+      "content": "Keep area clean and dry. Use barrier cream with zinc oxide. Change diapers frequently. Air dry when possible. See doctor if severe or doesn't improve in 2-3 days.",
+      "age_range": "0-36 months",
+      "tags": ["rash", "diaper", "treatment"]
+    },
+    {
+      "topic": "Fever in Infants",
+      "content": "Fever in babies under 3 months requires immediate medical attention. For older babies, fever over 100.4°F (38°C) should be monitored. Offer fluids and dress lightly.",
+      "age_range": "0-24 months",
+      "tags": ["fever", "temperature", "emergency"]
+    },
+    {
+      "topic": "Colic Management",
+      "content": "Colic involves crying for 3+ hours a day, 3+ days a week. Try swaddling, white noise, gentle motion, and feeding position changes. Usually resolves by 3-4 months.",
+      "age_range": "0-4 months",
+      "tags": ["colic", "crying", "comfort"]
+    }
+  ],
+  "developmental_milestones": [
+    {
+      "topic": "2 Month Milestones",
+      "content": "Smiles socially, follows objects with eyes, holds head up briefly during tummy time, makes cooing sounds.",
+      "age_range": "2 months",
+      "tags": ["milestones", "development", "2months"]
+    },
+    {
+      "topic": "6 Month Milestones",
+      "content": "Sits with support, rolls both ways, reaches for objects, babbles with consonants, shows curiosity about surroundings.",
+      "age_range": "6 months",
+      "tags": ["milestones", "development", "6months"]
+    },
+    {
+      "topic": "12 Month Milestones",
+      "content": "Walks with assistance or independently, says first words, understands simple commands, plays peek-a-boo, drinks from cup.",
+      "age_range": "12 months",
+      "tags": ["milestones", "development", "12months"]
+    }
+  ],
+  "safety_guidelines": [
+    {
+      "topic": "Safe Sleep Practices",
+      "content": "Always place babies on their back to sleep. Use firm sleep surface. No blankets, pillows, or toys in crib. Room-sharing without bed-sharing is recommended.",
+      "age_range": "0-12 months",
+      "tags": ["sleep", "safety", "SIDS"]
+    },
+    {
+      "topic": "Car Seat Safety",
+      "content": "Rear-facing car seats until at least age 2 or until reaching seat's weight/height limits. Never place rear-facing seat in front of active airbag.",
+      "age_range": "0-24 months",
+      "tags": ["car seat", "safety", "travel"]
+    },
+    {
+      "topic": "Choking Prevention",
+      "content": "Cut food into small pieces. Avoid nuts, popcorn, hard candies, grapes (cut lengthwise), hot dogs (cut lengthwise then into pieces) for children under 4.",
+      "age_range": "6-48 months",
+      "tags": ["choking", "safety", "food"]
+    }
+  ],
+  "when_to_call_doctor": [
+    {
+      "topic": "Emergency Symptoms",
+      "content": "Call 911 for: difficulty breathing, blue lips/face, seizures, severe injury, unconsciousness, or severe allergic reaction.",
+      "age_range": "all ages",
+      "tags": ["emergency", "911", "symptoms"]
+    },
+    {
+      "topic": "Fever Guidelines",
+      "content": "Call doctor immediately for fever in babies under 3 months. For older babies, call if fever over 102°F (39°C) or lasts more than 24 hours with other symptoms.",
+      "age_range": "0-24 months",
+      "tags": ["fever", "doctor", "guidelines"]
+    },
+    {
+      "topic": "Feeding Concerns",
+      "content": "Contact pediatrician if baby refuses to eat for several feedings, shows signs of dehydration, or has persistent vomiting/diarrhea.",
+      "age_range": "0-24 months",
+      "tags": ["feeding", "doctor", "concerns"]
+    }
+  ]
+}

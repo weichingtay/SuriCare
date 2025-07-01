@@ -16,7 +16,12 @@
           <v-avatar class="mr-4" rounded="0" size="60">
             <v-img alt="SuriAI" height="92.25%" src="@/assets/logo.png" />
           </v-avatar>
-          <span class="text-h4 font-weight-medium">SuriAI</span>
+          <div>
+            <span class="text-h4 font-weight-medium">SuriAI</span>
+            <div v-if="childrenStore.currentChild" class="text-caption text-medium-emphasis">
+              Chatting about {{ childrenStore.currentChild.name }}
+            </div>
+          </div>
         </div>
         <ChatContent
           :messages="currentMessages"
@@ -50,12 +55,23 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import axios from 'axios';
   import ChatSidebar from '../components/chatbot/ChatSidebar.vue';
   import ChatContent from '../components/chatbot/ChatContent.vue';
+  import { useChildrenStore } from '../stores/children';
+  
   // State
   const ownerId = ref(1); // Placeholder for the current user's ID
+  const childrenStore = useChildrenStore();
+  
+  // Multi-child selection for chat context
+  const selectedChildrenForChat = ref<number[]>([]);
+  const showChildSelector = ref(false);
+  const tempSelectedChildren = ref<number[]>([]);
+  
+  // Always use contextual chat when children are selected
+  const useContextualChat = computed(() => selectedChildrenForChat.value.length > 0);
   const chatHistory = ref([]);
   const currentChatId = ref<string | null>(null);
   const suggestedPrompts = ref([
@@ -97,11 +113,10 @@
   // Methods
   const handleNewChat = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/chats', {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const response = await axios.post(`${baseUrl}/chats?owner_id=${ownerId.value}`, {
         title: 'New Chat',
-        owner_id: ownerId.value,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        child_ids: selectedChildrenForChat.value
       });
       const newChat = response.data;
       chatHistory.value.unshift({ 
@@ -118,7 +133,8 @@
   const handleSelectChat = async (chatId: string) => {
     currentChatId.value = chatId;
     try {
-      const response = await axios.get(`http://localhost:8000/chats/${chatId}/messages`);
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const response = await axios.get(`${baseUrl}/chats/${chatId}/messages`);
       const messages = response.data.map((msg: any) => ({
         id: msg.id,
         text: msg.message || msg.text,
@@ -146,7 +162,8 @@
     if (chatToDelete.value === null) return;
     
     try {
-      await axios.delete(`http://localhost:8000/chats/${chatToDelete.value}`);
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      await axios.delete(`${baseUrl}/chats/${chatToDelete.value}`);
       
       // Remove chat from local state
       const chatIndex = chatHistory.value.findIndex((chat: any) => chat.id === chatToDelete.value);
@@ -176,16 +193,51 @@
     chatToDelete.value = null;
   };
 
-  onMounted(async () => {
+  // Child selection methods
+  const getChildName = (childId: number) => {
+    const child = childrenStore.children.find(c => c.id === childId);
+    return child ? child.name : 'Unknown';
+  };
+
+  const toggleChild = (childId: number) => {
+    const index = tempSelectedChildren.value.indexOf(childId);
+    if (index > -1) {
+      tempSelectedChildren.value.splice(index, 1);
+    } else {
+      tempSelectedChildren.value.push(childId);
+    }
+  };
+
+  const toggleAllChildren = () => {
+    if (tempSelectedChildren.value.length === childrenStore.children.length) {
+      tempSelectedChildren.value = [];
+    } else {
+      tempSelectedChildren.value = childrenStore.children.map(child => child.id);
+    }
+  };
+
+  const applyChildSelection = () => {
+    selectedChildrenForChat.value = [...tempSelectedChildren.value];
+    showChildSelector.value = false;
+  };
+
+  const cancelChildSelection = () => {
+    tempSelectedChildren.value = [...selectedChildrenForChat.value];
+    showChildSelector.value = false;
+  };
+
+  // Load chat history
+  const loadChatHistory = async () => {
     try {
-      const response = await axios.get(`http://localhost:8000/chats/${ownerId.value}`);
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const response = await axios.get(`${baseUrl}/chats/${ownerId.value}`);
       chatHistory.value = await Promise.all(response.data.map(async (chat: any) => {
         let title = chat.title;
         
         // If the title is still "New Chat", try to get the first message to use as title
         if (title === 'New Chat') {
           try {
-            const messagesResponse = await axios.get(`http://localhost:8000/chats/${chat.id}/messages`);
+            const messagesResponse = await axios.get(`${baseUrl}/chats/${chat.id}/messages`);
             const messages = messagesResponse.data;
             if (messages.length > 0) {
               const firstUserMessage = messages.find((msg: any) => msg.sender === 'user');
@@ -195,7 +247,7 @@
                 
                 // Update the title in the backend
                 try {
-                  await axios.put(`http://localhost:8000/chats/${chat.id}`, { title });
+                  await axios.put(`${baseUrl}/chats/${chat.id}`, { title });
                 } catch (error) {
                   console.error('Error updating chat title:', error);
                 }
@@ -221,7 +273,30 @@
     } catch (error) {
       console.error('Error fetching chat history:', error);
     }
+  };
+
+  onMounted(async () => {
+    // Initialize chat-specific child selection with current child
+    if (childrenStore.currentChild) {
+      selectedChildrenForChat.value = [childrenStore.currentChild.id];
+      tempSelectedChildren.value = [childrenStore.currentChild.id];
+    }
+    
+    // Load chat history
+    await loadChatHistory();
   });
+
+  // Watch for changes in global child selection and sync to chat selection
+  watch(() => childrenStore.currentChild, (newChild) => {
+    if (newChild) {
+      // If no children selected for chat, or if we want to reset to current child
+      if (selectedChildrenForChat.value.length === 0 || 
+          !selectedChildrenForChat.value.includes(newChild.id)) {
+        selectedChildrenForChat.value = [newChild.id];
+        tempSelectedChildren.value = [newChild.id];
+      }
+    }
+  }, { immediate: true });
 
   const handleSendMessage = async (message: string) => {
     const currentChatIndex = chatHistory.value.findIndex(
@@ -242,7 +317,8 @@
         
         // Update the title in the backend
         try {
-          await axios.put(`http://localhost:8000/chats/${currentChatId.value}`, {
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+          await axios.put(`${baseUrl}/chats/${currentChatId.value}`, {
             title: newTitle
           });
         } catch (error) {
@@ -251,17 +327,31 @@
       }
 
       try {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        
         // Save user message to backend
-        await axios.post(`http://localhost:8000/chats/${currentChatId.value}/messages`, {
+        await axios.post(`${baseUrl}/chats/${currentChatId.value}/messages`, {
           message,
           sender: 'user',
           created_at: new Date().toISOString(),
         });
 
-        // Call backend Gemini endpoint
-        const geminiResponse = await axios.post('http://localhost:8000/chat/', {
-          message,
-        });
+        // Call backend endpoint (contextual or basic)
+        let geminiResponse;
+        
+        if (useContextualChat.value && selectedChildrenForChat.value.length > 0) {
+          // Use contextual chat endpoint with selected children
+          geminiResponse = await axios.post(`${baseUrl}/chat/contextual`, {
+            message,
+            child_ids: selectedChildrenForChat.value,
+            carer_id: ownerId.value
+          });
+        } else {
+          // Use basic chat endpoint
+          geminiResponse = await axios.post(`${baseUrl}/chat/`, {
+            message,
+          });
+        }
 
         const aiResponseText = geminiResponse.data.reply ?? '(No response)';
         const aiResponse = {
@@ -272,7 +362,7 @@
         chatHistory.value[currentChatIndex].messages.push(aiResponse);
 
         // Save AI message to backend
-        await axios.post(`http://localhost:8000/chats/${currentChatId.value}/messages`, {
+        await axios.post(`${baseUrl}/chats/${currentChatId.value}/messages`, {
           message: aiResponseText,
           sender: 'ai',
           created_at: new Date().toISOString(),
