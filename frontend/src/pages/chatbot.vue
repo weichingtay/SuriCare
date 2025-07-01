@@ -7,6 +7,7 @@
         :chat-history="chatHistory"
         @new-chat="handleNewChat"
         @select-chat="handleSelectChat"
+        @delete-chat="handleDeleteChat"
       />
 
       <!-- Main Content -->
@@ -24,6 +25,27 @@
         />
       </v-main>
     </v-layout>
+
+    <!-- Delete Confirmation Dialog -->
+    <v-dialog v-model="showDeleteDialog" max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">
+          Delete Chat
+        </v-card-title>
+        <v-card-text>
+          Are you sure you want to delete this chat? This action cannot be undone.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text @click="cancelDeleteChat">
+            Cancel
+          </v-btn>
+          <v-btn color="error" text @click="confirmDeleteChat">
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -35,7 +57,7 @@
   // State
   const ownerId = ref(1); // Placeholder for the current user's ID
   const chatHistory = ref([]);
-  const currentChatId = ref<number | null>(null);
+  const currentChatId = ref<string | null>(null);
   const suggestedPrompts = ref([
     'How do I treat a mild rash at home?',
     'What are the activities to help my child with motor skills?',
@@ -52,6 +74,26 @@
     currentChat.value?.messages || []
   );
 
+  // Helper function to format date for grouping
+  const formatDateForGrouping = (dateString: string): string => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+  };
+
   // Methods
   const handleNewChat = async () => {
     try {
@@ -62,19 +104,27 @@
         updated_at: new Date().toISOString(),
       });
       const newChat = response.data;
-      chatHistory.value.unshift({ ...newChat, messages: [] });
+      chatHistory.value.unshift({ 
+        ...newChat, 
+        messages: [],
+        date: formatDateForGrouping(newChat.created_at || new Date().toISOString())
+      });
       currentChatId.value = newChat.id;
     } catch (error) {
       console.error('Error creating new chat:', error);
     }
   };
 
-  const handleSelectChat = async (chatId: number) => {
+  const handleSelectChat = async (chatId: string) => {
     currentChatId.value = chatId;
     try {
       const response = await axios.get(`http://localhost:8000/chats/${chatId}/messages`);
-      const messages = response.data;
-      const chatIndex = chatHistory.value.findIndex(chat => chat.id === chatId);
+      const messages = response.data.map((msg: any) => ({
+        id: msg.id,
+        text: msg.message || msg.text,
+        sender: msg.sender
+      }));
+      const chatIndex = chatHistory.value.findIndex((chat: any) => chat.id === chatId);
       if (chatIndex !== -1) {
         chatHistory.value[chatIndex].messages = messages;
       }
@@ -83,10 +133,87 @@
     }
   };
 
+  const showDeleteDialog = ref(false);
+  const chatToDelete = ref<string | null>(null);
+
+  const handleDeleteChat = (chatId: string) => {
+    console.log('Delete chat called for ID:', chatId);
+    chatToDelete.value = chatId;
+    showDeleteDialog.value = true;
+  };
+
+  const confirmDeleteChat = async () => {
+    if (chatToDelete.value === null) return;
+    
+    try {
+      await axios.delete(`http://localhost:8000/chats/${chatToDelete.value}`);
+      
+      // Remove chat from local state
+      const chatIndex = chatHistory.value.findIndex((chat: any) => chat.id === chatToDelete.value);
+      if (chatIndex !== -1) {
+        chatHistory.value.splice(chatIndex, 1);
+      }
+      
+      // If the deleted chat was the current one, select another chat or clear selection
+      if (currentChatId.value === chatToDelete.value) {
+        if (chatHistory.value.length > 0) {
+          currentChatId.value = chatHistory.value[0].id;
+          await handleSelectChat(currentChatId.value);
+        } else {
+          currentChatId.value = null;
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+    }
+    
+    showDeleteDialog.value = false;
+    chatToDelete.value = null;
+  };
+
+  const cancelDeleteChat = () => {
+    showDeleteDialog.value = false;
+    chatToDelete.value = null;
+  };
+
   onMounted(async () => {
     try {
       const response = await axios.get(`http://localhost:8000/chats/${ownerId.value}`);
-      chatHistory.value = response.data.map(chat => ({ ...chat, messages: [] }));
+      chatHistory.value = await Promise.all(response.data.map(async (chat: any) => {
+        let title = chat.title;
+        
+        // If the title is still "New Chat", try to get the first message to use as title
+        if (title === 'New Chat') {
+          try {
+            const messagesResponse = await axios.get(`http://localhost:8000/chats/${chat.id}/messages`);
+            const messages = messagesResponse.data;
+            if (messages.length > 0) {
+              const firstUserMessage = messages.find((msg: any) => msg.sender === 'user');
+              if (firstUserMessage) {
+                const messageText = firstUserMessage.message || firstUserMessage.text;
+                title = messageText.slice(0, 30) + (messageText.length > 30 ? '...' : '');
+                
+                // Update the title in the backend
+                try {
+                  await axios.put(`http://localhost:8000/chats/${chat.id}`, { title });
+                } catch (error) {
+                  console.error('Error updating chat title:', error);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching messages for title update:', error);
+          }
+        }
+        
+        return { 
+          ...chat, 
+          title,
+          messages: [],
+          date: formatDateForGrouping(chat.created_at || chat.updated_at || new Date().toISOString())
+        };
+      }));
+      
       if (chatHistory.value.length > 0) {
         currentChatId.value = chatHistory.value[0].id;
         await handleSelectChat(currentChatId.value);
@@ -110,8 +237,17 @@
 
       // Update chat title if it's the first message
       if (chatHistory.value[currentChatIndex].messages.length === 1) {
-        chatHistory.value[currentChatIndex].title =
-          message.slice(0, 20) + (message.length > 20 ? '...' : '');
+        const newTitle = message.slice(0, 30) + (message.length > 30 ? '...' : '');
+        chatHistory.value[currentChatIndex].title = newTitle;
+        
+        // Update the title in the backend
+        try {
+          await axios.put(`http://localhost:8000/chats/${currentChatId.value}`, {
+            title: newTitle
+          });
+        } catch (error) {
+          console.error('Error updating chat title:', error);
+        }
       }
 
       try {

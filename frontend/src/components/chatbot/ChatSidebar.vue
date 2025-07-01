@@ -45,6 +45,17 @@
               <v-list-item-title class="text-body-2 text-truncate">
                 {{ chat.title }}
               </v-list-item-title>
+              <template #append>
+                <v-btn
+                  class="delete-btn"
+                  icon
+                  size="x-small"
+                  variant="text"
+                  @click.stop="$emit('delete-chat', chat.id)"
+                >
+                  <v-icon size="16">mdi-delete-outline</v-icon>
+                </v-btn>
+              </template>
             </v-list-item>
           </v-list>
         </div>
@@ -57,18 +68,18 @@
   import { computed } from 'vue'
 
   interface Chat {
-    id: number
+    id: string
     title: string
     date: string
   }
 
   const props = defineProps<{
     chatHistory: Chat[]
-    activeChatId: number | null
+    activeChatId: string | null
   }>()
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const emit = defineEmits(['new-chat', 'select-chat'])
+  const emit = defineEmits(['new-chat', 'select-chat', 'delete-chat'])
 
   const groupedChats = computed(() => {
     const groups: Record<string, Chat[]> = {}
@@ -81,7 +92,7 @@
     return groups
   })
 
-  const isActiveChat = (chatId: number) => {
+  const isActiveChat = (chatId: string) => {
     return chatId === props.activeChatId
   }
 </script>
@@ -139,5 +150,18 @@
 .new-chat-btn {
   text-transform: none;
   font-weight: 500;
+}
+
+.delete-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.chat-item:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  background-color: rgba(255, 0, 0, 0.1) !important;
 }
 </style>
