@@ -23,7 +23,7 @@
                 v-bind="menuProps"
                 class="child-selector-btn"
                 height="48"
-                style="justify-content: flex-start"
+                style="justify-content: flex-start;"
                 variant="elevated"
               >
                 <v-avatar
@@ -69,6 +69,22 @@
                 <v-list-item-subtitle class="dropdown-age">{{
                   child.age
                 }}</v-list-item-subtitle>
+              </v-list-item>
+
+              <!-- Single Add Child at bottom -->
+              <v-list-item
+                class="add-child-item"
+                style="border-top: 1px solid rgba(255, 255, 255, 0.2); margin-top: 8px;"
+                @click="addNewChild"
+              >
+                <template #prepend>
+                  <div style="width: 32px; height: 32px; border-radius: 50%; background: #f0c6c9; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <v-icon size="16" style="color: #d87179;">mdi-plus</v-icon>
+                  </div>
+                </template>
+                <v-list-item-title style="color: #d87179; font-weight: 500;">
+                  Add Child
+                </v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -123,14 +139,14 @@
       </div>
 
       <!-- Right section: Share functionality -->
-      <div
+      <div 
         class="right-section"
-        style="display: flex; align-items: center; gap: 8px"
+        style="display: flex; align-items: center;"
       >
         <!-- Share button -->
         <v-btn
           class="share-child-btn"
-          height="40"
+          height="48"
           variant="elevated"
           @click="openShareDialog"
         >
@@ -235,11 +251,15 @@
 </template>
 
 <script setup lang="ts">
+  import { useRouter } from 'vue-router'
   import { useShareChild } from '@/composables/useShareChild'
   import { useGrowthDialog } from '@/composables/useGrowthDialog'
   import GrowthDialog from '../components/dialog/GrowthDialog.vue'
 
   import type { Child } from '@/stores/children'
+
+  // Router
+  const router = useRouter()
 
   // Props
   const props = defineProps<{
@@ -248,14 +268,18 @@
   }>()
 
   // Emits
-  const emit = defineEmits<{
-    'child-selected': [child: Child]
-  }>()
+const emit = defineEmits<{
+  'child-selected': [child: Child]
+}>()
 
   // Methods
   const selectChild = (child: Child) => {
     emit('child-selected', child)
   }
+
+ const addNewChild = () => {
+  router.push('/add-child')
+}
 
   // Growth dialog logic
   const {
@@ -290,7 +314,38 @@
 </script>
 
 <style lang="scss" scoped>
-  // .v-text-field--outlined >>> fieldset {
-  //   border-color: rgba(192, 0, 250, 0.986);
-  // }
+  // Only target child selector button - leave share button alone
+  :deep(.child-selector-btn) {
+    width: 180px !important;
+    min-width: 180px !important;
+    
+    .v-btn__content {
+      justify-content: space-between !important;
+    }
+    
+    .dropdown-icon {
+      margin-left: auto !important;
+    }
+    
+    .child-info {
+      flex: 1 !important;
+      margin-right: 8px !important;
+    }
+  }
+
+  :deep(.child-dropdown) {
+    width: 180px !important;
+    max-width: 180px !important;
+    overflow: hidden !important;
+  }
+
+  // Fix Add Child item to stay within dropdown bounds
+  :deep(.add-child-item) {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
 </style>
