@@ -64,7 +64,13 @@
             rounded="lg"
             variant="flat"
           >
-            <div class="text-body-1">{{ message.text }}</div>
+            <div v-if="message.isStreaming && !message.text" class="typing-indicator">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <div v-else class="text-body-2 markdown-content" v-html="renderMarkdown(message.text)"></div>
+            <div v-if="message.isStreaming && message.text" class="streaming-cursor">|</div>
           </v-card>
         </div>
       </div>
@@ -113,6 +119,7 @@
 
 <script setup lang="ts">
   import { nextTick, ref, watch } from 'vue'
+  import { marked } from 'marked'
 
   const props = defineProps({
     messages: {
@@ -129,6 +136,10 @@
 
   const inputMessage = ref('')
   const messagesContainer = ref(null)
+
+  const renderMarkdown = (text: string): string => {
+    return marked(text)
+  }
 
   const sendMessage = () => {
     if (inputMessage.value.trim()) {
@@ -155,6 +166,8 @@
 </script>
 
 <style scoped>
+@import '@/styles/markdown.scss';
+@import '@/styles/chat-responsive.scss';
   .chat-content {
     /* Let flexbox handle the sizing so this section uses only the space that
        remains after the header. */
@@ -205,10 +218,6 @@
     justify-content: flex-start;
   }
 
-  .message-card {
-    max-width: 70%;
-    word-wrap: break-word;
-  }
 
   .user-card {
     background-color: white;
@@ -244,4 +253,5 @@
     display: flex;
     align-items: center;
   }
+
 </style>

@@ -108,14 +108,9 @@ class ChatbotChat(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str | None = None
     owner_id: int = Field(foreign_key="primary_care_giver.id")
+    child_id: int | None = Field(foreign_key="child.id", default=None)  # Single child per chat
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     updated_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
-
-
-class ChatChild(SQLModel, table=True):
-    __tablename__ = "chat_children"
-    chat_id: UUID = Field(foreign_key="chatbot_chats.id", primary_key=True)
-    child_id: int = Field(foreign_key="child.id", primary_key=True)
 
 
 class ChatMessage(SQLModel, table=True):

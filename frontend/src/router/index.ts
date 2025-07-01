@@ -18,13 +18,13 @@ const router = createRouter({
 // Route guards
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
-  
+
   console.log('Router guard - Path:', to.path, 'Authenticated:', authStore.isAuthenticated, 'Initialized:', authStore.isInitialized, 'Loading:', authStore.isLoading)
-  
+
   // Public pages that don't require authentication
   const publicPages = ['/login', '/signup', '/', '/index']
   const isPublicPage = publicPages.includes(to.path)
-  
+
   // Always initialize auth if not done yet
   if (!authStore.isInitialized) {
     console.log('Initializing auth...')
@@ -37,19 +37,19 @@ router.beforeEach(async (to) => {
       console.error('Failed to initialize auth:', error)
     }
   }
-  
+
   // If not a public page and user is not authenticated, redirect to login
   if (!isPublicPage && !authStore.isAuthenticated) {
     console.log('Redirecting to login - user not authenticated')
     return '/login'
   }
-  
+
   // If authenticated user tries to access login/signup, redirect to dashboard
   if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/signup')) {
     console.log('Redirecting to dashboard - user already authenticated')
-    return '/dashboard'
+    return '/'
   }
-  
+
   console.log('Route guard passed for:', to.path)
 })
 
