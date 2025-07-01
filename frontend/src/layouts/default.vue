@@ -12,7 +12,9 @@
 
     <!-- Header -->
     <AppHeader
-      v-if="!hideComponent.includes(route.name) && childrenStore.children.length"
+      v-if="
+        !hideComponent.includes(route.name) && childrenStore.children.length
+      "
       :children="childrenStore.children"
       :current-child="childrenStore.currentChild"
       @child-selected="childrenStore.selectChild"
@@ -22,11 +24,17 @@
       v-if="!hideComponent.includes(route.name)"
       class="custom-main"
     >
-      <div v-if="chatbotPage.includes(route.name)" class="chatbot-content">
+      <div
+        v-if="chatbotPage.includes(route.name)"
+        class="chatbot-content"
+      >
         <router-view />
       </div>
 
-      <div v-else class="custom-main-content">
+      <div
+        v-else
+        class="custom-main-content"
+      >
         <router-view />
       </div>
     </v-main>
@@ -76,14 +84,35 @@
   }
 
   // Watch for authentication changes
-  watch(() => authStore.isAuthenticated, (isAuthenticated) => {
-    if (isAuthenticated) {
-      loadChildrenIfAuthenticated()
-    } else {
-      // Clear children when user logs out
-      childrenStore.children.splice(0, childrenStore.children.length)
-    }
-  }, { immediate: true })
+  watch(
+    () => authStore.isAuthenticated,
+    (isAuthenticated) => {
+      if (isAuthenticated) {
+        loadChildrenIfAuthenticated()
+      } else {
+        // Clear children when user logs out
+        childrenStore.children.splice(0, childrenStore.children.length)
+      }
+    },
+    { immediate: true }
+  )
+
+  watch(
+    () => route.path,
+    (newPath) => {
+      // Match the route path to the corresponding tab name
+      if (newPath === '/guidance') {
+        activeTab.value = 'guidance'
+      } else if (newPath === '/checkin') {
+        activeTab.value = 'checkin'
+      } else if (newPath === '/chatbot') {
+        activeTab.value = 'chatbot'
+      } else {
+        activeTab.value = 'home'
+      }
+    },
+    { immediate: true }
+  )
 
   onMounted(async () => {
     // Load children if already authenticated
@@ -92,16 +121,16 @@
 </script>
 
 <style lang="scss" scoped>
-.custom-main-wo-header-nav {
-  position: relative;
-  z-index: 1;
-  height: 100vh;
-  overflow: auto;
-}
+  .custom-main-wo-header-nav {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    overflow: auto;
+  }
 
-.chatbot-content {
-  height: calc(100vh - 72px);
-  position: relative;
-  overflow-y: auto;
-}
+  .chatbot-content {
+    height: calc(100vh - 72px);
+    position: relative;
+    overflow-y: auto;
+  }
 </style>
