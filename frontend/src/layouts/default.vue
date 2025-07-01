@@ -107,6 +107,8 @@
         activeTab.value = 'checkin'
       } else if (newPath === '/chatbot') {
         activeTab.value = 'chatbot'
+      } else if (newPath === '/dashboard') {
+        activeTab.value = 'dashboard'
       } else {
         activeTab.value = 'home'
       }
