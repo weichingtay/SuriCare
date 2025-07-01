@@ -11,3 +11,4 @@ venv/
 .env.*
 .backend_schema
 errors.txt
+error.txt
