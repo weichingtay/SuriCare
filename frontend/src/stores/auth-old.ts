@@ -24,7 +24,7 @@ export interface AuthState {
 export const useAuthStore = defineStore('auth', () => {
   // Development mode - set this to true to bypass Supabase auth
   const isDevelopmentMode = import.meta.env.VITE_DEV_MODE === 'true'
-  
+
   // State
   const user = ref<User | null>(null)
   const userProfile = ref<UserProfile | null>(null)
@@ -64,12 +64,12 @@ export const useAuthStore = defineStore('auth', () => {
           email: 'dev@example.com',
           user_metadata: { name: 'Dev User' }
         } as unknown as User
-        
+
         session.value = {
           access_token: 'dev-token-123',
           user: user.value
         } as Session
-        
+
         await fetchUserProfile()
         setLoading(false)
         return
@@ -77,7 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // Get current session
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-      
+
       if (sessionError) {
         throw sessionError
       }
@@ -85,7 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (currentSession) {
         session.value = currentSession
         user.value = currentSession.user
-        
+
         // Fetch user profile from our database
         await fetchUserProfile()
       }
@@ -93,7 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Listen for auth changes
       supabase.auth.onAuthStateChange(async (event, currentSession) => {
         console.log('Auth state changed:', event, currentSession)
-        
+
         session.value = currentSession
         user.value = currentSession?.user || null
 
@@ -124,7 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
       clearError()
 
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-      
+
       // Development mode - use fixed test user
       if (isDevelopmentMode) {
         console.log('🔧 Development mode: using fixed test user profile')
@@ -137,11 +137,11 @@ export const useAuthStore = defineStore('auth', () => {
         }
         return
       }
-      
+
       // First, try to get existing user profile by auth_user_id
       try {
         const response = await fetch(`${baseUrl}/user-profile/by-auth-id/${user.value.id}`)
-        
+
         if (response.ok) {
           const profile = await response.json()
           userProfile.value = {
@@ -226,12 +226,12 @@ export const useAuthStore = defineStore('auth', () => {
         email: userRecord.email,
         user_metadata: { name: userRecord.username }
       } as unknown as User
-      
+
       session.value = {
         access_token: `supabase-token-${userRecord.id}`,
         user: user.value
       } as Session
-      
+
       // Set user profile directly from Supabase table
       userProfile.value = {
         id: userRecord.id,
@@ -264,7 +264,7 @@ export const useAuthStore = defineStore('auth', () => {
       // When ready to switch to real Supabase Auth, set VITE_USE_SUPABASE_AUTH=true
       // This will use proper password hashing, JWT tokens, and session management
       const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true'
-      
+
       if (useSupabaseAuth) {
         console.log('🔐 Using Supabase Auth (secure authentication)')
         return await supabaseAuthLogin(email, password)
@@ -299,7 +299,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (data.user && data.session) {
         user.value = data.user
         session.value = data.session
-        
+
         // TODO: When migrating, link Supabase Auth user to primary_care_giver table
         // via auth_user_id field or create profile sync
         await fetchUserProfile()
@@ -324,7 +324,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // TODO: Add registration mode switch when migrating to Supabase Auth
       const useSupabaseAuth = import.meta.env.VITE_USE_SUPABASE_AUTH === 'true'
-      
+
       if (useSupabaseAuth) {
         console.log('🔐 Using Supabase Auth registration')
         return await supabaseAuthRegister(email, password, additionalData)
@@ -360,12 +360,12 @@ export const useAuthStore = defineStore('auth', () => {
     if (data.user) {
       user.value = data.user
       session.value = data.session
-      
+
       // TODO: When migrating, create linked profile in primary_care_giver table
       if (additionalData) {
         console.log('Would create linked user profile with data:', additionalData)
       }
-      
+
       return { success: true }
     }
 
@@ -389,7 +389,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/`
         }
       })
 
@@ -483,12 +483,12 @@ export const useAuthStore = defineStore('auth', () => {
     session: readonly(session),
     isLoading: readonly(isLoading),
     error: readonly(error),
-    
+
     // Computed
     isAuthenticated,
     userId,
     userEmail,
-    
+
     // Actions
     initializeAuth,
     fetchUserProfile,
@@ -505,4 +505,4 @@ export const useAuthStore = defineStore('auth', () => {
     setError,
     clearError
   }
-}) 
+})

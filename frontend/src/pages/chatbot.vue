@@ -19,11 +19,47 @@
           <div>
             <span class="text-h4 font-weight-medium">SuriAI</span>
             <div v-if="childrenStore.currentChild" class="text-caption text-medium-emphasis">
-              Chatting about {{ childrenStore.currentChild.name }}
+              Chat context: {{ childrenStore.currentChild.name }}
+            </div>
+            <div v-else class="text-caption text-medium-emphasis">
+              General chat (no child selected)
             </div>
           </div>
         </div>
+        
+        <!-- Loading state -->
+        <div v-if="isLoading" class="d-flex justify-center align-center pa-8">
+          <v-progress-circular indeterminate color="primary" size="40"></v-progress-circular>
+          <span class="ml-4">Loading chat history...</span>
+        </div>
+        
+        <!-- Error state -->
+        <v-alert
+          v-if="error && showError"
+          type="error"
+          class="ma-4"
+          closable
+          @click:close="showError = false"
+        >
+          <div class="d-flex align-center">
+            <div class="flex-grow-1">
+              <strong>Connection Error</strong><br>
+              {{ error }}
+            </div>
+            <v-btn
+              color="error"
+              variant="outlined"
+              size="small"
+              @click="loadChatHistory"
+              class="ml-4"
+            >
+              Retry
+            </v-btn>
+          </div>
+        </v-alert>
+        
         <ChatContent
+          v-if="!isLoading"
           :messages="currentMessages"
           :suggested-prompts="suggestedPrompts"
           @send-message="handleSendMessage"
@@ -65,15 +101,18 @@
   const ownerId = ref(1); // Placeholder for the current user's ID
   const childrenStore = useChildrenStore();
   
-  // Multi-child selection for chat context
-  const selectedChildrenForChat = ref<number[]>([]);
-  const showChildSelector = ref(false);
-  const tempSelectedChildren = ref<number[]>([]);
+  // Single child selection for chat context
+  const selectedChildForChat = ref<number | null>(null);
   
-  // Always use contextual chat when children are selected
-  const useContextualChat = computed(() => selectedChildrenForChat.value.length > 0);
+  // Always use contextual chat when a child is selected
+  const useContextualChat = computed(() => selectedChildForChat.value !== null);
   const chatHistory = ref([]);
   const currentChatId = ref<string | null>(null);
+  
+  // Error handling state
+  const isLoading = ref(false);
+  const error = ref<string | null>(null);
+  const showError = ref(false);
   const suggestedPrompts = ref([
     'How do I treat a mild rash at home?',
     'What are the activities to help my child with motor skills?',
@@ -116,17 +155,23 @@
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
       const response = await axios.post(`${baseUrl}/chats?owner_id=${ownerId.value}`, {
         title: 'New Chat',
-        child_ids: selectedChildrenForChat.value
+        child_id: selectedChildForChat.value
       });
       const newChat = response.data;
-      chatHistory.value.unshift({ 
-        ...newChat, 
-        messages: [],
-        date: formatDateForGrouping(newChat.created_at || new Date().toISOString())
-      });
+      
+      // Reload chat history to ensure we have the latest data and proper filtering
+      await loadChatHistory();
+      
+      // Set the new chat as current
       currentChatId.value = newChat.id;
-    } catch (error) {
-      console.error('Error creating new chat:', error);
+      
+      // Clear any previous errors
+      error.value = null;
+      showError.value = false;
+    } catch (err: any) {
+      console.error('Error creating new chat:', err);
+      error.value = getErrorMessage(err);
+      showError.value = true;
     }
   };
 
@@ -144,8 +189,10 @@
       if (chatIndex !== -1) {
         chatHistory.value[chatIndex].messages = messages;
       }
-    } catch (error) {
-      console.error('Error fetching messages:', error);
+    } catch (err: any) {
+      console.error('Error fetching messages:', err);
+      error.value = getErrorMessage(err);
+      showError.value = true;
     }
   };
 
@@ -193,44 +240,36 @@
     chatToDelete.value = null;
   };
 
-  // Child selection methods
-  const getChildName = (childId: number) => {
-    const child = childrenStore.children.find(c => c.id === childId);
-    return child ? child.name : 'Unknown';
-  };
 
-  const toggleChild = (childId: number) => {
-    const index = tempSelectedChildren.value.indexOf(childId);
-    if (index > -1) {
-      tempSelectedChildren.value.splice(index, 1);
-    } else {
-      tempSelectedChildren.value.push(childId);
+  // Helper function to get error message from axios error
+  const getErrorMessage = (error: any): string => {
+    if (error.code === 'ERR_NETWORK') {
+      return 'Unable to connect to the server. Please check if the backend is running and try again.';
     }
-  };
-
-  const toggleAllChildren = () => {
-    if (tempSelectedChildren.value.length === childrenStore.children.length) {
-      tempSelectedChildren.value = [];
-    } else {
-      tempSelectedChildren.value = childrenStore.children.map(child => child.id);
+    if (error.response?.status === 500) {
+      return 'Server error. This might be a database connection issue. Please try refreshing the page.';
     }
+    if (error.response?.status === 404) {
+      return 'Chat data not found. The database might need to be set up.';
+    }
+    return error.response?.data?.detail || error.message || 'An unexpected error occurred';
   };
 
-  const applyChildSelection = () => {
-    selectedChildrenForChat.value = [...tempSelectedChildren.value];
-    showChildSelector.value = false;
-  };
-
-  const cancelChildSelection = () => {
-    tempSelectedChildren.value = [...selectedChildrenForChat.value];
-    showChildSelector.value = false;
-  };
-
-  // Load chat history
+  // Load chat history filtered by current child
   const loadChatHistory = async () => {
+    isLoading.value = true;
+    error.value = null;
+    
     try {
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      const response = await axios.get(`${baseUrl}/chats/${ownerId.value}`);
+      
+      // Build URL with optional child filter
+      let url = `${baseUrl}/chats/${ownerId.value}`;
+      if (selectedChildForChat.value !== null) {
+        url += `?child_id=${selectedChildForChat.value}`;
+      }
+      
+      const response = await axios.get(url);
       chatHistory.value = await Promise.all(response.data.map(async (chat: any) => {
         let title = chat.title;
         
@@ -270,38 +309,56 @@
         currentChatId.value = chatHistory.value[0].id;
         await handleSelectChat(currentChatId.value);
       }
-    } catch (error) {
-      console.error('Error fetching chat history:', error);
+    } catch (err: any) {
+      error.value = getErrorMessage(err);
+      showError.value = true;
+      console.error('Error fetching chat history:', err);
+    } finally {
+      isLoading.value = false;
     }
   };
 
   onMounted(async () => {
-    // Initialize chat-specific child selection with current child
-    if (childrenStore.currentChild) {
-      selectedChildrenForChat.value = [childrenStore.currentChild.id];
-      tempSelectedChildren.value = [childrenStore.currentChild.id];
-    }
-    
-    // Load chat history
-    await loadChatHistory();
+    // The watcher will handle loading chat history and setting selectedChildForChat
+    // when childrenStore.currentChild changes (including initial load)
   });
 
   // Watch for changes in global child selection and sync to chat selection
-  watch(() => childrenStore.currentChild, (newChild) => {
+  watch(() => childrenStore.currentChild, async (newChild, oldChild) => {
     if (newChild) {
-      // If no children selected for chat, or if we want to reset to current child
-      if (selectedChildrenForChat.value.length === 0 || 
-          !selectedChildrenForChat.value.includes(newChild.id)) {
-        selectedChildrenForChat.value = [newChild.id];
-        tempSelectedChildren.value = [newChild.id];
+      const newChildId = newChild.id;
+      
+      // Update selected child for chat
+      selectedChildForChat.value = newChildId;
+      
+      // Reload chat history if the child actually changed
+      if (!oldChild || oldChild.id !== newChildId) {
+        await loadChatHistory();
+        // Clear current chat selection since we're switching contexts
+        currentChatId.value = null;
       }
+    } else {
+      // No child selected - show all chats or general chats
+      selectedChildForChat.value = null;
+      await loadChatHistory();
+      currentChatId.value = null;
     }
   }, { immediate: true });
 
   const handleSendMessage = async (message: string) => {
-    const currentChatIndex = chatHistory.value.findIndex(
+    let currentChatIndex = chatHistory.value.findIndex(
       chat => chat.id === currentChatId.value
     );
+    
+    // If no current chat exists, create a new one first
+    if (currentChatIndex === -1) {
+      await handleNewChat();
+      // After creating new chat, find it again
+      currentChatIndex = chatHistory.value.findIndex(
+        chat => chat.id === currentChatId.value
+      );
+    }
+    
     if (currentChatIndex !== -1) {
       const newMessage = {
         id: Date.now(), // Temporary ID for immediate display
@@ -336,45 +393,123 @@
           created_at: new Date().toISOString(),
         });
 
-        // Call backend endpoint (contextual or basic)
-        let geminiResponse;
-        
-        if (useContextualChat.value && selectedChildrenForChat.value.length > 0) {
-          // Use contextual chat endpoint with selected children
-          geminiResponse = await axios.post(`${baseUrl}/chat/contextual`, {
-            message,
-            child_ids: selectedChildrenForChat.value,
-            carer_id: ownerId.value
-          });
-        } else {
-          // Use basic chat endpoint
-          geminiResponse = await axios.post(`${baseUrl}/chat/`, {
-            message,
-          });
-        }
-
-        const aiResponseText = geminiResponse.data.reply ?? '(No response)';
+        // Create placeholder AI message for streaming
+        const aiResponseId = Date.now() + 1;
         const aiResponse = {
-          id: Date.now() + 1, // Temporary ID
-          text: aiResponseText,
+          id: aiResponseId,
+          text: '',
           sender: 'ai',
+          isStreaming: true,
         };
         chatHistory.value[currentChatIndex].messages.push(aiResponse);
 
+        // Start streaming response
+        let streamUrl;
+        let requestBody;
+        
+        if (useContextualChat.value && selectedChildForChat.value !== null) {
+          // Use contextual streaming endpoint
+          streamUrl = `${baseUrl}/chat/contextual/stream`;
+          requestBody = {
+            message,
+            child_id: selectedChildForChat.value,
+            carer_id: ownerId.value
+          };
+        } else {
+          // Use basic streaming endpoint
+          streamUrl = `${baseUrl}/chat/stream`;
+          requestBody = { message };
+        }
+
+        // Make streaming request
+        const response = await fetch(streamUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+
+        if (reader) {
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = decoder.decode(value);
+              const lines = chunk.split('\n');
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const data = JSON.parse(line.slice(6));
+                    
+                    if (data.content) {
+                      fullResponse += data.content;
+                      // Update the streaming message
+                      const messageIndex = chatHistory.value[currentChatIndex].messages.findIndex(
+                        msg => msg.id === aiResponseId
+                      );
+                      if (messageIndex !== -1) {
+                        chatHistory.value[currentChatIndex].messages[messageIndex].text = fullResponse;
+                      }
+                    }
+
+                    if (data.done) {
+                      // Mark as complete
+                      const messageIndex = chatHistory.value[currentChatIndex].messages.findIndex(
+                        msg => msg.id === aiResponseId
+                      );
+                      if (messageIndex !== -1) {
+                        chatHistory.value[currentChatIndex].messages[messageIndex].isStreaming = false;
+                      }
+                      break;
+                    }
+                  } catch (e) {
+                    console.error('Error parsing streaming data:', e);
+                  }
+                }
+              }
+            }
+          } finally {
+            reader.releaseLock();
+          }
+        }
+
         // Save AI message to backend
         await axios.post(`${baseUrl}/chats/${currentChatId.value}/messages`, {
-          message: aiResponseText,
+          message: fullResponse || '(No response)',
           sender: 'ai',
           created_at: new Date().toISOString(),
         });
 
-      } catch (error) {
-        console.error('Error sending message or fetching AI response:', error);
-        chatHistory.value[currentChatIndex].messages.push({
-          id: Date.now() + 1,
-          text: "Sorry, I couldn't fetch a response. Please try again later.",
-          sender: 'ai',
-        });
+      } catch (err: any) {
+        console.error('Error sending message or fetching AI response:', err);
+        const errorMessage = getErrorMessage(err);
+        
+        // Update the streaming message with error
+        const messageIndex = chatHistory.value[currentChatIndex].messages.findIndex(
+          msg => msg.sender === 'ai' && msg.isStreaming
+        );
+        if (messageIndex !== -1) {
+          chatHistory.value[currentChatIndex].messages[messageIndex].text = `Sorry, I couldn't fetch a response: ${errorMessage}`;
+          chatHistory.value[currentChatIndex].messages[messageIndex].isStreaming = false;
+        } else {
+          // Add error message if no streaming message found
+          chatHistory.value[currentChatIndex].messages.push({
+            id: Date.now() + 1,
+            text: `Sorry, I couldn't fetch a response: ${errorMessage}`,
+            sender: 'ai',
+          });
+        }
       }
     }
   };

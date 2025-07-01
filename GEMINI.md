@@ -52,7 +52,6 @@ SuriCare is a child health monitoring application for parents and caregivers. Th
   - `growth.py`
   - `sleep.py`
   - `chat.py`
-- `chatbot/app/model.py` - AI chatbot implementation
 
 **Core endpoints:**
 - User and child profile management

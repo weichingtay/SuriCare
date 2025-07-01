@@ -150,15 +150,15 @@
     // Clear any previous errors
     errorMessage.value = ''
     authStore.clearError()
-    
+
     loading.value = true
     try {
       const result = await authStore.login(email.value, password.value)
-      
+
       if (result.success) {
         console.log('Login successful!')
         // Navigate to dashboard
-        await router.push('/dashboard')
+        await router.push('/')
       } else {
         errorMessage.value = result.error || 'Login failed. Please check your credentials.'
       }
@@ -174,7 +174,7 @@
     try {
       loading.value = true
       const result = await authStore.loginWithGoogle()
-      
+
       if (result.success) {
         console.log('Google login initiated')
         // Google login will redirect automatically
@@ -194,11 +194,11 @@
       errorMessage.value = 'Please enter your email address first'
       return
     }
-    
+
     try {
       loading.value = true
       const result = await authStore.resetPassword(email.value)
-      
+
       if (result.success) {
         errorMessage.value = ''
         // Show success message (you might want to use a toast notification instead)
