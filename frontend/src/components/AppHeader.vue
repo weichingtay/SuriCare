@@ -23,7 +23,7 @@
                 v-bind="menuProps"
                 class="child-selector-btn"
                 height="48"
-                style="justify-content: flex-start"
+                style="justify-content: flex-start;"
                 variant="elevated"
               >
                 <v-avatar
@@ -69,6 +69,22 @@
                 <v-list-item-subtitle class="dropdown-age">{{
                   child.age
                 }}</v-list-item-subtitle>
+              </v-list-item>
+
+              <!-- Single Add Child at bottom -->
+              <v-list-item
+                class="add-child-item"
+                style="border-top: 1px solid rgba(255, 255, 255, 0.2); margin-top: 8px;"
+                @click="addNewChild"
+              >
+                <template #prepend>
+                  <div style="width: 32px; height: 32px; border-radius: 50%; background: #f0c6c9; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <v-icon size="16" style="color: #d87179;">mdi-plus</v-icon>
+                  </div>
+                </template>
+                <v-list-item-title style="color: #d87179; font-weight: 500;">
+                  Add Child
+                </v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -123,14 +139,11 @@
       </div>
 
       <!-- Right section: Share functionality -->
-      <div
-        class="right-section"
-        style="display: flex; align-items: center; gap: 8px"
-      >
+      <div class="right-section">
         <!-- Share button -->
         <v-btn
           class="share-child-btn"
-          height="40"
+          height="48"
           variant="elevated"
           @click="openShareDialog"
         >
@@ -257,6 +270,11 @@
     emit('child-selected', child)
   }
 
+  const addNewChild = () => {
+    // Add your logic here to open add child dialog or navigate to add child page
+    console.log('Add new child clicked')
+  }
+
   // Growth dialog logic
   const {
     growthDialog,
@@ -290,7 +308,72 @@
 </script>
 
 <style lang="scss" scoped>
-  // .v-text-field--outlined >>> fieldset {
-  //   border-color: rgba(192, 0, 250, 0.986);
-  // }
+  .header-container {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .left-section {
+    flex: 0 0 auto !important;
+  }
+
+  .right-section {
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+  }
+
+  // Force dropdown button to be smaller
+  :deep(.child-selector-btn) {
+    max-width: 180px !important;
+    min-width: unset !important;
+    
+    .v-btn__content {
+      justify-content: space-between !important;
+    }
+    
+    .dropdown-icon {
+      margin-left: auto !important;
+    }
+    
+    .child-info {
+      flex: 1 !important;
+      margin-right: 8px !important;
+    }
+  }
+
+  // Force share button text to align right
+  :deep(.share-child-btn) {
+    max-width: 180px !important;
+    min-width: 180px !important;
+    width: 180px !important;
+    
+    .v-btn__content {
+      justify-content: flex-end !important;
+      text-align: right !important;
+      width: 100% !important;
+    }
+  }
+
+  // Alternative targeting for share button
+  :deep(.v-btn.share-child-btn) {
+    max-width: 180px !important;
+    min-width: 180px !important;
+    width: 180px !important;
+  }
+
+  // Alternative approach - use global styles
+  :deep(.v-btn.child-selector-btn) {
+    max-width: 180px !important;
+    width: auto !important;
+  }
+
+  :deep(.v-btn.share-child-btn) {
+    justify-content: flex-end !important;
+    
+    .v-btn__content {
+      justify-content: flex-end !important;
+      margin-left: auto !important;
+    }
+  }
 </style>

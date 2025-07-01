@@ -6,17 +6,24 @@
   backdrop-filter: blur($glass-blur-md);
   border: 1px solid $app-primary-light;
   border-radius: $child-border-radius;
-  min-width: 180px; // Reduced from $child-min-width
+  min-width: 180px !important;
+  width: 180px !important;
+  max-width: 180px !important;
   box-shadow: $child-shadow-base;
   transition: $transition-base;
-  padding: 0 $spacing-sm; // Reduced from $spacing-md
+  padding: 0 $spacing-sm;
   display: flex;
   align-items: center; 
-  gap: $spacing-sm; // Reduced from $spacing-md
+  gap: $spacing-sm;
 
   &::before {
     background: white;
   }
+
+  .v-btn.child-selector-btn .v-btn__content {
+  width: 100% !important;
+  justify-content: space-between !important;
+}
 
   &:hover {
     background: $glass-white;
@@ -35,14 +42,14 @@
   border: 1px solid $glass-border !important;
   border-radius: $child-border-radius !important;
   box-shadow: $child-shadow-dropdown !important;
-  min-width: 180px !important; // Reduced from $child-dropdown-min-width
+  min-width: 180px !important;
   margin-top: $spacing-xs !important;
 }
 
 .child-dropdown-item {
   border-radius: $child-border-radius-sm;
-  margin: $spacing-xs $spacing-xs; // Reduced side margins
-  padding: $spacing-xs $spacing-sm; // Added smaller padding
+  margin: $spacing-xs $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
   transition: $transition-base;
 
   &:hover {
@@ -55,23 +62,60 @@
   }
 }
 
+// Add Child item styling
+.add-child-item {
+  border-radius: $child-border-radius-sm;
+  margin: $spacing-xs $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  transition: $transition-base;
+  border-top: 1px solid $glass-border;
+  margin-top: $spacing-sm;
+
+  &:hover {
+    background: $glass-pink-very-light;
+  }
+
+  .add-child-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: $app-primary-light;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: $spacing-sm;
+    
+    .v-icon {
+      color: $app-primary;
+      font-size: 14px;
+    }
+  }
+
+  .add-child-text {
+    font-family: $font-child;
+    font-weight: 500;
+    color: $app-primary;
+    font-size: 13px;
+  }
+}
+
 .dropdown-avatar {
   border: $child-avatar-border;
-  width: 24px; // Reduced from default 32px
-  height: 24px; // Reduced from default 32px
+  width: 24px;
+  height: 24px;
 }
 
 .dropdown-name {
   font-family: $font-child;
   font-weight: 500;
   color: $app-text-primary;
-  font-size: 13px; // Slightly smaller
+  font-size: 13px;
 }
 
 .dropdown-age {
   font-family: $font-primary;
   color: rgba($app-text-primary, 0.6);
-  font-size: 11px; // Slightly smaller
+  font-size: 11px;
 }
 
 .dropdown-icon {
@@ -79,15 +123,15 @@
   transition: transform 0.2s ease;
   flex-shrink: 0;
   margin-left: auto;
-  padding-left: $spacing-xs; // Reduced from $spacing-sm
-  font-size: 14px; // Slightly smaller
+  padding-left: $spacing-xs;
+  font-size: 14px;
 }
 
 .child-avatar {
   border: $child-avatar-border;
   flex-shrink: 0;
-  width: 24px; // Reduced from default 32px
-  height: 24px; // Reduced from default 32px
+  width: 24px;
+  height: 24px;
 }
 
 .child-info {
@@ -95,26 +139,26 @@
   flex-direction: column;
   align-items: flex-start;
   flex: 1;
-  margin-right: $spacing-xs; // Reduced from $spacing-sm
+  margin-right: $spacing-xs;
 }
 
 .child-name {
-  font-size: 13px; // Slightly smaller
+  font-size: 13px;
 }
 
 .child-age {
-  font-size: 11px; // Slightly smaller
+  font-size: 11px;
 }
 
 // Growth Card styles
 .growth-icon {
-  width: 28px; // Reduced from $child-icon-size (32px)
-  height: 28px; // Reduced from $child-icon-size (32px)
+  width: 28px;
+  height: 28px;
   border-radius: $child-border-radius-sm;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: $spacing-sm; // Reduced from $spacing-md
+  margin-right: $spacing-sm;
   position: relative;
   z-index: 1;
   flex-shrink: 0;
