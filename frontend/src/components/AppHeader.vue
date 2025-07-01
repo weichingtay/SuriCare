@@ -251,11 +251,15 @@
 </template>
 
 <script setup lang="ts">
+  import { useRouter } from 'vue-router'
   import { useShareChild } from '@/composables/useShareChild'
   import { useGrowthDialog } from '@/composables/useGrowthDialog'
   import GrowthDialog from '../components/dialog/GrowthDialog.vue'
 
   import type { Child } from '@/stores/children'
+
+  // Router
+  const router = useRouter()
 
   // Props
   const props = defineProps<{
@@ -264,20 +268,18 @@
   }>()
 
   // Emits
-  const emit = defineEmits<{
-    'child-selected': [child: Child],
-    'add-child-requested': []
-  }>()
+const emit = defineEmits<{
+  'child-selected': [child: Child]
+}>()
 
   // Methods
   const selectChild = (child: Child) => {
     emit('child-selected', child)
   }
 
-  const addNewChild = () => {
-    // Add your logic here - could emit an event or open a dialog
-    emit('add-child-requested')
-  }
+ const addNewChild = () => {
+  router.push('/add-child')
+}
 
   // Growth dialog logic
   const {
