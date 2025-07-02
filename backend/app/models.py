@@ -120,3 +120,25 @@ class ChatMessage(SQLModel, table=True):
     message: str = Field(sa_column=Column(TEXT))
     sender: str
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+
+# Lookup tables for form options
+class Gender_Options(SQLModel, table=True):
+    __tablename__ = "gender_options"
+    id: int = Field(default=None, primary_key=True)
+    value: str = Field(unique=True)
+    label: str
+
+
+class Relationship_Types(SQLModel, table=True):
+    __tablename__ = "relationship_types"
+    id: int = Field(default=None, primary_key=True)
+    value: str = Field(unique=True)
+    label: str
+
+
+class Access_Levels(SQLModel, table=True):
+    __tablename__ = "access_levels"
+    id: int = Field(default=None, primary_key=True)
+    value: str = Field(unique=True)
+    label: str

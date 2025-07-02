@@ -18,12 +18,19 @@
       >
         <div class="d-flex align-center">
           <v-badge
-            v-show="alertsCount > 0"
+            v-if="alertsCount > 0"
             class="ml-2"
             color="#FF5252"
             :content="alertsCount"
             floating
-          >Alert</v-badge>
+            >Alert</v-badge
+          >
+          <div
+            v-else
+            :class="{ inactive: activeTab != 'alert' }"
+          >
+            Alert
+          </div>
         </div>
       </v-tab>
       <v-tab
@@ -40,9 +47,9 @@
 <script setup lang="ts">
   import { onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import { useGuidanceAlert } from '@/composables/useGuidanceAlert'
 
-  const { alertsCount } = useGuidanceAlert()
+  // TODO: Replace with actual alert count from store
+  const alertsCount = ref(0)
   const route = useRoute()
   const router = useRouter()
 
@@ -61,7 +68,7 @@
   })
 
   // Watch for tab changes and emit to parent + update URL
-  watch(activeTab, newTab => {
+  watch(activeTab, (newTab) => {
     emit('tab-changed', newTab)
 
     // Update URL query parameter without triggering navigation
@@ -71,12 +78,15 @@
   })
 
   // Watch for route changes (e.g., browser back/forward)
-  watch(() => route.query.tab, newTab => {
-    if (newTab && ['guidance', 'alert', 'saved'].includes(newTab)) {
-      activeTab.value = newTab
-      emit('tab-changed', newTab)
+  watch(
+    () => route.query.tab,
+    (newTab) => {
+      if (newTab && ['guidance', 'alert', 'saved'].includes(newTab)) {
+        activeTab.value = newTab
+        emit('tab-changed', newTab)
+      }
     }
-  })
+  )
 </script>
 
 <style scoped>

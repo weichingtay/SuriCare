@@ -7,7 +7,7 @@ from langchain.schema import Document
 from typing import List, Dict, Optional
 import json
 
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-2.0-flash"
 AI_TEMPERATURE = 0.3
 
 
