@@ -22,7 +22,7 @@ router.beforeEach(async (to) => {
   console.log('Router guard - Path:', to.path, 'Authenticated:', authStore.isAuthenticated, 'Initialized:', authStore.isInitialized, 'Loading:', authStore.isLoading)
 
   // Public pages that don't require authentication
-  const publicPages = ['/login', '/signup', '/', '/index']
+  const publicPages = ['/login', '/signup',  '/index']
   const isPublicPage = publicPages.includes(to.path)
 
   // Always initialize auth if not done yet
