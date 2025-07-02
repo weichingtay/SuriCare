@@ -52,14 +52,20 @@
 
 <script setup lang="ts">
   import { ref } from 'vue'
+  import { useChatbotStore } from '@/stores/chatbot'
 
   const message = ref('')
+  const chatbotStore = useChatbotStore()
 
-  const emit = defineEmits(['send-message'])
-
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (message.value.trim()) {
-      emit('send-message', message.value)
+      // If no current chat, create one first
+      if (!chatbotStore.currentChatId) {
+        await chatbotStore.handleNewChat()
+      }
+      
+      // Send the message through the store
+      await chatbotStore.sendMessage(message.value)
       message.value = ''
     }
   }

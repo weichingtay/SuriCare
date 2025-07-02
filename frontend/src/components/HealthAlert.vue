@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-  import { useHealthAlert } from '@/composables/useHealthAlert'
+  import { ref, computed } from 'vue'
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const props = defineProps({
@@ -59,7 +59,15 @@
 
   const emit = defineEmits(['view-more'])
 
-  const { healthData, hasHealthAlert } = useHealthAlert()
+  // TODO: Replace with actual health alert data from store
+  const healthData = ref({
+    status: 'No alerts',
+    message: 'Everything looks normal',
+    symptoms: [],
+    temperature: null
+  })
+
+  const hasHealthAlert = computed(() => false) // TODO: Implement actual alert logic
 
   const handleViewMore = () => {
     emit('view-more', healthData.value)

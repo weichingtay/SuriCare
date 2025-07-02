@@ -43,7 +43,7 @@
         />
 
         <!-- AI Assistant section -->
-        <AIAssistant @send-message="aiChat.sendMessage" />
+        <AIAssistant />
       </v-container>
     </v-main>
     <!-- Dialog Components -->
@@ -77,7 +77,6 @@
   import { onMounted, reactive } from 'vue'
   import { useChildrenStore } from '@/stores/children'
   import { useSummaryStore } from '@/stores/summary'
-  import { useAIChat } from '@/composables/useAIChat'
   import { useRouter } from 'vue-router'
 
   // Import components
@@ -95,7 +94,6 @@
   // Use stores and composables
   const childrenStore = useChildrenStore()
   const summaryStore = useSummaryStore()
-  const aiChat = useAIChat()
 
   const router = useRouter()
 
