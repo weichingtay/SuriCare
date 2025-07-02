@@ -146,5 +146,52 @@
 </script>
 
 <style lang="scss" scoped>
+@use '@/styles/variables' as *;
+
+:deep(.v-date-picker) {
+  .v-btn {
+    all: unset !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    border-radius: 50% !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    font-family: $font-primary !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+
+    &:hover {
+      background-color: rgba($app-primary, 0.1) !important;
+    }
+
+    &.v-btn--active,
+    &.v-date-picker-month__day--selected {
+      background-color: $app-primary !important;
+      color: white !important;
+    }
+  }
+
+  .v-date-picker-header .v-btn {
+    border-radius: 4px !important;
+    min-width: auto !important;
+    padding: 8px !important;
+  }
+
+  .v-date-picker-month__day {
+    border-radius: 50% !important;
+
+    &--selected {
+      background-color: $app-primary !important;
+      color: white !important;
+    }
+
+    &:hover:not(.v-date-picker-month__day--selected) {
+      background-color: rgba($app-primary, 0.1) !important;
+    }
+  }
+}
 
 </style>
