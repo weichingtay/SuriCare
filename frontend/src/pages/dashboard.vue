@@ -127,6 +127,44 @@
       </v-card>
     </v-col>
   </v-row>
+  <!-- New Analytics Charts Row -->
+  <v-row>
+    <v-col cols="12" lg="6">
+      <v-card class="pa-2" max-width="800">
+        <v-container class="mb-1 d-flex justify-end pr-0">
+          <button class="toggle-btn week-btn" type="submit" @click="meal_toggleWeek">Week</button>
+          <button class="toggle-btn month-btn" type="submit" @click="meal_toggleMonth">Month</button>
+        </v-container>
+        <apexchart :options="mealConsumptionOptions" :series="mealConsumptionSeries" width="100%" />
+      </v-card>
+    </v-col>
+    <v-col cols="12" lg="6">
+      <v-card class="pa-2" max-width="800">
+        <apexchart :options="mealDistributionOptions" :series="mealDistributionSeries" width="100%" />
+      </v-card>
+    </v-col>
+  </v-row>
+
+  <v-row>
+    <v-col cols="12" lg="6">
+      <v-card class="pa-2" max-width="800">
+        <v-container class="mb-1 d-flex justify-end pr-0">
+          <button class="toggle-btn week-btn" type="submit" @click="poop_toggleWeek">Week</button>
+          <button class="toggle-btn month-btn" type="submit" @click="poop_toggleMonth">Month</button>
+        </v-container>
+        <apexchart :options="poopFrequencyOptions" :series="poopFrequencySeries" width="100%" />
+      </v-card>
+    </v-col>
+    <v-col cols="12" lg="6">
+      <v-card class="pa-2" max-width="800">
+        <v-container class="mb-1 d-flex justify-end pr-0">
+          <button class="toggle-btn week-btn" type="submit" @click="health_toggleWeek">Week</button>
+          <button class="toggle-btn month-btn" type="submit" @click="health_toggleMonth">Month</button>
+        </v-container>
+        <apexchart :options="healthTimelineOptions" :series="healthTimelineSeries" width="100%" />
+      </v-card>
+    </v-col>
+  </v-row>
 </template>
 
 <script setup lang="ts">
@@ -144,12 +182,21 @@
     },
   })
 
+  const analyticsData = reactive({
+  mealConsumption: [],
+  mealDistribution: {},
+  poopFrequency: [],
+  healthTimeline: [],
+})
+
   // Setup initial reference for benchmark weight, height & head_circumference
   const benchmark = reactive({
     weight: [],
     height: [],
     head_circumference: [],
   })
+
+  
 
   // Setup initial reference of min / max value on Y-axis for charts
   const chart = reactive({
@@ -233,6 +280,218 @@
       // dashArray: 5
     },
   })
+
+//Chart series for mealconsumption
+  const mealConsumptionSeries = ref([{
+  name: 'Consumption %',
+  data: []
+}])
+
+// chart option 
+const mealConsumptionOptions = ref({
+  chart: { 
+    type: 'line', 
+    // fontFamily: "Tahoma",
+  },
+  theme: { 
+    mode: 'light', 
+    palette: 'palette5' 
+  },
+  colors: ['#81c5f7'],
+  xaxis: { 
+    type: 'datetime',
+    labels: {
+      show: true,
+      rotate: -45,
+      datetimeUTC: false,
+      formatter: (_, timestamp, opts) => {
+        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+      }
+    },
+    tickPlacement: 'on',
+    tickAmount: 'dataPoints',
+  },
+  yaxis: { 
+    title: { 
+      text: 'Consumption %' 
+    },
+    min: 0,
+    max: 100,
+    labels: {
+      formatter: function (val) {
+        return parseInt(val)
+      }
+    }
+  },
+  title: { 
+    text: 'Meal Consumption Trends',
+    style: { 
+      fontSize: '22px', 
+      fontWeight: 'bold', 
+      // fontFamily: "Georgia",
+      color: '#2c1810' 
+    }
+  },
+  stroke: { 
+    curve: 'straight', 
+    width: 3 
+  },
+  // markers: { size: 4 },
+})
+
+//chart series for
+const mealDistributionSeries = ref([])
+
+//chart option for
+const mealDistributionOptions = ref({
+  chart: { 
+    type: 'donut', 
+    // fontFamily: "Tahoma",
+  },
+  theme: { 
+    mode: 'light', 
+    palette: 'palette5' 
+  },
+  colors: ['#81c5f7', '#fb9bec', '#81c5f7', '#fb9bec'],
+  labels: [],
+  title: {
+    text: 'Daily Meal Distribution',
+    style: { 
+      fontSize: '22px', 
+      fontWeight: 'bold', 
+      // fontFamily: "Georgia",
+      color: '#2c1810' 
+    }
+  },
+  legend: { position: 'bottom' },
+  dataLabels: {
+    enabled: true,
+    formatter: (val) => `${val.toFixed(1)}%`
+  },
+})
+
+//chart series for
+const poopFrequencySeries = ref([{
+  name: 'Daily Frequency',
+  data: []
+}])
+
+//chart option for
+const poopFrequencyOptions = ref({
+  chart: { 
+    type: 'bar',
+    // fontFamily: "Tahoma",
+  },
+  theme: { 
+    mode: 'light', 
+    palette: 'palette5' 
+  },
+  colors: ['#fb9bec'],
+  xaxis: { 
+    type: 'datetime',
+    labels: {
+      show: true,
+      rotate: -45,
+      datetimeUTC: false,
+      formatter: (_, timestamp, opts) => {
+        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+      }
+    },
+    tickPlacement: 'on',
+    tickAmount: 'dataPoints',
+  },
+  yaxis: { 
+    title: { 
+      text: 'Times per Day' 
+    },
+    min: 0,
+    max: 5,
+    tickAmount: 5,
+    labels: {
+      formatter: function (val) {
+        return parseInt(val)
+      }
+    }
+  },
+  title: {
+    text: 'Digestive Health',
+    style: { 
+      fontSize: '22px', 
+      fontWeight: 'bold', 
+      // fontFamily: "Georgia",
+      color: '#2c1810' 
+    }
+  },
+  plotOptions: {
+    bar: {
+      borderRadius: 4,
+      horizontal: false
+    }
+  },
+  stroke: {
+    curve: 'straight',
+    width: 3,
+  },
+})
+
+//chart series for
+const healthTimelineSeries = ref([{
+  name: 'Symptoms',
+  data: []
+}])
+
+//chart option for 
+const healthTimelineOptions = ref({
+  chart: { 
+    type: 'scatter', 
+    // fontFamily: "Tahoma",
+  },
+  theme: { 
+    mode: 'light', 
+    palette: 'palette5' 
+  },
+  colors: ['#81c5f7'],
+  xaxis: { 
+    type: 'datetime',
+    labels: {
+      show: true,
+      rotate: -45,
+      datetimeUTC: false,
+      formatter: (_, timestamp, opts) => {
+        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+      }
+    },
+    tickPlacement: 'on',
+    tickAmount: 'dataPoints',
+  },
+  yaxis: { 
+    title: { 
+      text: 'Symptom Type' 
+    },
+    labels: {
+      formatter: (value) => {
+        const symptoms = ['Fever', 'Cold', 'Rash', 'Upset Stomach', 'Other']
+        return symptoms[value - 1] || 'Unknown'
+      }
+    },
+    min: 0,
+    max: 6
+  },
+  title: {
+    text: 'Health Timeline',
+    style: { 
+      fontSize: '22px', 
+      fontWeight: 'bold', 
+      // fontFamily: "Georgia",
+      color: '#2c1810' 
+    }
+  },
+  markers: { size: 6 },
+  stroke: {
+    curve: 'straight',
+    width: 3,
+  },
+})
 
   // Chart data for Height
   const heightSeries = ref([
@@ -430,6 +689,8 @@
       enabled: false,
     },
   })
+
+  
 
   // Function to set maximum & minimum value for Y-axis of weight, height and head circumference
   const setY_min_max = (actual_array, benchmark_array, series) => {
@@ -659,6 +920,92 @@
     }
   }
 
+  //newly added
+const fetchMealAnalytics = async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/analytics/meal-analytics/1')
+    const mealData = response.data
+
+    // Create mock daily consumption data
+    const consumptionTrend = Array.from({ length: 30 }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (29 - i))
+      // Set time to midnight to avoid timezone issues
+      date.setHours(0, 0, 0, 0)
+      return {
+        x: date.getTime(),
+        y: Math.round(60 + Math.random() * 30) // Mock 60-90% consumption, rounded
+      }
+    })
+
+    mealConsumptionSeries.value = [{
+      name: 'Consumption %',
+      data: consumptionTrend
+    }]
+
+    // Meal distribution
+    const distribution = mealData.meal_time_distribution || {
+      'Breakfast': 30,
+      'Lunch': 25,
+      'Dinner': 30,
+      'Snacks': 15
+    }
+    mealDistributionOptions.value.labels = Object.keys(distribution)
+    mealDistributionSeries.value = Object.values(distribution)
+
+  } catch (error) {
+    console.error('Error fetching meal analytics:', error)
+  }
+}
+
+const fetchPoopAnalytics = async () => {
+  try {
+    const dailyFrequency = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (6 - i))
+      return {
+        x: date.getTime(),
+        y: Math.floor(Math.random() * 3) + 1
+      }
+    })
+
+    poopFrequencySeries.value = [{
+      name: 'Daily Frequency',
+      data: dailyFrequency
+    }]
+
+  } catch (error) {
+    console.error('Error fetching poop analytics:', error)
+  }
+}
+
+const fetchHealthTimeline = async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/analytics/symptom-analytics/1')
+    
+    // Create mock symptom timeline
+    const symptoms = [
+      { date: '2024-12-01', symptom: 'Mild Fever', type: 1 },
+      { date: '2024-12-05', symptom: 'Runny Nose', type: 2 },
+      { date: '2024-12-10', symptom: 'Skin Rash', type: 3 },
+    ]
+
+    const timelineData = symptoms.map(symptom => ({
+      x: new Date(symptom.date).getTime(),
+      y: symptom.type,
+      symptom: symptom.symptom
+    }))
+
+    healthTimelineSeries.value = [{
+      name: 'Symptoms',
+      data: timelineData
+    }]
+
+  } catch (error) {
+    console.error('Error fetching health timeline:', error)
+  }
+}
+
   const fetchSleep = async () => {
     try {
       const response = await axios.get(
@@ -789,6 +1136,9 @@
     try {
       fetchGrowth()
       fetchSleep()
+      fetchMealAnalytics()
+      fetchPoopAnalytics()
+      fetchHealthTimeline()
     } catch (error) {
       console.error(`Error: ${error}`)
     }
@@ -996,6 +1346,88 @@
 
     setY_max_for_sleep(nap_hours_monthly_values, night_hours_monthly_values)
   }
+
+  const meal_toggleWeek = () => {
+    // Filter meal consumption data for last 7 days
+    const weekData = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (6 - i))
+      // Set time to midnight to avoid timezone issues
+      date.setHours(0, 0, 0, 0)
+      return {
+        x: date.getTime(),
+        y: Math.round(60 + Math.random() * 30) // Mock 60-90% consumption, rounded
+      }
+    })
+    
+    mealConsumptionSeries.value = [{
+      name: 'Consumption %',
+      data: weekData
+    }]
+  }
+
+  const meal_toggleMonth = () => {
+    // Show full 30 days of meal consumption data
+    fetchMealAnalytics()
+  }
+
+  const poop_toggleWeek = () => {
+    // Filter poop frequency data for last 7 days
+    const weekData = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (6 - i))
+      return {
+        x: date.getTime(),
+        y: Math.floor(Math.random() * 3) + 1
+      }
+    })
+
+    poopFrequencySeries.value = [{
+      name: 'Daily Frequency',
+      data: weekData
+    }]
+  }
+
+  const poop_toggleMonth = () => {
+    // Show 30 days of poop frequency data
+    const monthData = Array.from({ length: 30 }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (29 - i))
+      return {
+        x: date.getTime(),
+        y: Math.floor(Math.random() * 3) + 1
+      }
+    })
+
+    poopFrequencySeries.value = [{
+      name: 'Daily Frequency',
+      data: monthData
+    }]
+  }
+
+  const health_toggleWeek = () => {
+    // Filter health timeline for last 7 days
+    const weekSymptoms = [
+      { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), symptom: 'Mild Fever', type: 1 },
+    ]
+
+    const timelineData = weekSymptoms.map(symptom => ({
+      x: symptom.date.getTime(),
+      y: symptom.type,
+      symptom: symptom.symptom
+    }))
+
+    healthTimelineSeries.value = [{
+      name: 'Symptoms',
+      data: timelineData
+    }]
+  }
+
+  const health_toggleMonth = () => {
+    // Show full month of health timeline
+    fetchHealthTimeline()
+  }
+
 </script>
 
 <style lang="scss" scoped>
