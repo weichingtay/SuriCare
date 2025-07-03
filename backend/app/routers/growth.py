@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from app.db import engine, get_session
-from app.models import Growth
+from app.models import Growth, Growth_Benchmark
 from typing import Optional
 import pandas as pd
 import numpy as np
@@ -77,3 +77,45 @@ def new_growth(*, session: Session = Depends(get_session), growth: Growth):
     session.commit()
     session.refresh(growth)
     return growth
+
+# Growth benchmarks endpoints (moved from reference router)
+@router.get('/growth/benchmarks')
+def get_growth_benchmarks(gender: Optional[str] = None, age_month: Optional[int] = None):
+    """Get growth benchmarks, optionally filtered by gender and/or age"""
+    with engine.connect() as conn, conn.begin():
+        sql_conditions = []
+        if gender:
+            sql_conditions.append(f"gender = '{gender}'")
+        if age_month is not None:
+            sql_conditions.append(f"age_month = {age_month}")
+        
+        where_clause = " AND ".join(sql_conditions) if sql_conditions else "1=1"
+        
+        sql_text = f"""
+                    SELECT *
+                    FROM growth_benchmark
+                    WHERE {where_clause}
+                    ORDER BY age_month ASC
+                """
+        benchmarks = pd.read_sql_query(sql_text, con=conn)
+        
+        if benchmarks.empty:
+            return []
+        
+    return json.loads(benchmarks.to_json(orient='records'))
+
+@router.get('/growth/benchmarks/{gender}/{age_month}')
+def get_growth_benchmark_specific(gender: str, age_month: int):
+    """Get specific growth benchmark for gender and age"""
+    with engine.connect() as conn, conn.begin():
+        sql_text = f"""
+                    SELECT *
+                    FROM growth_benchmark
+                    WHERE gender = '{gender}' AND age_month = {age_month}
+                """
+        benchmark = pd.read_sql_query(sql_text, con=conn)
+        
+        if benchmark.empty:
+            raise HTTPException(status_code=404, detail=f"Growth benchmark not found for {gender} at {age_month} months")
+        
+    return json.loads(benchmark.to_json(orient='records'))[0]
