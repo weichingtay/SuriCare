@@ -18,6 +18,7 @@
         <!-- Child selector -->
         <div>
           <v-menu class="dropdown-menu">
+            <!-- NOTE: menuProps here is to bind the btns below to the v-menu -->
             <template #activator="{ props: menuProps }">
               <v-btn
                 v-bind="menuProps"
@@ -139,7 +140,7 @@
       </div>
 
       <!-- Right section: Share functionality -->
-      <div 
+      <div
         class="right-section"
         style="display: flex; align-items: center;"
       >
@@ -318,15 +319,15 @@ const emit = defineEmits<{
   :deep(.child-selector-btn) {
     width: 180px !important;
     min-width: 180px !important;
-    
+
     .v-btn__content {
       justify-content: space-between !important;
     }
-    
+
     .dropdown-icon {
       margin-left: auto !important;
     }
-    
+
     .child-info {
       flex: 1 !important;
       margin-right: 8px !important;

@@ -32,7 +32,10 @@ class RAGService:
         self.qa_chain = None
 
     def initialize_knowledge_base(self, knowledge_file_path: str):
-        """Initialize the knowledge base from a JSON file"""
+        """
+        Initialize the knowledge base from a JSON file.
+        The JSON file is at the path specified by the knowledge_file_path.
+        """
         try:
             with open(knowledge_file_path, "r") as f:
                 knowledge_data = json.load(f)
@@ -103,19 +106,22 @@ class RAGService:
 
         return documents
 
+    # NOTE: THere are 2 ways to get repsonses, 1 is contextual from
     def get_contextual_response(self, query: str, child_context: str) -> Dict:
         """Get AI response with child context and knowledge retrieval, with fallback to general AI"""
         try:
             # First, try to get a knowledge-based response
-            knowledge_response = self._get_knowledge_based_response(query, child_context)
-            
+            knowledge_response = self._get_knowledge_based_response(
+                query, child_context
+            )
+
             # Check if the knowledge response is relevant/useful
             if self._is_response_relevant(knowledge_response, query):
                 return knowledge_response
-            
+
             # If knowledge base doesn't have relevant info, use general AI
             return self._get_general_ai_response(query, child_context)
-            
+
         except Exception as e:
             print(f"Error getting contextual response: {e}")
             return {
@@ -123,7 +129,7 @@ class RAGService:
                 "sources": [],
                 "error": str(e),
             }
-    
+
     def _get_knowledge_based_response(self, query: str, child_context: str) -> Dict:
         """Get response using knowledge base"""
         if not self.qa_chain:
@@ -132,19 +138,19 @@ class RAGService:
 
         # Enhanced prompt with child context
         enhanced_query = f"""
-Based on the following child information:
-{child_context}
+                        Based on the following child information:
+                        {child_context}
 
-Please answer this question: {query}
+                        Please answer this question: {query}
 
-Provide advice specific to this child's age, developmental stage, and current health status.
-Always include a disclaimer to consult healthcare professionals for serious concerns.
+                        Provide advice specific to this child's age, developmental stage, and current health status.
+                        Always include a disclaimer to consult healthcare professionals for serious concerns.
 
-FORMATTING INSTRUCTIONS: 
-- Use clear paragraph breaks (double line breaks) between different topics or ideas
-- Structure your response with proper spacing for readability
-- Separate key points into distinct paragraphs
-"""
+                        FORMATTING INSTRUCTIONS: 
+                        - Use clear paragraph breaks (double line breaks) between different topics or ideas
+                        - Structure your response with proper spacing for readability
+                        - Separate key points into distinct paragraphs
+                        """
 
         # Get response from RAG chain
         result = self.qa_chain({"query": enhanced_query})
@@ -169,41 +175,41 @@ FORMATTING INSTRUCTIONS:
             "response": result["result"],
             "sources": sources,
             "context_used": child_context,
-            "response_type": "knowledge_based"
+            "response_type": "knowledge_based",
         }
-    
+
     def _get_general_ai_response(self, query: str, child_context: str) -> Dict:
         """Get general AI response when knowledge base doesn't have relevant information"""
         try:
             # Create a comprehensive prompt for general AI
             prompt = f"""
-You are SuriAI, a helpful pediatric health assistant. You have access to general medical knowledge but should always remind users to consult healthcare professionals for medical concerns.
+                    You are SuriAI, a helpful pediatric health assistant. You have access to general medical knowledge but should always remind users to consult healthcare professionals for medical concerns.
 
-Child Context:
-{child_context}
+                    Child Context:
+                    {child_context}
 
-User Question: {query}
+                    User Question: {query}
 
-Please provide a helpful response based on general pediatric knowledge. Be sure to:
-1. Consider the child's age and any provided context
-2. Provide practical, safe advice
-3. Always recommend consulting a healthcare professional for medical concerns
-4. Be empathetic and supportive
-5. If the question is outside medical/childcare topics, politely acknowledge and try to help if appropriate
+                    Please provide a helpful response based on general pediatric knowledge. Be sure to:
+                    1. Consider the child's age and any provided context
+                    2. Provide practical, safe advice
+                    3. Always recommend consulting a healthcare professional for medical concerns
+                    4. Be empathetic and supportive
+                    5. If the question is outside medical/childcare topics, politely acknowledge and try to help if appropriate
 
-Response:
-"""
-            
+                    Response:
+                    """
+
             # Use the LLM directly for general response
             response = self.llm.invoke(prompt)
-            
+
             return {
                 "response": response,
                 "sources": [],
                 "context_used": child_context,
-                "response_type": "general_ai"
+                "response_type": "general_ai",
             }
-            
+
         except Exception as e:
             print(f"Error getting general AI response: {e}")
             return {
@@ -211,14 +217,14 @@ Response:
                 "sources": [],
                 "error": str(e),
             }
-    
+
     def stream_contextual_response(self, query: str, child_context: str):
         """Stream AI response with child context and knowledge retrieval"""
         try:
             # First, try to get knowledge-based sources
             sources = []
             response_type = "general_ai"
-            
+
             if self.vectorstore:
                 try:
                     # Search for relevant documents
@@ -236,35 +242,37 @@ Response:
                             }
                             for doc in docs
                         ]
-                        
+
                         # If we have good sources, include them in the prompt
                         if sources:
                             response_type = "knowledge_based"
-                            context_info = "\n".join([
-                                f"Relevant Information: {source['content']}"
-                                for source in sources[:2]  # Use top 2 sources
-                            ])
-                            
+                            context_info = "\n".join(
+                                [
+                                    f"Relevant Information: {source['content']}"
+                                    for source in sources[:2]  # Use top 2 sources
+                                ]
+                            )
+
                             prompt = f"""
-You are SuriAI, a helpful pediatric health assistant. Use the following relevant information from your knowledge base along with your general medical knowledge.
+                            You are SuriAI, a helpful pediatric health assistant. Use the following relevant information from your knowledge base along with your general medical knowledge.
 
-Relevant Knowledge:
-{context_info}
+                            Relevant Knowledge:
+                            {context_info}
 
-Child Context:
-{child_context}
+                            Child Context:
+                            {child_context}
 
-User Question: {query}
+                            User Question: {query}
 
-Please provide a helpful response considering both the specific knowledge provided and general pediatric knowledge. Be sure to:
-1. Use the relevant information if it applies to the question
-2. Consider the child's age and any provided context
-3. Provide practical, safe advice
-4. Always recommend consulting a healthcare professional for medical concerns
-5. Be empathetic and supportive
+                            Please provide a helpful response considering both the specific knowledge provided and general pediatric knowledge. Be sure to:
+                            1. Use the relevant information if it applies to the question
+                            2. Consider the child's age and any provided context
+                            3. Provide practical, safe advice
+                            4. Always recommend consulting a healthcare professional for medical concerns
+                            5. Be empathetic and supportive
 
-Response:
-"""
+                            Response:
+                            """
                         else:
                             prompt = self._create_general_prompt(query, child_context)
                     else:
@@ -273,7 +281,7 @@ Response:
                     prompt = self._create_general_prompt(query, child_context)
             else:
                 prompt = self._create_general_prompt(query, child_context)
-            
+
             # Stream the response
             for chunk in self.llm.stream(prompt):
                 yield {
@@ -281,18 +289,18 @@ Response:
                     "sources": sources if sources else [],
                     "response_type": response_type,
                     "context_used": child_context,
-                    "done": False
+                    "done": False,
                 }
-            
+
             # Send final message
             yield {
                 "content": "",
                 "sources": sources,
                 "response_type": response_type,
                 "context_used": child_context,
-                "done": True
+                "done": True,
             }
-            
+
         except Exception as e:
             print(f"Error in streaming response: {e}")
             yield {
@@ -301,9 +309,9 @@ Response:
                 "response_type": "error",
                 "context_used": child_context,
                 "done": True,
-                "error": str(e)
+                "error": str(e),
             }
-    
+
     def _create_general_prompt(self, query: str, child_context: str) -> str:
         """Create a general AI prompt"""
         return f"""
@@ -330,11 +338,11 @@ FORMATTING INSTRUCTIONS:
 
 Response:
 """
-    
+
     def _is_response_relevant(self, response: Dict, query: str) -> bool:
         """Check if the knowledge-based response is relevant to the query"""
         response_text = response.get("response", "").lower()
-        
+
         # Check for common indicators that the knowledge base didn't have relevant info
         irrelevant_indicators = [
             "i don't have specific information",
@@ -343,22 +351,22 @@ Response:
             "i'm not able to provide",
             "based on the information provided, i cannot",
             "i don't have access to",
-            "the provided context doesn't contain"
+            "the provided context doesn't contain",
         ]
-        
+
         # If response contains these phrases, it's likely not relevant
         for indicator in irrelevant_indicators:
             if indicator in response_text:
                 return False
-        
+
         # If response is very short (likely generic), consider it not relevant
         if len(response_text.strip()) < 50:
             return False
-        
+
         # If we have sources, the response is likely relevant
         if response.get("sources") and len(response["sources"]) > 0:
             return True
-        
+
         # Default to relevant if none of the above conditions are met
         return True
 

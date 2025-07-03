@@ -1,6 +1,7 @@
-from sqlmodel import SQLModel, Field, Column, DateTime, TEXT
+from sqlmodel import SQLModel, Field, Column, DateTime, TEXT, JSON
 from uuid import UUID, uuid4
 from datetime import datetime
+from typing import Dict, Any
 
 
 class Primary_Care_Giver(SQLModel, table=True):
@@ -142,3 +143,13 @@ class Access_Levels(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     value: str = Field(unique=True)
     label: str
+
+
+class Saved_Articles(SQLModel, table=True):
+    __tablename__ = "saved_articles"
+    id: int = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="primary_care_giver.id")
+    article_id: str = Field(index=True)
+    article_data: Dict[str, Any] = Field(sa_column=Column(JSON))
+    saved_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False), default_factory=datetime.now)
+    child_id: int | None = Field(default=None, foreign_key="child.id")
