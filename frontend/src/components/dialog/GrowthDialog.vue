@@ -302,23 +302,35 @@
   }
 
   // Handle save action
-  const handleSave = () => {
-    if (!validateForm()) {
-      return
-    }
+ import { useCheckinStore } from '@/stores/checkin'
 
-    const growthData = {
-      weight: localWeight.value,
-      height: localHeight.value,
-      headCircumference: localHeadCircumference.value,
-      notes: props.notes,
-    }
+const checkinStore = useCheckinStore()
 
-    // Clear errors after successful validation
-    errors.value = {}
-
-    emit('save', growthData)
+const handleSave = async () => {
+  if (!validateForm()) {
+    return
   }
+
+  const growthData = {
+    weight: localWeight.value,
+    height: localHeight.value,
+    headCircumference: localHeadCircumference.value,
+    notes: props.notes,
+  }
+
+  errors.value = {}
+
+   // Save directly to store (which handles backend integration)
+  try {
+    await checkinStore.saveGrowth(growthData)
+    // Dialog will close automatically on success
+    emit('close')
+  } catch (error) {
+    // Error is handled by the store, just show it if needed
+    console.error('Failed to save growth data:', error)
+  }
+}
+
 </script>
 
 <style scoped>

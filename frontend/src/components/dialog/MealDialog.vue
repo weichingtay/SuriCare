@@ -158,8 +158,10 @@
 </template>
 
 <script setup lang="ts">
-  import { nextTick, ref, watch } from 'vue'
+   import { useMealOptions } from '@/composables/useMealOptions'
+ import { nextTick, ref, watch } from 'vue'
   import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
+  import { useCheckinStore } from '@/stores/checkin' // Add this import
 
   const props = defineProps({
     width: {
@@ -213,7 +215,6 @@
   ])
 
   // Use dynamic options from database
-  import { useMealOptions } from '@/composables/useMealOptions'
 
   const {
     mealTimeOptions,
@@ -223,6 +224,7 @@
     isLoading: isMealOptionsLoading,
   } = useMealOptions()
 
+    const checkinStore = useCheckinStore()
   const localMealTime = ref('')
   const localConsumptionLevel = ref('')
   const localMealCategory = ref('')
@@ -421,7 +423,7 @@
     emit('close')
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       return
     }
@@ -436,7 +438,16 @@
     }
 
     errors.value = {}
-    emit('save', mealData)
+    
+    try {
+      // Save to store (which handles backend integration)
+      await checkinStore.saveMeal(mealData)
+      // Close dialog on success
+      handleDialogUpdate(false)
+    } catch (error) {
+      console.error('Failed to save meal data:', error)
+      // Error is already handled by the store
+    }
   }
 </script>
 

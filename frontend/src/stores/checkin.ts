@@ -1,25 +1,30 @@
+// src/stores/checkin.ts - Enhanced version following chat.ts store patterns
 import { defineStore } from 'pinia'
+import { ref, computed, readonly } from 'vue'
+import { useAuthStore } from './auth'
+import { useChildrenStore } from './children'
 
-// TypeScript Interfaces
-interface SymptomsData {
+// TypeScript Interfaces (keeping your existing ones)
+export interface SymptomsData {
   symptoms: string[]
   photo: File | null
+  otherSymptom?: string
   notes: string
 }
 
-interface PoopData {
+export interface PoopData {
   color: string
   texture: string
   notes: string
 }
 
-interface SleepData {
+export interface SleepData {
   bedTime: string
   awakeTime: string
   notes: string
 }
 
-interface MealData {
+export interface MealData {
   mealTime: string
   consumptionLevel: string
   mealCategory: string
@@ -28,23 +33,26 @@ interface MealData {
   notes: string
 }
 
-interface GrowthData {
+export interface GrowthData {
   weight: string
   height: string
   headCircumference: string
   notes: string
 }
 
-interface CheckinEntry {
+export interface CheckinEntry {
   id: number
   timestamp: string
+  childId?: number
+  serverSaved?: boolean
+  serverId?: number
 }
 
-interface SymptomsEntry extends CheckinEntry, SymptomsData {}
-interface PoopEntry extends CheckinEntry, PoopData {}
-interface SleepEntry extends CheckinEntry, SleepData {}
-interface MealEntry extends CheckinEntry, MealData {}
-interface GrowthEntry extends CheckinEntry, GrowthData {}
+export interface SymptomsEntry extends CheckinEntry, SymptomsData {}
+export interface PoopEntry extends CheckinEntry, PoopData {}
+export interface SleepEntry extends CheckinEntry, SleepData {}
+export interface MealEntry extends CheckinEntry, MealData {}
+export interface GrowthEntry extends CheckinEntry, GrowthData {}
 
 interface CheckinState {
   symptomsData: SymptomsData
@@ -61,279 +69,796 @@ interface CheckinState {
   }
 }
 
-// Store Definition
-export const useCheckinStore = defineStore('checkin', {
-  state: (): CheckinState => ({
-    // Symptoms data
-    symptomsData: {
-      symptoms: [], // Array for multiple selection
-      photo: null,
-      notes: '',
-    },
+export const useCheckinStore = defineStore('checkin', () => {
+  const authStore = useAuthStore()
 
-    // Poop data
-    poopData: {
+  // State (keeping your existing structure)
+  const symptomsData = ref<SymptomsData>({
+    symptoms: [],
+    photo: null,
+    otherSymptom: '',
+    notes: '',
+  })
+
+  const poopData = ref<PoopData>({
+    color: '',
+    texture: '',
+    notes: '',
+  })
+
+  const sleepData = ref<SleepData>({
+    bedTime: '',
+    awakeTime: '',
+    notes: '',
+  })
+
+  const mealData = ref<MealData>({
+    mealTime: '',
+    consumptionLevel: '',
+    mealCategory: '',
+    subCategory: '',
+    customMeal: '',
+    notes: '',
+  })
+
+  const growthData = ref<GrowthData>({
+    weight: '',
+    height: '',
+    headCircumference: '',
+    notes: '',
+  })
+
+  const history = ref<{
+    symptoms: SymptomsEntry[]
+    poop: PoopEntry[]
+    sleep: SleepEntry[]
+    meal: MealEntry[]
+    growth: GrowthEntry[]
+  }>({
+    symptoms: [],
+    poop: [],
+    sleep: [],
+    meal: [],
+    growth: [],
+  })
+
+  // State for backend integration (following chat.ts patterns)
+  const isLoading = ref<boolean>(false)
+  const isSyncing = ref<boolean>(false)
+  const error = ref<string | null>(null)
+  const lastSyncTime = ref<string | null>(null)
+
+  // Computed properties (keeping your existing ones)
+  const latestSymptoms = computed((): SymptomsEntry | null => history.value.symptoms[0] || null)
+  const latestPoop = computed((): PoopEntry | null => history.value.poop[0] || null)
+  const latestSleep = computed((): SleepEntry | null => history.value.sleep[0] || null)
+  const latestMeal = computed((): MealEntry | null => history.value.meal[0] || null)
+  const latestGrowth = computed((): GrowthEntry | null => history.value.growth[0] || null)
+
+  const todaysEntries = computed(() => {
+    const today = new Date().toDateString()
+    return {
+      symptoms: history.value.symptoms.filter(entry =>
+        new Date(entry.timestamp).toDateString() === today
+      ),
+      poop: history.value.poop.filter(entry =>
+        new Date(entry.timestamp).toDateString() === today
+      ),
+      sleep: history.value.sleep.filter(entry =>
+        new Date(entry.timestamp).toDateString() === today
+      ),
+      meal: history.value.meal.filter(entry =>
+        new Date(entry.timestamp).toDateString() === today
+      ),
+      growth: history.value.growth.filter(entry =>
+        new Date(entry.timestamp).toDateString() === today
+      ),
+    }
+  })
+
+  const totalCounts = computed(() => ({
+    symptoms: history.value.symptoms.length,
+    poop: history.value.poop.length,
+    sleep: history.value.sleep.length,
+    meal: history.value.meal.length,
+    growth: history.value.growth.length,
+  }))
+
+  const unsyncedEntries = computed(() => {
+    const allEntries = [
+      ...history.value.symptoms,
+      ...history.value.poop,
+      ...history.value.sleep,
+      ...history.value.meal,
+      ...history.value.growth,
+    ]
+    return allEntries.filter(entry => !entry.serverSaved)
+  })
+
+  // Helper functions (following chat.ts patterns)
+  const setError = (message: string | null) => {
+    error.value = message
+  }
+
+  const clearError = () => {
+    error.value = null
+  }
+
+  const getApiUrl = (endpoint: string): string => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    return `${baseUrl}${endpoint}`
+  }
+
+  const makeApiCall = async <T>(
+    url: string, 
+    options: RequestInit = {}
+  ): Promise<T> => {
+    const authHeaders = authStore.getAuthHeaders()
+    // Filter out undefined values from auth headers
+    const cleanAuthHeaders = Object.fromEntries(
+      Object.entries(authHeaders).filter(([_, value]) => value !== undefined)
+    )
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...cleanAuthHeaders,
+      ...(options.headers as Record<string, string> || {})
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      headers
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`API call failed: ${response.status} ${response.statusText} - ${errorText}`)
+    }
+
+    return response.json()
+  }
+
+  // Save Growth using POST /growth (following chat.ts patterns)
+  const saveGrowthToBackend = async (data: GrowthData): Promise<{ success: boolean; id?: number }> => {
+    if (!authStore.isAuthenticated) {
+      setError('User not authenticated')
+      return { success: false }
+    }
+
+    const childrenStore = useChildrenStore()
+    if (!childrenStore.currentChild) {
+      setError('No child selected')
+      return { success: false }
+    }
+
+    try {
+      clearError()
+
+      const payload = {
+        child_id: childrenStore.currentChild.id,
+        weight: parseFloat(data.weight),
+        height: parseFloat(data.height),
+        head_circumference: parseFloat(data.headCircumference),
+        check_in: new Date().toISOString(),
+        note: data.notes || null, // 'note' not 'notes'
+      }
+
+      console.log('📦 Growth payload:', payload)
+
+      const result = await makeApiCall<any>(
+        getApiUrl('/growth'),
+        {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }
+      )
+
+      console.log('✅ Growth saved to backend:', result)
+      return { success: true, id: result.id }
+
+    } catch (err) {
+      console.error('❌ Growth save error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to save growth data')
+      return { success: false }
+    }
+  }
+
+  // Save Meal using POST /meal/ (following chat.ts patterns)
+  const saveMealToBackend = async (data: MealData): Promise<{ success: boolean; id?: number }> => {
+    if (!authStore.isAuthenticated) {
+      setError('User not authenticated')
+      return { success: false }
+    }
+
+    const childrenStore = useChildrenStore()
+    if (!childrenStore.currentChild) {
+      setError('No child selected')
+      return { success: false }
+    }
+
+    try {
+      clearError()
+
+      // Need to get the actual IDs from the lookup data
+      const { useLookupData } = await import('@/composables/useLookupData')
+      const { 
+        mealTimeCategories, 
+        mealCategories, 
+        fetchMealTimeCategories, 
+        fetchMealCategories 
+      } = useLookupData()
+
+      // Ensure lookup data is loaded
+      if (mealTimeCategories.value.length === 0) {
+        await fetchMealTimeCategories()
+      }
+      if (mealCategories.value.length === 0) {
+        await fetchMealCategories()
+      }
+
+      console.log('🔍 Lookup data loaded:', {
+        mealTimeCategories: mealTimeCategories.value,
+        mealCategories: mealCategories.value,
+        searchingForMealTime: data.mealTime,
+        searchingForCategory: data.mealCategory
+      })
+
+      // Find the IDs for the selected values using the 'value' field from your transformer
+      const mealTimeId = mealTimeCategories.value.find(item => item.value === data.mealTime)?.id
+      const mealCategoryId = mealCategories.value.find(item => item.value === data.mealCategory)?.id
+
+      console.log('🔍 ID lookup results:', {
+        mealTimeId,
+        mealCategoryId,
+        searchTerms: { mealTime: data.mealTime, mealCategory: data.mealCategory }
+      })
+
+      // If we can't find IDs, there might be a mismatch between frontend values and database values
+      if (!mealTimeId) {
+        console.warn('⚠️ Could not find meal time ID for:', data.mealTime)
+        console.log('Available meal times:', mealTimeCategories.value.map(item => item.value))
+      }
+      if (!mealCategoryId) {
+        console.warn('⚠️ Could not find meal category ID for:', data.mealCategory)
+        console.log('Available meal categories:', mealCategories.value.map(item => item.value))
+      }
+
+      const payload = {
+        child_id: childrenStore.currentChild.id,
+        meal_time_category: mealTimeId || null,
+        consumption_level: parseFloat(data.consumptionLevel), // DB expects double precision
+        meal_category: mealCategoryId || null,
+        others: data.mealCategory === 'others' ? data.customMeal : null, // 'others' field for custom meals
+        check_in: new Date().toISOString(),
+        note: data.notes || null, // 'note' not 'notes'
+      }
+
+      console.log('📦 Meal payload:', payload)
+
+      const result = await makeApiCall<any>(
+        getApiUrl('/meal/'),
+        {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }
+      )
+
+      console.log('✅ Meal saved to backend:', result)
+      return { success: true, id: result.id }
+
+    } catch (err) {
+      console.error('❌ Meal save error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to save meal data')
+      return { success: false }
+    }
+  }
+
+  // Save Poop using POST /poop/ (following chat.ts patterns)
+  const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id?: number }> => {
+    if (!authStore.isAuthenticated) {
+      setError('User not authenticated')
+      return { success: false }
+    }
+
+    const childrenStore = useChildrenStore()
+    if (!childrenStore.currentChild) {
+      setError('No child selected')
+      return { success: false }
+    }
+
+    try {
+      clearError()
+
+      // Need to get the actual IDs from the lookup data
+      const { useLookupData } = await import('@/composables/useLookupData')
+      const { 
+        poopColors, 
+        poopConsistencies, 
+        fetchPoopColors, 
+        fetchPoopConsistencies 
+      } = useLookupData()
+
+      // Ensure lookup data is loaded
+      if (poopColors.value.length === 0) {
+        await fetchPoopColors()
+      }
+      if (poopConsistencies.value.length === 0) {
+        await fetchPoopConsistencies()
+      }
+
+      // Find the IDs for the selected values
+      const colorId = poopColors.value.find(item => item.value === data.color)?.id || null
+      const consistencyId = poopConsistencies.value.find(item => item.value === data.texture)?.id || null
+
+      const payload = {
+        child_id: childrenStore.currentChild.id,
+        color: colorId, // Foreign key to poop_color table
+        consistency: consistencyId, // Foreign key to poop_consistency table
+        check_in: new Date().toISOString(),
+        note: data.notes || '', // Note is NOT NULL in your schema
+      }
+
+      console.log('📦 Poop payload:', payload)
+
+      const result = await makeApiCall<any>(
+        getApiUrl('/poop/'),
+        {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }
+      )
+
+      console.log('✅ Poop saved to backend:', result)
+      return { success: true, id: result.id }
+
+    } catch (err) {
+      console.error('❌ Poop save error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to save poop data')
+      return { success: false }
+    }
+  }
+
+  // Save Sleep using POST /sleeptime/ (following chat.ts patterns)
+  const saveSleepToBackend = async (data: SleepData): Promise<{ success: boolean; id?: number }> => {
+    if (!authStore.isAuthenticated) {
+      setError('User not authenticated')
+      return { success: false }
+    }
+
+    const childrenStore = useChildrenStore()
+    if (!childrenStore.currentChild) {
+      setError('No child selected')
+      return { success: false }
+    }
+
+    try {
+      clearError()
+
+      // Convert time strings to full timestamps
+      const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+      const startTime = `${today}T${data.bedTime}:00.000Z`
+      const endTime = `${today}T${data.awakeTime}:00.000Z`
+
+      const payload = {
+        child_id: childrenStore.currentChild.id,
+        start_time: startTime, // Your DB uses start_time/end_time, not bed_time/awake_time
+        end_time: endTime,
+        check_in: new Date().toISOString(),
+        note: data.notes || null, // 'note' not 'notes'
+      }
+
+      console.log('📦 Sleep payload:', payload)
+
+      const result = await makeApiCall<any>(
+        getApiUrl('/sleeptime/'),
+        {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }
+      )
+
+      console.log('✅ Sleep saved to backend:', result)
+      return { success: true, id: result.id }
+
+    } catch (err) {
+      console.error('❌ Sleep save error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to save sleep data')
+      return { success: false }
+    }
+  }
+
+  // Save Symptoms using POST /symptom/ (following chat.ts patterns with file upload)
+  const saveSymptomToBackend = async (data: SymptomsData): Promise<{ success: boolean; id?: number }> => {
+    if (!authStore.isAuthenticated) {
+      setError('User not authenticated')
+      return { success: false }
+    }
+
+    const childrenStore = useChildrenStore()
+    if (!childrenStore.currentChild) {
+      setError('No child selected')
+      return { success: false }
+    }
+
+    try {
+      clearError()
+
+      // Handle file upload differently
+      let requestBody: string | FormData
+      let requestHeaders = authStore.getAuthHeaders()
+
+      if (data.photo) {
+        // Use FormData for photo upload
+        const formData = new FormData()
+        formData.append('child_id', childrenStore.currentChild.id.toString())
+        formData.append('symptoms', JSON.stringify(data.symptoms))
+        formData.append('other_symptom', data.otherSymptom || '')
+        formData.append('check_in', new Date().toISOString())
+        formData.append('notes', data.notes || '')
+        formData.append('photo', data.photo)
+
+        requestBody = formData
+        // Remove Content-Type for FormData
+        delete requestHeaders['Content-Type']
+      } else {
+        // Regular JSON payload
+        const payload = {
+          child_id: childrenStore.currentChild.id,
+          symptom: JSON.stringify(data.symptoms), // Your DB stores as varchar, not array
+          photo_url: '', // Will be updated if photo upload succeeds
+          check_in: new Date().toISOString(),
+          note: data.notes || null, // 'note' not 'notes'
+        }
+        requestBody = JSON.stringify(payload)
+        requestHeaders['Content-Type'] = 'application/json'
+      }
+
+      console.log('📦 Symptom request:', { hasPhoto: !!data.photo })
+
+      const response = await fetch(getApiUrl('/symptom/'), {
+        method: 'POST',
+        headers: requestHeaders,
+        body: requestBody,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`API call failed: ${response.status} ${response.statusText} - ${errorText}`)
+      }
+
+      const result = await response.json()
+      console.log('✅ Symptom saved to backend:', result)
+      return { success: true, id: result.id }
+
+    } catch (err) {
+      console.error('❌ Symptom save error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to save symptom data')
+      return { success: false }
+    }
+  }
+
+  // Enhanced save methods (keeping your exact interface but adding backend integration)
+  const saveSymptoms = async (data: SymptomsData): Promise<SymptomsEntry> => {
+    isLoading.value = true
+
+    const entry: SymptomsEntry = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      childId: useChildrenStore().currentChild?.id,
+      serverSaved: false,
+      ...data,
+    }
+
+    try {
+      // Save to local state first (your existing behavior)
+      history.value.symptoms.unshift(entry)
+      clearSymptomsForm()
+
+      // Save to backend
+      const backendResult = await saveSymptomToBackend(data)
+      
+      if (backendResult.success) {
+        entry.serverSaved = true
+        entry.serverId = backendResult.id
+      }
+
+      console.log('✅ Symptoms saved:', entry)
+      return entry
+
+    } catch (err) {
+      console.error('❌ Error saving symptoms:', err)
+      return entry
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const savePoop = async (data: PoopData): Promise<PoopEntry> => {
+    isLoading.value = true
+
+    const entry: PoopEntry = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      childId: useChildrenStore().currentChild?.id,
+      serverSaved: false,
+      ...data,
+    }
+
+    try {
+      history.value.poop.unshift(entry)
+      clearPoopForm()
+
+      const backendResult = await savePoopToBackend(data)
+      
+      if (backendResult.success) {
+        entry.serverSaved = true
+        entry.serverId = backendResult.id
+      }
+
+      console.log('✅ Poop data saved:', entry)
+      return entry
+
+    } catch (err) {
+      console.error('❌ Error saving poop data:', err)
+      return entry
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const saveSleep = async (data: SleepData): Promise<SleepEntry> => {
+    isLoading.value = true
+
+    const entry: SleepEntry = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      childId: useChildrenStore().currentChild?.id,
+      serverSaved: false,
+      ...data,
+    }
+
+    try {
+      history.value.sleep.unshift(entry)
+      clearSleepForm()
+
+      const backendResult = await saveSleepToBackend(data)
+      
+      if (backendResult.success) {
+        entry.serverSaved = true
+        entry.serverId = backendResult.id
+      }
+
+      console.log('✅ Sleep data saved:', entry)
+      return entry
+
+    } catch (err) {
+      console.error('❌ Error saving sleep data:', err)
+      return entry
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const saveMeal = async (data: MealData): Promise<MealEntry> => {
+    isLoading.value = true
+
+    const entry: MealEntry = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      childId: useChildrenStore().currentChild?.id,
+      serverSaved: false,
+      ...data,
+    }
+
+    try {
+      history.value.meal.unshift(entry)
+      clearMealForm()
+
+      const backendResult = await saveMealToBackend(data)
+      
+      if (backendResult.success) {
+        entry.serverSaved = true
+        entry.serverId = backendResult.id
+      }
+
+      console.log('✅ Meal data saved:', entry)
+      return entry
+
+    } catch (err) {
+      console.error('❌ Error saving meal data:', err)
+      return entry
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const saveGrowth = async (data: GrowthData): Promise<GrowthEntry> => {
+    isLoading.value = true
+
+    const entry: GrowthEntry = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      childId: useChildrenStore().currentChild?.id,
+      serverSaved: false,
+      ...data,
+    }
+
+    try {
+      history.value.growth.unshift(entry)
+      clearGrowthForm()
+
+      const backendResult = await saveGrowthToBackend(data)
+      
+      if (backendResult.success) {
+        entry.serverSaved = true
+        entry.serverId = backendResult.id
+        
+        // Update children store with latest growth data
+        const childrenStore = useChildrenStore()
+        childrenStore.updateChildGrowth(
+          childrenStore.currentChild.id,
+          parseFloat(data.height),
+          parseFloat(data.weight),
+          parseFloat(data.headCircumference)
+        )
+      }
+
+      console.log('✅ Growth data saved:', entry)
+      return entry
+
+    } catch (err) {
+      console.error('❌ Error saving growth data:', err)
+      return entry
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Clear form methods (keeping your existing ones)
+  const clearSymptomsForm = (): void => {
+    symptomsData.value = {
+      symptoms: [],
+      photo: null,
+      otherSymptom: '',
+      notes: '',
+    }
+  }
+
+  const clearPoopForm = (): void => {
+    poopData.value = {
       color: '',
       texture: '',
       notes: '',
-    },
+    }
+  }
 
-    // Sleep data
-    sleepData: {
+  const clearSleepForm = (): void => {
+    sleepData.value = {
       bedTime: '',
       awakeTime: '',
       notes: '',
-    },
+    }
+  }
 
-    // Meal data
-    mealData: {
+  const clearMealForm = (): void => {
+    mealData.value = {
       mealTime: '',
       consumptionLevel: '',
       mealCategory: '',
-      subCategory: '', // For Breast Milk/Formula
-      customMeal: '', // For "Others" input
+      subCategory: '',
+      customMeal: '',
       notes: '',
-    },
+    }
+  }
 
-    // Growth data
-    growthData: {
+  const clearGrowthForm = (): void => {
+    growthData.value = {
       weight: '',
       height: '',
       headCircumference: '',
       notes: '',
-    },
+    }
+  }
 
-    // History for each type
-    history: {
+  // Delete entry methods (keeping your existing ones)
+  const deleteEntry = (type: 'symptoms' | 'poop' | 'sleep' | 'meal' | 'growth', id: number): boolean => {
+    const index = history.value[type].findIndex(entry => entry.id === id)
+    if (index > -1) {
+      history.value[type].splice(index, 1)
+      console.log(`✅ Deleted ${type} entry:`, id)
+      return true
+    }
+    return false
+  }
+
+  // Clear history methods (keeping your existing ones)
+  const clearAllHistory = (): void => {
+    history.value = {
       symptoms: [],
       poop: [],
       sleep: [],
       meal: [],
       growth: [],
-    },
-  }),
+    }
+    console.log('✅ All history cleared')
+  }
 
-  getters: {
-    // Get latest entry for each type
-    latestSymptoms: (state): SymptomsEntry | null => state.history.symptoms[0] || null,
-    latestPoop: (state): PoopEntry | null => state.history.poop[0] || null,
-    latestSleep: (state): SleepEntry | null => state.history.sleep[0] || null,
-    latestMeal: (state): MealEntry | null => state.history.meal[0] || null,
-    latestGrowth: (state): GrowthEntry | null => state.history.growth[0] || null,
+  const clearTodaysEntries = (): void => {
+    const today = new Date().toDateString()
 
-    // Get today's entries
-    todaysEntries: state => {
-      const today = new Date().toDateString()
-      return {
-        symptoms: state.history.symptoms.filter(entry =>
-          new Date(entry.timestamp).toDateString() === today
-        ),
-        poop: state.history.poop.filter(entry =>
-          new Date(entry.timestamp).toDateString() === today
-        ),
-        sleep: state.history.sleep.filter(entry =>
-          new Date(entry.timestamp).toDateString() === today
-        ),
-        meal: state.history.meal.filter(entry =>
-          new Date(entry.timestamp).toDateString() === today
-        ),
-        growth: state.history.growth.filter(entry =>
-          new Date(entry.timestamp).toDateString() === today
-        ),
-      }
-    },
+    Object.keys(history.value).forEach(key => {
+      const historyKey = key as keyof typeof history.value
+      history.value[historyKey] = history.value[historyKey].filter(entry =>
+        new Date(entry.timestamp).toDateString() !== today
+      )
+    })
 
-    // Get total count for each type
-    totalCounts: state => ({
-      symptoms: state.history.symptoms.length,
-      poop: state.history.poop.length,
-      sleep: state.history.sleep.length,
-      meal: state.history.meal.length,
-      growth: state.history.growth.length,
-    }),
-  },
+    console.log('✅ Today\'s entries cleared')
+  }
 
-  actions: {
-    // Save symptoms data
-    saveSymptoms (data: SymptomsData): SymptomsEntry {
-      const entry: SymptomsEntry = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        ...data,
-      }
-      this.history.symptoms.unshift(entry)
-      this.clearSymptomsForm()
-      console.log('Symptoms saved:', entry)
-      return entry
-    },
+  // Export/Import methods (keeping your existing ones)
+  const exportData = (): string => {
+    return JSON.stringify({
+      history: history.value,
+      exportDate: new Date().toISOString(),
+    }, null, 2)
+  }
 
-    // Save poop data
-    savePoop (data: PoopData): PoopEntry {
-      const entry: PoopEntry = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        ...data,
-      }
-      this.history.poop.unshift(entry)
-      this.clearPoopForm()
-      console.log(' Poop data saved:', entry)
-      return entry
-    },
-
-    // Save sleep data
-    saveSleep (data: SleepData): SleepEntry {
-      const entry: SleepEntry = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        ...data,
-      }
-      this.history.sleep.unshift(entry)
-      this.clearSleepForm()
-      console.log('Sleep data saved:', entry)
-      return entry
-    },
-
-    // Save meal data
-    saveMeal (data: MealData): MealEntry {
-      const entry: MealEntry = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        ...data,
-      }
-      this.history.meal.unshift(entry)
-      this.clearMealForm()
-      console.log(' Meal data saved:', entry)
-      return entry
-    },
-
-    // Save growth data
-    saveGrowth (data: GrowthData): GrowthEntry {
-      const entry: GrowthEntry = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        ...data,
-      }
-      this.history.growth.unshift(entry)
-      this.clearGrowthForm()
-      console.log('Growth data saved:', entry)
-      return entry
-    },
-
-    // Clear form methods
-    clearSymptomsForm (): void {
-      this.symptomsData = {
-        symptoms: [],
-        photo: null,
-        notes: '',
-      }
-    },
-
-    clearPoopForm (): void {
-      this.poopData = {
-        color: '',
-        texture: '',
-        notes: '',
-      }
-    },
-
-    clearSleepForm (): void {
-      this.sleepData = {
-        bedTime: '',
-        awakeTime: '',
-        notes: '',
-      }
-    },
-
-    clearMealForm (): void {
-      this.mealData = {
-        mealTime: '',
-        consumptionLevel: '',
-        mealCategory: '',
-        subCategory: '',
-        customMeal: '',
-        notes: '',
-      }
-    },
-
-    clearGrowthForm (): void {
-      this.growthData = {
-        weight: '',
-        height: '',
-        headCircumference: '',
-        notes: '',
-      }
-    },
-
-    // Delete entry methods
-    deleteEntry (type: 'symptoms' | 'poop' | 'sleep' | 'meal' | 'growth', id: number): boolean {
-      const index = this.history[type].findIndex(entry => entry.id === id)
-      if (index > -1) {
-        this.history[type].splice(index, 1)
-        console.log(` Deleted ${type} entry:`, id)
+  const importData = (jsonData: string): boolean => {
+    try {
+      const data = JSON.parse(jsonData)
+      if (data.history) {
+        history.value = data.history
+        console.log('✅ Data imported successfully')
         return true
       }
       return false
-    },
+    } catch (error) {
+      console.error('❌ Failed to import data:', error)
+      return false
+    }
+  }
 
-    // Clear all history
-    clearAllHistory (): void {
-      this.history = {
-        symptoms: [],
-        poop: [],
-        sleep: [],
-        meal: [],
-        growth: [],
-      }
-      console.log('All history cleared')
-    },
+  return {
+    // State
+    symptomsData: readonly(symptomsData),
+    poopData: readonly(poopData),
+    sleepData: readonly(sleepData),
+    mealData: readonly(mealData),
+    growthData: readonly(growthData),
+    history: readonly(history),
+    isLoading: readonly(isLoading),
+    isSyncing: readonly(isSyncing),
+    error: readonly(error),
+    lastSyncTime: readonly(lastSyncTime),
 
-    // Clear today's entries only
-    clearTodaysEntries (): void {
-      const today = new Date().toDateString()
+    // Computed
+    latestSymptoms,
+    latestPoop,
+    latestSleep,
+    latestMeal,
+    latestGrowth,
+    todaysEntries,
+    totalCounts,
+    unsyncedEntries,
 
-      this.history.symptoms = this.history.symptoms.filter(entry =>
-        new Date(entry.timestamp).toDateString() !== today
-      )
-      this.history.poop = this.history.poop.filter(entry =>
-        new Date(entry.timestamp).toDateString() !== today
-      )
-      this.history.sleep = this.history.sleep.filter(entry =>
-        new Date(entry.timestamp).toDateString() !== today
-      )
-      this.history.meal = this.history.meal.filter(entry =>
-        new Date(entry.timestamp).toDateString() !== today
-      )
-      this.history.growth = this.history.growth.filter(entry =>
-        new Date(entry.timestamp).toDateString() !== today
-      )
-
-      console.log('✅ Today\'s entries cleared')
-    },
-
-    // Export data for backup
-    exportData (): string {
-      return JSON.stringify({
-        history: this.history,
-        exportDate: new Date().toISOString(),
-      }, null, 2)
-    },
-
-    // Import data from backup
-    importData (jsonData: string): boolean {
-      try {
-        const data = JSON.parse(jsonData)
-        if (data.history) {
-          this.history = data.history
-          console.log('✅ Data imported successfully')
-          return true
-        }
-        return false
-      } catch (error) {
-        console.error(' Failed to import data:', error)
-        return false
-      }
-    },
-
-
-  },
+    // Actions
+    saveSymptoms,
+    savePoop,
+    saveSleep,
+    saveMeal,
+    saveGrowth,
+    clearSymptomsForm,
+    clearPoopForm,
+    clearSleepForm,
+    clearMealForm,
+    clearGrowthForm,
+    deleteEntry,
+    clearAllHistory,
+    clearTodaysEntries,
+    exportData,
+    importData,
+    setError,
+    clearError,
+  }
 })
