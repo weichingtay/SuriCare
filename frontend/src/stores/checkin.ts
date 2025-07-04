@@ -639,6 +639,8 @@ export const useCheckinStore = defineStore('checkin', () => {
     }
   }
 
+  
+
   const saveMeal = async (data: MealData): Promise<MealEntry> => {
     isLoading.value = true
 
@@ -752,6 +754,7 @@ export const useCheckinStore = defineStore('checkin', () => {
   }
 
   const clearGrowthForm = (): void => {
+
     growthData.value = {
       weight: '',
       height: '',
