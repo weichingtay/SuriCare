@@ -26,16 +26,20 @@ router.beforeEach(async (to) => {
   const isPublicPage = publicPages.includes(to.path)
 
   // Always initialize auth if not done yet
-  if (!authStore.isInitialized) {
+  if (!authStore.isInitialized && !authStore.isLoading) {
     console.log('Initializing auth...')
     try {
       await authStore.initializeAuth()
-      // Give a moment for reactive values to update
-      await new Promise(resolve => setTimeout(resolve, 10))
       console.log('Auth initialized - Authenticated:', authStore.isAuthenticated, 'Initialized:', authStore.isInitialized)
     } catch (error) {
       console.error('Failed to initialize auth:', error)
     }
+  }
+
+  // Wait for auth initialization to complete if still loading
+  if (authStore.isLoading) {
+    console.log('Waiting for auth initialization to complete...')
+    return // Let the navigation complete, auth state change will trigger redirect if needed
   }
 
   // If not a public page and user is not authenticated, redirect to login

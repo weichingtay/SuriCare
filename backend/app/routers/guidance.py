@@ -3,16 +3,16 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 import asyncio
 
-from ..db import get_db
-from ..models import Child, User
-from ..services.ai_guidance_service import AIGuidanceService
+from app.db import get_session
+from app.models import Child 
+from app.services.ai_guidance_service import AIGuidanceService
 
 router = APIRouter()
 
 @router.get("/articles/{child_id}")
 async def get_child_guidance_articles(
     child_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
     user_id: int = Query(..., description="User ID for authentication")
 ) -> Dict[str, Any]:
     """
@@ -57,7 +57,7 @@ async def get_child_guidance_articles(
 @router.post("/articles/{child_id}/refresh")
 async def refresh_child_guidance_articles(
     child_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
     user_id: int = Query(..., description="User ID for authentication")
 ) -> Dict[str, Any]:
     """
@@ -103,7 +103,7 @@ async def refresh_child_guidance_articles(
 @router.get("/articles/{child_id}/summary")
 async def get_child_guidance_summary(
     child_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
     user_id: int = Query(..., description="User ID for authentication")
 ) -> Dict[str, Any]:
     """
