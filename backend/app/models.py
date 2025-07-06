@@ -140,3 +140,18 @@ class Access_Levels(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     value: str = Field(unique=True)
     label: str
+
+class Symptom_Types(SQLModel, table=True):
+    __tablename__ = "symptom_types"
+    id: int | None = Field(default=None, primary_key=True)  # Consistent style
+    value: str = Field(unique=True)
+    label: str
+    icon: str | None = None  # Optional icon field
+
+
+class Consumption_Levels(SQLModel, table=True):
+    __tablename__ = "consumption_levels"
+    id: int | None = Field(default=None, primary_key=True)  # Consistent style
+    value: str = Field(unique=True)
+    label: str
+    percentage: int    
