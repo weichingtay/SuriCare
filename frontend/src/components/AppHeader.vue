@@ -278,7 +278,7 @@ const emit = defineEmits<{
   }
 
  const addNewChild = () => {
-  router.push('/add-child')
+  router.push('/addchild')
 }
 
   // Growth dialog logic
