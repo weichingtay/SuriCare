@@ -663,6 +663,8 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
     }
   }
 
+  
+
   const saveMeal = async (data: MealData): Promise<MealEntry> => {
     isLoading.value = true
 
@@ -776,6 +778,7 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
   }
 
   const clearGrowthForm = (): void => {
+
     growthData.value = {
       weight: '',
       height: '',

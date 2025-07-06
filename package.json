@@ -36,6 +36,7 @@
     "author": "SuriCare Team",
     "license": "MIT",
     "dependencies": {
+        "@vuepic/vue-datepicker": "^11.0.2",
         "@vueuse/core": "^13.4.0"
     }
 }

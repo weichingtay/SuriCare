@@ -2,16 +2,17 @@
   <BaseCheckInDialog
     icon="mdi-sleep"
     icon-color="#000000"
-    :loading="loading"
+    :loading="checkinStore.isLoading"
     :model-value="modelValue"
-    :notes="notes"
+    :notes="checkinStore.sleepData.notes"
     subtitle="How did Jennie Sleep?"
     title="Sleep"
     width="800px"
+    max-height="80vh"
     @close="handleClose"
     @save="handleSave"
     @update:model-value="handleDialogUpdate"
-    @update:notes="$emit('update:notes', $event)"
+    @update:notes="updateNotes"
   >
     <template #custom-content>
       <div class="sleep-content">
@@ -26,20 +27,22 @@
               v-model="localBedTime"
               class="custom-date-picker"
               :clearable="true"
-              :disabled="loading"
+              :disabled="checkinStore.isLoading"
               format="HH:mm"
               :is-24="true"
-              placeholder="Awake Time"
+              placeholder="Bed Time"
               time-picker
+              :enable-time-picker="true"
+              auto-apply
             >
               <template #trigger>
                 <v-text-field
-                  :disabled="loading"
+                  :disabled="checkinStore.isLoading"
                   :error="!!errors.bedTime"
                   hide-details
                   placeholder="Bed time"
                   readonly
-                  :value="formatTime(localBedTime)"
+                  :model-value="formatTime(localBedTime)"
                   variant="outlined"
                   @click="clearError('bedTime')"
                 >
@@ -65,15 +68,17 @@
               v-model="localAwakeTime"
               class="custom-date-picker"
               :clearable="true"
-              :disabled="loading"
+              :disabled="checkinStore.isLoading"
               format="HH:mm"
               :is-24="true"
               placeholder="Awake time"
               time-picker
+              :enable-time-picker="true"
+              auto-apply
             >
               <template #trigger>
                 <v-text-field
-                  :disabled="loading"
+                  :disabled="checkinStore.isLoading"
                   :error="!!errors.awakeTime"
                   hide-details
                   :model-value="formatTime(localAwakeTime)"
@@ -96,7 +101,25 @@
           </div>
         </div>
 
+        <!-- Sleep Duration Display - Always visible -->
+        <div class="sleep-duration">
+          <label class="section-label">Sleep Duration</label>
+          <div class="duration-display">
+            {{ sleepDuration || '--' }}
+          </div>
+        </div>
 
+        <!-- Error Display -->
+        <div v-if="checkinStore.error" class="error-display">
+          <v-alert
+            type="error"
+            variant="outlined"
+            closable
+            @click:close="checkinStore.clearError()"
+          >
+            {{ checkinStore.error }}
+          </v-alert>
+        </div>
       </div>
     </template>
   </BaseCheckInDialog>
@@ -107,62 +130,65 @@
   import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
   import VueDatePicker from '@vuepic/vue-datepicker'
   import '@vuepic/vue-datepicker/dist/main.css'
+  import { useCheckinStore } from '@/stores/checkin'
 
   const props = defineProps({
     modelValue: {
       type: Boolean,
       default: false,
     },
-    bedTime: {
-      type: String,
-      default: '',
-    },
-    awakeTime: {
-      type: String,
-      default: '',
-    },
-    notes: {
-      type: String,
-      default: '',
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
   })
 
-  const emit = defineEmits(['check-in', 'save', 'close', 'update:notes', 'update:bedTime', 'update:awakeTime', 'update:modelValue'])
+  const emit = defineEmits(['update:modelValue', 'close', 'saved'])
+
+  // Use the checkin store
+  const checkinStore = useCheckinStore()
 
   const localBedTime = ref(null)
   const localAwakeTime = ref(null)
-
   const errors = ref({})
 
   let bedTimeTimeout: ReturnType<typeof setTimeout> | null = null
   let awakeTimeTimeout: ReturnType<typeof setTimeout> | null = null
 
-  // Format time for display
+  // Improved format time function
   const formatTime = (time: string | Date | null) => {
     if (!time) return ''
-    if (typeof time === 'string') return time
-    if (time instanceof Date) {
-      return time.toTimeString().slice(0, 5)
+    
+    // Handle string format (HH:mm)
+    if (typeof time === 'string') {
+      return time
     }
+    
+    // Handle Date object
+    if (time instanceof Date) {
+      // Make sure it's a valid date
+      if (isNaN(time.getTime())) return ''
+      
+      // Format as HH:mm
+      const hours = time.getHours().toString().padStart(2, '0')
+      const minutes = time.getMinutes().toString().padStart(2, '0')
+      return `${hours}:${minutes}`
+    }
+    
+    // Handle object with hours/minutes (some date pickers return this format)
+    if (typeof time === 'object' && time !== null) {
+      if ('hours' in time && 'minutes' in time) {
+        const hours = String(time.hours).padStart(2, '0')
+        const minutes = String(time.minutes).padStart(2, '0')
+        return `${hours}:${minutes}`
+      }
+    }
+    
     return ''
   }
 
-  // Convert time to string format
+  // Convert time to string format for store
   const timeToString = (time: string | Date | null) => {
-    if (!time) return ''
-    if (typeof time === 'string') return time
-    if (time instanceof Date) {
-      return time.toTimeString().slice(0, 5)
-    }
-    return ''
+    return formatTime(time)
   }
 
   // Computed sleep duration
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const sleepDuration = computed(() => {
     const bedTimeStr = timeToString(localBedTime.value)
     const awakeTimeStr = timeToString(localAwakeTime.value)
@@ -173,6 +199,7 @@
       const bedTime = new Date(`2000-01-01 ${bedTimeStr}`)
       const awakeTime = new Date(`2000-01-01 ${awakeTimeStr}`)
 
+      // Handle overnight sleep
       if (awakeTime < bedTime) {
         awakeTime.setDate(awakeTime.getDate() + 1)
       }
@@ -190,50 +217,67 @@
       }
       return null
     } catch (error) {
-      errors.value = 'Invalid time'
+      console.error('Error calculating sleep duration:', error)
       return null
     }
   })
 
-  watch(() => props.modelValue, newValue => {
+  // Initialize local state from store when dialog opens
+  const initializeFromStore = () => {
+    const storeData = checkinStore.sleepData
+    
+    // Convert store string times to Date objects for the picker
+    if (storeData.bedTime) {
+      const [hours, minutes] = storeData.bedTime.split(':')
+      localBedTime.value = new Date(2000, 0, 1, parseInt(hours), parseInt(minutes))
+    } else {
+      localBedTime.value = null
+    }
+    
+    if (storeData.awakeTime) {
+      const [hours, minutes] = storeData.awakeTime.split(':')
+      localAwakeTime.value = new Date(2000, 0, 1, parseInt(hours), parseInt(minutes))
+    } else {
+      localAwakeTime.value = null
+    }
+    
+    errors.value = {}
+  }
+
+  // Watch for dialog open/close
+  watch(() => props.modelValue, (newValue) => {
     if (newValue) {
-      localBedTime.value = props.bedTime || null
-      localAwakeTime.value = props.awakeTime || null
-      errors.value = {}
-    }
-  }, { immediate: true })
-
-  watch(() => props.bedTime, newValue => {
-    if (props.modelValue) {
-      localBedTime.value = newValue || null
+      initializeFromStore()
+      checkinStore.clearError()
     }
   })
 
-  watch(() => props.awakeTime, newValue => {
-    if (props.modelValue) {
-      localAwakeTime.value = newValue || null
-    }
-  })
-
-  watch(localBedTime, newValue => {
+  // Watch for local time changes and sync to store
+  watch(localBedTime, (newValue) => {
     if (bedTimeTimeout) clearTimeout(bedTimeTimeout)
     bedTimeTimeout = setTimeout(() => {
-      emit('update:bedTime', timeToString(newValue))
+      // Update the store's sleepData directly
+      checkinStore.sleepData.bedTime = timeToString(newValue)
       if (newValue && errors.value.bedTime) {
         delete errors.value.bedTime
       }
     }, 100)
   })
 
-  watch(localAwakeTime, newValue => {
+  watch(localAwakeTime, (newValue) => {
     if (awakeTimeTimeout) clearTimeout(awakeTimeTimeout)
     awakeTimeTimeout = setTimeout(() => {
-      emit('update:awakeTime', timeToString(newValue))
+      // Update the store's sleepData directly
+      checkinStore.sleepData.awakeTime = timeToString(newValue)
       if (newValue && errors.value.awakeTime) {
         delete errors.value.awakeTime
       }
     }, 100)
   })
+
+  const updateNotes = (notes: string) => {
+    checkinStore.sleepData.notes = notes
+  }
 
   const clearError = (field: string) => {
     if (errors.value[field]) {
@@ -241,7 +285,7 @@
     }
   }
 
-  // Validation
+  // Validation functions
   const validateBedTime = () => {
     if (!localBedTime.value) {
       errors.value.bedTime = 'Please select bed time'
@@ -276,6 +320,8 @@
         errors.value = {}
         localBedTime.value = null
         localAwakeTime.value = null
+        // Clear the store form
+        checkinStore.clearSleepForm()
       })
     }
   }
@@ -284,22 +330,39 @@
     errors.value = {}
     localBedTime.value = null
     localAwakeTime.value = null
+    checkinStore.clearSleepForm()
+    checkinStore.clearError()
     emit('close')
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       return
     }
 
-    const sleepData = {
-      bedTime: timeToString(localBedTime.value),
-      awakeTime: timeToString(localAwakeTime.value),
-      notes: props.notes,
-    }
+    try {
+      // Save using the store method
+      const savedEntry = await checkinStore.saveSleep({
+        bedTime: timeToString(localBedTime.value),
+        awakeTime: timeToString(localAwakeTime.value),
+        notes: checkinStore.sleepData.notes,
+      })
 
-    errors.value = {}
-    emit('save', sleepData)
+      console.log('Sleep data saved successfully:', savedEntry)
+      
+      // Clear form and close dialog
+      errors.value = {}
+      localBedTime.value = null
+      localAwakeTime.value = null
+      
+      // Emit saved event for parent component
+      emit('saved', savedEntry)
+      emit('update:modelValue', false)
+      
+    } catch (error) {
+      console.error('Failed to save sleep data:', error)
+      // Error is already handled by the store, just log it here
+    }
   }
 </script>
 
@@ -308,6 +371,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-height: 200px;
 }
 
 .sleep-times {
@@ -320,6 +384,7 @@
     width: 288px;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .section-label {
@@ -331,6 +396,11 @@
 
 .custom-date-picker {
     width: 100%;
+    z-index: 9999;
+}
+
+:deep(.dp__menu) {
+    z-index: 9999 !important;
 }
 
 .error-message {
@@ -341,7 +411,19 @@
 
 .sleep-duration {
     text-align: center;
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 8px;
 }
 
+.duration-display {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 4px;
+}
 
+.error-display {
+    margin-top: 16px;
+}
 </style>
