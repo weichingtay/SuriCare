@@ -1,6 +1,95 @@
 import { computed, ref } from 'vue'
 import { supabase } from '@/plugins/supabase'
 
+// COMPLETELY REPLACE your existing savePoopToBackend function with this:
+
+const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id?: number }> => {
+  if (!authStore.isAuthenticated) {
+    setError('User not authenticated')
+    return { success: false }
+  }
+
+  const childrenStore = useChildrenStore()
+  if (!childrenStore.currentChild) {
+    setError('No child selected')
+    return { success: false }
+  }
+
+  try {
+    clearError()
+
+    // Get lookup data for poop colors and textures
+    const { useLookupData } = await import('@/composables/useLookupData')
+    const { 
+      poopColors, 
+      poopTextures,  // FIXED: Changed from poopConsistencies
+      fetchPoopColors, 
+      fetchPoopTextures  // FIXED: Changed from fetchPoopConsistencies
+    } = useLookupData()
+
+    // Ensure lookup data is loaded
+    if (poopColors.value.length === 0) {
+      await fetchPoopColors()
+    }
+    if (poopTextures.value.length === 0) {  // FIXED: Changed from poopConsistencies
+      await fetchPoopTextures()  // FIXED: Changed from fetchPoopConsistencies
+    }
+
+    console.log('🔍 Poop lookup data loaded:', {
+      poopColors: poopColors.value,
+      poopTextures: poopTextures.value,  // FIXED: Changed from poopConsistencies
+      searchingForColor: data.color,
+      searchingForTexture: data.texture
+    })
+
+    // Find the IDs for the selected values
+    const colorId = poopColors.value.find(item => item.value === data.color)?.id
+    const textureId = poopTextures.value.find(item => item.value === data.texture)?.id  // FIXED: Changed from consistencyId
+
+    console.log('🔍 Poop ID lookup results:', {
+      colorId,
+      textureId,  // FIXED: Changed from consistencyId
+      searchTerms: { color: data.color, texture: data.texture }
+    })
+
+    // Validate that we found the IDs
+    if (!colorId) {
+      console.warn('⚠️ Could not find color ID for:', data.color)
+      console.log('Available colors:', poopColors.value.map(item => item.value))
+    }
+    if (!textureId) {  // FIXED: Changed from consistencyId
+      console.warn('⚠️ Could not find texture ID for:', data.texture)
+      console.log('Available textures:', poopTextures.value.map(item => item.value))  // FIXED: Changed from poopConsistencies
+    }
+
+    const payload = {
+      child_id: childrenStore.currentChild.id,
+      color: colorId,
+      texture: textureId,  // FIXED: Changed from consistency: consistencyId
+      check_in: new Date().toISOString(),
+      note: data.notes || null,  // Handle empty notes
+    }
+
+    console.log('📦 Poop payload:', payload)
+
+    const result = await makeApiCall<any>(
+      getApiUrl('/poop/'),
+      {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      }
+    )
+
+    console.log('✅ Poop saved to backend:', result)
+    return { success: true, id: result.id }
+
+  } catch (err) {
+    console.error('❌ Poop save error:', err)
+    setError(err instanceof Error ? err.message : 'Failed to save poop data')
+    return { success: false }
+  }
+}
+
 // Types for all lookup data
 export interface LookupOption {
   id: number
@@ -22,7 +111,7 @@ export interface PoopColor extends LookupOption {
   category: string
 }
 
-export interface PoopConsistency extends LookupOption {
+export interface PoopTexture extends LookupOption {
   category: string
 }
 
@@ -43,7 +132,7 @@ const lookupCache = ref<{
   mealCategories: MealCategory[]
   mealTimeCategories: MealTimeCategory[]
   poopColors: PoopColor[]
-  poopConsistencies: PoopConsistency[]
+  poopTextures: PoopTexture[],
   genderOptions: GenderOption[]
   relationshipTypes: RelationshipType[]
   symptomTypes: SymptomType[]
@@ -53,7 +142,7 @@ const lookupCache = ref<{
   mealCategories: [],
   mealTimeCategories: [],
   poopColors: [],
-  poopConsistencies: [],
+  poopTextures: [],
   genderOptions: [],
   relationshipTypes: [],
   symptomTypes: [],
@@ -154,7 +243,7 @@ function transformPoopColors (data: unknown[]): PoopColor[] {
   }))
 }
 
-function transformPoopConsistencies (data: unknown[]): PoopConsistency[] {
+function transformPoopTextures(data: unknown[]): PoopTexture[] {
   return data.map(item => ({
     id: item.id,
     value: item.category,
@@ -175,8 +264,8 @@ export function useLookupData () {
   const fetchPoopColors = () =>
     fetchLookupData<PoopColor>('poop_color', 'poopColors', transformPoopColors)
 
-  const fetchPoopConsistencies = () =>
-    fetchLookupData<PoopConsistency>('poop_consistency', 'poopConsistencies', transformPoopConsistencies)
+  const fetchPoopTextures = () =>
+  fetchLookupData<PoopTexture>('poop_texture', 'poopTextures', transformPoopTextures)
 
   const fetchGenderOptions = () =>
     fetchLookupData<GenderOption>('gender_options', 'genderOptions')
@@ -197,7 +286,7 @@ export function useLookupData () {
   const mealCategories = computed(() => lookupCache.value.mealCategories)
   const mealTimeCategories = computed(() => lookupCache.value.mealTimeCategories)
   const poopColors = computed(() => lookupCache.value.poopColors)
-  const poopConsistencies = computed(() => lookupCache.value.poopConsistencies)
+  const poopTextures = computed(() => lookupCache.value.poopTextures)
   const genderOptions = computed(() => lookupCache.value.genderOptions)
   const relationshipTypes = computed(() => lookupCache.value.relationshipTypes)
   const symptomTypes = computed(() => lookupCache.value.symptomTypes)
@@ -226,7 +315,7 @@ export function useLookupData () {
       fetchMealCategories(),
       fetchMealTimeCategories(),
       fetchPoopColors(),
-      fetchPoopConsistencies(),
+      fetchPoopTextures(),
       fetchGenderOptions(),
       fetchRelationshipTypes(),
       fetchSymptomTypes(),
@@ -240,7 +329,7 @@ export function useLookupData () {
     fetchMealCategories,
     fetchMealTimeCategories,
     fetchPoopColors,
-    fetchPoopConsistencies,
+    fetchPoopTextures,
     fetchGenderOptions,
     fetchRelationshipTypes,
     fetchSymptomTypes,
@@ -251,7 +340,7 @@ export function useLookupData () {
     mealCategories,
     mealTimeCategories,
     poopColors,
-    poopConsistencies,
+    poopTextures,
     genderOptions,
     relationshipTypes,
     symptomTypes,

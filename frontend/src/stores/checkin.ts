@@ -354,7 +354,7 @@ export const useCheckinStore = defineStore('checkin', () => {
   }
 
   // Save Poop using POST /poop/ (following chat.ts patterns)
-  const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id?: number }> => {
+const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id?: number }> => {
     if (!authStore.isAuthenticated) {
       setError('User not authenticated')
       return { success: false }
@@ -372,28 +372,52 @@ export const useCheckinStore = defineStore('checkin', () => {
       // Need to get the actual IDs from the lookup data
       const { useLookupData } = await import('@/composables/useLookupData')
       const { 
-        poopColors, 
-        poopConsistencies, 
-        fetchPoopColors, 
-        fetchPoopConsistencies 
-      } = useLookupData()
+    poopColors, 
+    poopTextures, 
+    fetchPoopColors, 
+    fetchPoopTextures 
+  } = useLookupData()
+
+  console.log('🔍 Debugging savePoopToBackend:')
+  console.log('poopColors:', poopColors)
+  console.log('poopTextures:', poopTextures)
+  console.log('fetchPoopColors:', fetchPoopColors)
+  console.log('fetchPoopTextures:', fetchPoopTextures)
+
+ if (!poopColors) {
+    console.error('❌ poopColors is undefined!')
+    throw new Error('poopColors is undefined')
+  }
+  if (!poopTextures) {
+    console.error('❌ poopTextures is undefined!')
+    throw new Error('poopTextures is undefined')
+  }
+
+  console.log('✅ Both poopColors and poopTextures are defined')
+
+  // Now try accessing .value
+  console.log('🔍 About to access poopColors.value...')
+  console.log('poopColors.value:', poopColors.value)
+  
+  console.log('🔍 About to access poopTextures.value...')
+  console.log('poopTextures.value:', poopTextures.value)
 
       // Ensure lookup data is loaded
       if (poopColors.value.length === 0) {
         await fetchPoopColors()
       }
-      if (poopConsistencies.value.length === 0) {
-        await fetchPoopConsistencies()
+      if (poopTextures.value.length === 0) {
+        await fetchPoopTextures()
       }
 
       // Find the IDs for the selected values
       const colorId = poopColors.value.find(item => item.value === data.color)?.id || null
-      const consistencyId = poopConsistencies.value.find(item => item.value === data.texture)?.id || null
+      const textureId = poopTextures.value.find(item => item.value === data.texture)?.id || null
 
       const payload = {
         child_id: childrenStore.currentChild.id,
         color: colorId, // Foreign key to poop_color table
-        consistency: consistencyId, // Foreign key to poop_consistency table
+        texture: textureId, // Foreign key to poop_texture table
         check_in: new Date().toISOString(),
         note: data.notes || '', // Note is NOT NULL in your schema
       }

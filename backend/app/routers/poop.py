@@ -1,7 +1,9 @@
+# Update your app/routers/poop.py file
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from app.db import engine, get_session
-from app.models import Poop, Poop_Color, Poop_Consistency
+from app.models import Poop, Poop_Color, Poop_Texture  # CHANGED: Poop_Consistency -> Poop_Texture
 from typing import List, Optional
 from datetime import datetime, timedelta
 import pandas as pd
@@ -28,10 +30,10 @@ def get_poops_by_child(child_id: int, days: Optional[int] = 30):
                             SELECT 
                                 p.*,
                                 pc.category as color_name,
-                                pcon.category as consistency_name
+                                pt.category as texture_name
                             FROM poop p
                             JOIN poop_color pc ON p.color = pc.id
-                            JOIN poop_consistency pcon ON p.consistency = pcon.id
+                            JOIN poop_texture pt ON p.texture = pt.id
                             WHERE p.child_id = {child_id} AND
                                   p.check_in >= NOW() - INTERVAL '{days} DAY'
                             ORDER BY p.check_in DESC
@@ -87,7 +89,7 @@ def update_poop(*, session: Session = Depends(get_session), poop_id: int, poop_u
         poop.check_in = poop_update.check_in
         poop.note = poop_update.note
         poop.color = poop_update.color
-        poop.consistency = poop_update.consistency
+        poop.texture = poop_update.texture  # CHANGED: consistency -> texture
         
         session.add(poop)
         session.commit()
@@ -118,18 +120,18 @@ def delete_poop(*, session: Session = Depends(get_session), poop_id: int):
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to delete poop record: {str(e)}")
 
-# Poop reference data endpoints (moved from reference router)
+# UPDATED: Changed endpoints from 'consistencies' to 'textures'
 @router.get('/colors', response_model=List[Poop_Color])
 def get_poop_colors(*, session: Session = Depends(get_session)):
     """Get all poop color options"""
     colors = session.exec(select(Poop_Color)).all()
     return list(colors)
 
-@router.get('/consistencies', response_model=List[Poop_Consistency])
-def get_poop_consistencies(*, session: Session = Depends(get_session)):
-    """Get all poop consistency options"""
-    consistencies = session.exec(select(Poop_Consistency)).all()
-    return list(consistencies)
+@router.get('/textures', response_model=List[Poop_Texture])  # CHANGED: consistencies -> textures
+def get_poop_textures(*, session: Session = Depends(get_session)):  # CHANGED: name
+    """Get all poop texture options"""  # CHANGED: description
+    textures = session.exec(select(Poop_Texture)).all()  # CHANGED: model
+    return list(textures)
 
 @router.post('/colors', response_model=Poop_Color)
 def create_poop_color(*, session: Session = Depends(get_session), color: Poop_Color):
@@ -143,14 +145,14 @@ def create_poop_color(*, session: Session = Depends(get_session), color: Poop_Co
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to create poop color: {str(e)}")
 
-@router.post('/consistencies', response_model=Poop_Consistency)
-def create_poop_consistency(*, session: Session = Depends(get_session), consistency: Poop_Consistency):
-    """Create a new poop consistency option"""
+@router.post('/textures', response_model=Poop_Texture)  # CHANGED: consistencies -> textures
+def create_poop_texture(*, session: Session = Depends(get_session), texture: Poop_Texture):  # CHANGED
+    """Create a new poop texture option"""  # CHANGED: description
     try:
-        session.add(consistency)
+        session.add(texture)
         session.commit()
-        session.refresh(consistency)
-        return consistency
+        session.refresh(texture)
+        return texture
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to create poop consistency: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create poop texture: {str(e)}")  # CHANGED

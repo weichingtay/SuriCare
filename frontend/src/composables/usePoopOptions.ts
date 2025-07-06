@@ -45,9 +45,9 @@ const textureImageMap: { [key: string]: string } = {
 export function usePoopOptions () {
   const {
     fetchPoopColors,
-    fetchPoopConsistencies,
+    fetchPoopTextures,
     poopColors,
-    poopConsistencies,
+    poopTextures,
     isLoading,
     getError,
   } = useLookupData()
@@ -66,11 +66,11 @@ export function usePoopOptions () {
 
   // Enhanced texture options with images
   const textureOptions = computed(() => {
-    if (poopConsistencies.value.length === 0) {
+    if (poopTextures.value.length === 0) {
       return fallbackTextureOptions
     }
 
-    return poopConsistencies.value.map(item => ({
+    return poopTextures.value.map(item => ({
       ...item,
       image: textureImageMap[item.value] || '/assets/textures/smooth.png', // fallback
     }))
@@ -78,11 +78,11 @@ export function usePoopOptions () {
 
   // Loading states
   const isColorLoading = computed(() => isLoading.value('poopColors'))
-  const isTextureLoading = computed(() => isLoading.value('poopConsistencies'))
+  const isTextureLoading = computed(() => isLoading.value('poopTextures'))
 
   // Error states
   const colorError = computed(() => getError.value('poopColors'))
-  const textureError = computed(() => getError.value('poopConsistencies'))
+  const textureError = computed(() => getError.value('poopTextures'))
 
   // Overall loading state
   const isLoadingOptions = computed(() => isColorLoading.value || isTextureLoading.value)
@@ -91,7 +91,7 @@ export function usePoopOptions () {
   const loadPoopOptions = async () => {
     await Promise.allSettled([
       fetchPoopColors(),
-      fetchPoopConsistencies(),
+      fetchPoopTextures(),
     ])
   }
 

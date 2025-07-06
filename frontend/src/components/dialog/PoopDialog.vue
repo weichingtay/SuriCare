@@ -88,6 +88,7 @@
 <script setup lang="ts">
   import { nextTick, ref, watch } from 'vue'
   import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
+  import { useCheckinStore } from '@/stores/checkin' // Add this import
 
   const props = defineProps({
     modelValue: {
@@ -130,6 +131,7 @@
     isLoading: isPoopOptionsLoading,
   } = usePoopOptions()
 
+  const checkinStore = useCheckinStore() // Add this
   const localColor = ref('')
   const localTexture = ref('')
   const errors = ref({})
@@ -229,20 +231,36 @@
     emit('close')
   }
 
-  const handleSave = () => {
-    if (!validateForm()) {
-      return
-    }
-
-    const poopData = {
-      color: localColor.value,
-      texture: localTexture.value,
-      notes: props.notes,
-    }
-
-    errors.value = {}
-    emit('save', poopData)
+  const handleSave = async () => {
+  console.log('🐾 PoopDialog handleSave clicked!')
+  
+  if (!validateForm()) {
+    console.log('❌ Validation failed:', errors.value)
+    return
   }
+
+  const poopData = {
+    color: localColor.value,
+    texture: localTexture.value,
+    notes: props.notes,
+  }
+
+  console.log('📦 Poop data to save:', poopData)
+  errors.value = {}
+  
+  try {
+    console.log('💾 About to call checkinStore.savePoop...')
+    
+    // Save to store (which handles backend integration)
+    await checkinStore.savePoop(poopData)
+    console.log('✅ Poop save completed successfully!')
+    
+    // Close dialog on success
+    handleDialogUpdate(false)
+  } catch (error) {
+    console.error('❌ Failed to save poop data:', error)
+  }
+}
 </script>
 
 <style scoped>
