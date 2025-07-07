@@ -59,11 +59,9 @@
 
       <!-- Poop Card -->
       <PoopSummaryCard
-        :date="selectedDate"
-        :poop-data="summaryData.poop"
-        @check-in="$emit('open-poop-dialog')"
-      />
-
+  :date="selectedDate"
+  @check-in="$emit('open-poop-dialog')"
+/>
       <!-- Health Card -->
       <HealthSummaryCard
         :date="selectedDate"

@@ -52,22 +52,44 @@ const handleCheckIn = () => {
   import { usePoopStore } from '@/stores/poop'
   import BaseSummaryCard from '@/components/summaryCard/BaseSummaryCard.vue'
 
+  // ADD THIS PROPS SECTION:
+  const props = defineProps({
+    date: {
+      type: Date,
+      required: true,
+    },
+  })
+
   const poopStore = usePoopStore()
-  const currentDate = new Date().toISOString().split('T')[0]
-  const poopData = computed(() => poopStore.getPoopForDate(currentDate))
+  // FIXED:
+const dateString = computed(() => {
+  const year = props.date.getFullYear()
+  const month = String(props.date.getMonth() + 1).padStart(2, '0')
+  const day = String(props.date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+})
+const poopData = computed(() => poopStore.getPoopForDate(dateString.value))
 
   // Count of bowel movements
   const poopCount = computed(() => {
-    return poopData.value?.count || 0
-  })
+   const data = poopData.value
+  
+  // Check if there's no data at all (no input made)
+  if (!data || !data.lastUpdated) {
+    return '-'  // Show dash when no input
+  }
+  
+  // Show actual count (including 0) when there is input data
+  return data.count || 0
+})
 
   // Enhanced status logic based on actual poop data structure
   const statusNote = computed(() => {
     const data = poopData.value
 
-    if (!data) {
-      return 'No data recorded'
-    }
+    if (!data || !data.lastUpdated) {
+    return 'No stool data for this date'
+  }
 
     const count = data.count || 0
     const unusual = data.unusual || 0
