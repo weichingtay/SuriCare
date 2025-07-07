@@ -44,7 +44,7 @@ def get_meals_by_child(child_id: int, days: Optional[int] = 30):
         # Convert to Singapore timezone
         meals['check_in'] = meals['check_in'].dt.tz_convert('Asia/Singapore')
         
-    return json.loads(meals.to_json(orient='records'))
+    return [Meal(**meal) for meal in meals.to_dict(orient='records')]
 
 @router.get('/child/{child_id}/latest', response_model=Optional[Meal])
 def get_latest_meal(*, session: Session = Depends(get_session), child_id: int):

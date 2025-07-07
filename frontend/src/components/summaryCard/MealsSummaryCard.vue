@@ -12,7 +12,7 @@
       <div class="meal-breakdown">
         <div v-for="meal in mealBreakdown" :key="meal.name" class="breakdown-item">
           <div class="meal-icon-group">
-            <span class="breakdown-value">{{ meal.percentage }}%</span>
+            <span class="breakdown-value">{{ meal.percentage > 0 ? meal.percentage + '%' : '-' }}</span>
             <div class="pie-chart-icon">
               <svg height="12" viewBox="0 0 16 16" width="12">
                 <circle cx="8" cy="8" r="6" />

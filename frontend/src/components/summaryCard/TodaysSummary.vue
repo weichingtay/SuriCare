@@ -104,9 +104,10 @@
 
 
   // Use date picker composable
-  const { selectedDate, datePickerMenu, formattedSelectedDate, handleDateChange: baseDateChange } = useDatePicker(props.initialDate)
-
-  // Dynamic title based on selected date
+const defaultDate = new Date('2025-07-06T00:00:00') // A date with meal data
+const { selectedDate, datePickerMenu, formattedSelectedDate, handleDateChange: baseDateChange } = useDatePicker(props.initialDate || defaultDate)
+  
+// Dynamic title based on selected date
   const dynamicTitle = computed(() => {
     const today = new Date()
     const selected = new Date(selectedDate.value)
