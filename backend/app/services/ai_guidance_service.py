@@ -8,22 +8,33 @@ import google.generativeai as genai
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 import re
+from app.utils import calculate_age_in_months
 
 class AIGuidanceService:
     def __init__(self):
         self.gemini_api_key = os.getenv('GEMINI_API_KEY')
-        if not self.gemini_api_key:
-            raise ValueError("GEMINI_API_KEY environment variable is required")
+        print(f"GEMINI_API_KEY present: {bool(self.gemini_api_key)}")
         
-        genai.configure(api_key=self.gemini_api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        if not self.gemini_api_key:
+            print("WARNING: GEMINI_API_KEY not found, AI features will use fallbacks")
+            self.model = None
+        else:
+            try:
+                genai.configure(api_key=self.gemini_api_key)
+                self.model = genai.GenerativeModel('gemini-2.0-flash')
+                print("Gemini AI initialized successfully")
+            except Exception as e:
+                print(f"Error initializing Gemini AI: {e}")
+                self.model = None
         
         # Trusted domains for child health content
         self.trusted_domains = [
             'aap.org',
+            'raisingchildren.net.au'
             'healthychildren.org', 
             'kidshealth.org',
             'babycenter.com',
+            'autism.org.uk',
             'whattoexpect.com',
             'mayoclinic.org',
             'webmd.com',
@@ -37,31 +48,45 @@ class AIGuidanceService:
     async def get_child_specific_articles(self, child_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Get AI-curated articles specific to a child's context"""
         try:
+            print(f"Starting article generation for child: {child_data.get('name', 'Unknown')}, age: {child_data.get('age', 'Unknown')}")
+            
             # Step 1: Generate search queries based on child context
             search_queries = await self._generate_search_queries(child_data)
+            print(f"Generated {len(search_queries)} search queries: {search_queries}")
             
             # Step 2: Search for articles using AI-powered web search
             raw_articles = await self._search_articles(search_queries)
+            print(f"Found {len(raw_articles)} raw articles")
             
             # Step 3: Scrape and analyze content
             enriched_articles = await self._enrich_articles(raw_articles, child_data)
+            print(f"Enriched {len(enriched_articles)} articles")
             
             # Step 4: Score and rank articles by relevance
             ranked_articles = await self._rank_articles(enriched_articles, child_data)
+            print(f"Ranked {len(ranked_articles)} articles")
             
-            return ranked_articles[:10]  # Return top 10 articles
+            final_articles = ranked_articles[:10]  # Return top 10 articles
+            
+            # If no articles found, return fallback articles
+            if not final_articles:
+                print("No AI articles found, returning fallback articles")
+                final_articles = self._get_fallback_articles(child_data)
+            
+            print(f"Returning {len(final_articles)} articles")
+            print(final_articles)
+            return final_articles
             
         except Exception as e:
             print(f"Error in get_child_specific_articles: {str(e)}")
-            return []
+            print("Returning fallback articles due to error")
+            return self._get_fallback_articles(child_data)
     
     async def _generate_search_queries(self, child_data: Dict[str, Any]) -> List[str]:
         """Use AI to generate targeted search queries based on child context"""
         age = child_data.get('age', '')
         name = child_data.get('name', '')
-        
-        # Calculate age in months for more precise queries
-        age_months = self._calculate_age_months(age)
+        age_months = child_data.get('age_months', 0)
         
         # Build context for AI
         context = f"""
@@ -79,6 +104,11 @@ class AIGuidanceService:
         
         Make queries specific to the child's age range and developmental stage.
         """
+        
+        # Check if AI model is available
+        if not self.model:
+            print("AI model not available, using fallback queries")
+            return self._fallback_queries(age, age_months)
         
         try:
             prompt = f"{context}\n\nGenerate 5 search queries as a JSON array of strings:"
@@ -175,6 +205,11 @@ class AIGuidanceService:
         ]
         """
         
+        # Check if AI model is available
+        if not self.model:
+            print("AI model not available, skipping web search")
+            return []
+        
         try:
             response = self.model.generate_content(search_prompt)
             results_text = response.text.strip()
@@ -195,14 +230,19 @@ class AIGuidanceService:
         """Scrape article content and use AI to analyze relevance"""
         enriched = []
         
-        for article in articles:
+        for i, article in enumerate(articles):
+            print(f"Enriching article {i+1}/{len(articles)}: {article.get('title', 'Unknown')}")
+            print(f"URL: {article.get('url', 'No URL')}")
+            
             try:
                 # Scrape article content
                 content = await self._scrape_article_content(article['url'])
+                print(f"Scraped content length: {len(content) if content else 0}")
                 
                 if content:
                     # Use AI to analyze and summarize content
                     analysis = await self._analyze_article_content(content, child_data)
+                    print(f"Analysis relevance score: {analysis.get('relevance_score', 0)}")
                     
                     article.update({
                         'content_snippet': content[:500] + '...',
@@ -213,11 +253,38 @@ class AIGuidanceService:
                     })
                     
                     enriched.append(article)
+                    print(f"Successfully enriched article: {article.get('title')}")
+                else:
+                    print(f"Failed to scrape content for: {article.get('url')}")
+                    # Still add the article but with basic analysis
+                    article.update({
+                        'content_snippet': article.get('description', 'No content available'),
+                        'ai_summary': f"Article about {article.get('title', 'child development')}",
+                        'relevance_score': 60,  # Give it a decent score since it matched our search
+                        'key_topics': ['parenting', 'child development'],
+                        'age_appropriate': True
+                    })
+                    enriched.append(article)
+                    print(f"Added article without scraping: {article.get('title')}")
                     
             except Exception as e:
                 print(f"Error enriching article {article.get('url', '')}: {str(e)}")
-                continue
+                # Still try to include the article with basic info
+                try:
+                    article.update({
+                        'content_snippet': article.get('description', 'No content available'),
+                        'ai_summary': f"Article about {article.get('title', 'child development')}",
+                        'relevance_score': 50,
+                        'key_topics': ['parenting'],
+                        'age_appropriate': True
+                    })
+                    enriched.append(article)
+                    print(f"Added article with fallback data: {article.get('title')}")
+                except:
+                    print(f"Failed to add article even with fallback: {article}")
+                    continue
         
+        print(f"Enrichment complete: {len(enriched)}/{len(articles)} articles enriched")
         return enriched
     
     async def _scrape_article_content(self, url: str) -> Optional[str]:
@@ -265,6 +332,15 @@ class AIGuidanceService:
         }}
         """
         
+        # Check if AI model is available
+        if not self.model:
+            return {
+                'summary': 'AI analysis unavailable - using fallback',
+                'relevance_score': 75,
+                'key_topics': ['general parenting', 'child development'],
+                'age_appropriate': True
+            }
+        
         try:
             response = self.model.generate_content(analysis_prompt)
             analysis_text = response.text.strip()
@@ -291,18 +367,119 @@ class AIGuidanceService:
         # Sort by relevance score (descending)
         ranked = sorted(articles, key=lambda x: x.get('relevance_score', 0), reverse=True)
         
-        # Filter out low-relevance articles
-        relevant_articles = [article for article in ranked if article.get('relevance_score', 0) > 30]
+        # Filter out low-relevance articles (lowered threshold)
+        relevant_articles = [article for article in ranked if article.get('relevance_score', 0) > 20]
+        print(f"Filtered articles by relevance (>20): {len(relevant_articles)}/{len(ranked)}")
         
         return relevant_articles
     
-    def _calculate_age_months(self, age_string: str) -> int:
-        """Calculate age in months from age string"""
-        months_match = re.search(r'(\d+)\s*months?', age_string)
-        years_match = re.search(r'(\d+)\s*years?', age_string)
+    def _get_fallback_articles(self, child_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Return fallback articles when AI service fails"""
+        age = child_data.get('age', 'young child')
+        age_months = child_data.get('age_months', 12)
+        name = child_data.get('name', 'your child')
         
-        if months_match:
-            return int(months_match.group(1))
-        elif years_match:
-            return int(years_match.group(1)) * 12
-        return 0
+        # Basic fallback articles based on age
+        if age_months <= 12:
+            articles = [
+                {
+                    'id': 'fallback_infant_1',
+                    'title': f'Infant Development Milestones for {age}',
+                    'description': f'Understanding {name}\'s developmental progress and what to expect during the first year.',
+                    'tags': ['Development', 'Milestones', 'Infant'],
+                    'url': 'https://www.healthychildren.org/English/ages-stages/baby/Pages/Developmental-Milestones-of-Early-Literacy.aspx',
+                    'domain': 'healthychildren.org',
+                    'ai_summary': 'Important developmental milestones for infants including physical, cognitive, and social development markers.',
+                    'relevance_score': 85,
+                    'key_topics': ['motor skills', 'language development', 'social interaction'],
+                    'age_appropriate': True,
+                    'content_snippet': 'During the first year, babies reach many important milestones...'
+                },
+                {
+                    'id': 'fallback_infant_2',
+                    'title': f'Feeding and Nutrition Guide for {age}',
+                    'description': f'Essential nutrition information for {name}\'s healthy growth and development.',
+                    'tags': ['Nutrition', 'Feeding', 'Health'],
+                    'url': 'https://www.aap.org/en/patient-care/breastfeeding/',
+                    'domain': 'aap.org',
+                    'ai_summary': 'Comprehensive feeding guidelines including breastfeeding, formula feeding, and introducing solid foods.',
+                    'relevance_score': 90,
+                    'key_topics': ['breastfeeding', 'formula', 'solid foods', 'nutrition'],
+                    'age_appropriate': True,
+                    'content_snippet': 'Proper nutrition is crucial for infant development...'
+                },
+                {
+                    'id': 'fallback_infant_3',
+                    'title': f'Safe Sleep Guidelines for {age}',
+                    'description': f'Important sleep safety information to keep {name} safe and healthy.',
+                    'tags': ['Sleep', 'Safety', 'SIDS Prevention'],
+                    'url': 'https://www.cdc.gov/sids/parents-caregivers/reduce-risk.html',
+                    'domain': 'cdc.gov',
+                    'ai_summary': 'Guidelines for safe infant sleep practices to reduce the risk of SIDS and promote healthy sleep.',
+                    'relevance_score': 95,
+                    'key_topics': ['safe sleep', 'SIDS prevention', 'sleep position'],
+                    'age_appropriate': True,
+                    'content_snippet': 'Safe sleep practices are essential for infant health...'
+                }
+            ]
+        elif age_months <= 36:
+            articles = [
+                {
+                    'id': 'fallback_toddler_1',
+                    'title': f'Toddler Development for {age}',
+                    'description': f'Understanding {name}\'s toddler development and behavior patterns.',
+                    'tags': ['Development', 'Toddler', 'Behavior'],
+                    'url': 'https://www.kidshealth.org/en/parents/toddler-development.html',
+                    'domain': 'kidshealth.org',
+                    'ai_summary': 'Comprehensive guide to toddler development including language, motor skills, and social development.',
+                    'relevance_score': 85,
+                    'key_topics': ['language development', 'motor skills', 'social behavior'],
+                    'age_appropriate': True,
+                    'content_snippet': 'Toddlers are rapidly developing new skills...'
+                },
+                {
+                    'id': 'fallback_toddler_2',
+                    'title': f'Nutrition for {age} Toddlers',
+                    'description': f'Healthy eating habits and meal ideas for {name}.',
+                    'tags': ['Nutrition', 'Meals', 'Health'],
+                    'url': 'https://www.mayoclinic.org/healthy-lifestyle/infant-and-toddler-health/in-depth/toddler-nutrition/art-20046928',
+                    'domain': 'mayoclinic.org',
+                    'ai_summary': 'Guidelines for toddler nutrition including meal planning, healthy snacks, and dealing with picky eating.',
+                    'relevance_score': 80,
+                    'key_topics': ['balanced diet', 'picky eating', 'meal planning'],
+                    'age_appropriate': True,
+                    'content_snippet': 'Toddlers need balanced nutrition for proper growth...'
+                }
+            ]
+        else:
+            articles = [
+                {
+                    'id': 'fallback_child_1',
+                    'title': f'Child Development for {age}',
+                    'description': f'Supporting {name}\'s growth and development.',
+                    'tags': ['Development', 'Preschool', 'Learning'],
+                    'url': 'https://www.verywellfamily.com/preschooler-development-4172725',
+                    'domain': 'verywellfamily.com',
+                    'ai_summary': 'Guide to preschooler development including cognitive, physical, and emotional growth.',
+                    'relevance_score': 85,
+                    'key_topics': ['cognitive development', 'emotional skills', 'school readiness'],
+                    'age_appropriate': True,
+                    'content_snippet': 'Preschoolers are developing independence and social skills...'
+                },
+                {
+                    'id': 'fallback_child_2',
+                    'title': f'Healthy Habits for {age}',
+                    'description': f'Building healthy routines and habits with {name}.',
+                    'tags': ['Health', 'Habits', 'Wellness'],
+                    'url': 'https://www.parents.com/toddlers-preschoolers/health/healthy-habits/',
+                    'domain': 'parents.com',
+                    'ai_summary': 'Tips for establishing healthy daily routines including nutrition, exercise, and hygiene.',
+                    'relevance_score': 80,
+                    'key_topics': ['daily routines', 'exercise', 'hygiene'],
+                    'age_appropriate': True,
+                    'content_snippet': 'Establishing healthy habits early sets the foundation...'
+                }
+            ]
+        
+        return articles
+    

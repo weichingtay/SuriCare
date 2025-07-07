@@ -49,7 +49,7 @@ export const useGuidanceStore = defineStore('guidance', () => {
 
   // AI-powered article discovery configuration
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-  const AI_GUIDANCE_ENDPOINT = `${API_BASE_URL}/api/guidance`
+  const AI_GUIDANCE_ENDPOINT = `${API_BASE_URL}`
 
   // Helper: Calculate age in months for more precise search queries
   const calculateAgeInMonths = (ageString: string): number => {
@@ -196,7 +196,7 @@ export const useGuidanceStore = defineStore('guidance', () => {
       {
         id: 'default_1',
         title: `Child Development Milestones for ${age}`,
-        description: 'Understanding your child\\'s developmental progress and what to expect at this age.',
+        description: 'Understanding your child\'s developmental progress and what to expect at this age.',
         tags: ['Development', 'Milestones'],
         ai_summary: 'AI-powered content discovery is currently unavailable. This is a fallback article.',
         relevance_score: 75,
@@ -205,7 +205,7 @@ export const useGuidanceStore = defineStore('guidance', () => {
       {
         id: 'default_2',
         title: `Nutrition Guide for ${age} Old Children`,
-        description: 'Essential nutrition information and feeding guidelines for your child\\'s age group.',
+        description: 'Essential nutrition information and feeding guidelines for your child\'s age group.',
         tags: ['Nutrition', 'Health'],
         ai_summary: 'AI-powered content discovery is currently unavailable. This is a fallback article.',
         relevance_score: 75,
@@ -253,12 +253,12 @@ export const useGuidanceStore = defineStore('guidance', () => {
     try {
       // Force refresh using AI agent
       const articles = await refreshAIArticles(childId, authStore.userId)
-      
+
       // Update cache with fresh articles
       const { useChildrenStore } = await import('./children')
       const childrenStore = useChildrenStore()
       const child = childrenStore.children.find(c => c.id === childId)
-      
+
       if (child) {
         articleCache.value[childId] = {
           articles,

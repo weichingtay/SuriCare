@@ -41,8 +41,7 @@ npm run build        # Build frontend for production
 ## 🌐 Access Points
 
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
+- **API Documentation**: http://127.0.0.1:8000/docs
 - **Admin Panel**: Use `npm run admin` commands
 
 ## 🏗️ Architecture

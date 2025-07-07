@@ -6,8 +6,16 @@ import asyncio
 from app.db import get_session
 from app.models import Child 
 from app.services.ai_guidance_service import AIGuidanceService
+from app.utils import get_age_string_and_months
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/api/guidance"
+)
+
+@router.get("/health")
+async def health_check():
+    """Health check endpoint for guidance service"""
+    return {"status": "healthy", "service": "guidance"}
 
 @router.get("/articles/{child_id}")
 async def get_child_guidance_articles(
@@ -22,17 +30,19 @@ async def get_child_guidance_articles(
         # Verify child exists and belongs to user
         child = db.query(Child).filter(
             Child.id == child_id,
-            Child.user_id == user_id
+            Child.carer_id == user_id
         ).first()
         
         if not child:
             raise HTTPException(status_code=404, detail="Child not found")
         
         # Prepare child data for AI analysis
+        age_string, age_months = get_age_string_and_months(child.birth_date)
         child_data = {
             'id': child.id,
             'name': child.name,
-            'age': child.age,
+            'age': age_string,
+            'age_months': age_months,
             'birth_date': child.birth_date.isoformat() if child.birth_date else None,
             'gender': child.gender
         }
@@ -67,17 +77,19 @@ async def refresh_child_guidance_articles(
         # Verify child exists and belongs to user
         child = db.query(Child).filter(
             Child.id == child_id,
-            Child.user_id == user_id
+            Child.carer_id == user_id
         ).first()
         
         if not child:
             raise HTTPException(status_code=404, detail="Child not found")
         
         # Prepare child data for AI analysis
+        age_string, age_months = get_age_string_and_months(child.birth_date)
         child_data = {
             'id': child.id,
             'name': child.name,
-            'age': child.age,
+            'age': age_string,
+            'age_months': age_months,
             'birth_date': child.birth_date.isoformat() if child.birth_date else None,
             'gender': child.gender
         }
@@ -113,17 +125,19 @@ async def get_child_guidance_summary(
         # Verify child exists and belongs to user
         child = db.query(Child).filter(
             Child.id == child_id,
-            Child.user_id == user_id
+            Child.carer_id == user_id
         ).first()
         
         if not child:
             raise HTTPException(status_code=404, detail="Child not found")
         
         # Prepare child data for AI analysis
+        age_string, age_months = get_age_string_and_months(child.birth_date)
         child_data = {
             'id': child.id,
             'name': child.name,
-            'age': child.age,
+            'age': age_string,
+            'age_months': age_months,
             'birth_date': child.birth_date.isoformat() if child.birth_date else None,
             'gender': child.gender
         }
