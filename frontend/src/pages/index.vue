@@ -2,11 +2,26 @@
 <template>
   <!-- Main application container with light theme -->
   <v-app theme="light">
-    <!-- Welcome text -->
-    <div class="welcome-content">
-      <h1 class="welcome-text mb-1">Welcome, Wei Ching</h1>
-      <p class="welcome-subtitle">Let's check on your little one today</p>
-    </div>
+    <v-row>
+      <v-col cols="4">
+        <!-- Welcome text -->
+        <div class="welcome-content">
+          <h1 class="welcome-text mb-1">Welcome, Wei Ching</h1>
+          <p class="welcome-subtitle">Let's check on your little one today</p>
+        </div>
+      </v-col>
+
+      <v-col cols="4">
+        <!-- Show alert if needed -->
+        <v-alert
+          v-if="alert.show"
+          :type="alert.type"
+          :text="alert.message"
+          class="mb-4 centered-alert"
+          closable
+        ></v-alert>
+      </v-col>
+    </v-row>
     <!-- Main content area -->
     <v-main style="background-color: #faf7f2">
       <v-container
@@ -105,31 +120,53 @@
     health: false,
   })
 
+  const alert = reactive({
+    show: false,
+    message: '',
+    type: 'success', // success | info | warning | error
+  })
+
+  const showAlert = (
+    message: string,
+    type: 'success' | 'info' | 'warning' | 'error' = 'success'
+  ) => {
+    alert.message = message
+    alert.type = type
+    alert.show = true
+
+    setTimeout(() => {
+      alert.show = false
+    }, 3000)
+  }
 
   // ===== SAVE HANDLERS =====
 
-  const handleMealSave = mealData => {
+  const handleMealSave = (mealData) => {
     console.log('Saving meal data:', mealData)
     // TODO: Save to store
     dialogs.meal = false
+    showAlert('Meal data saved successfully!', 'success')
   }
 
-  const handleSleepSave = sleepData => {
+  const handleSleepSave = (sleepData) => {
     console.log('Saving sleep data:', sleepData)
     // TODO: Save to store
     dialogs.sleep = false
+    showAlert('Sleep data saved successfully!', 'success')
   }
 
-  const handlePoopSave = poopData => {
+  const handlePoopSave = (poopData) => {
     console.log('Saving poop data:', poopData)
     // TODO: Save to store
     dialogs.poop = false
+    showAlert('Poop data saved successfully!', 'success')
   }
 
-  const handleHealthSave = healthData => {
+  const handleHealthSave = (healthData) => {
     console.log('Saving health data:', healthData)
     // TODO: Save to store
     dialogs.health = false
+    showAlert('Health data saved successfully!', 'success')
   }
 
   // ===== METHODS =====
@@ -151,13 +188,13 @@
   }
 
   // Load data for a specific date and current child
-  const loadDataForDate = date => {
+  const loadDataForDate = (date) => {
     // Load summary data from store
     summaryStore.loadSummaryForDate(date, childrenStore.currentChild.id)
   }
 
   // Handle health alert view more
-  const handleHealthAlert = alert => {
+  const handleHealthAlert = (alert) => {
     console.log('Health alert clicked:', alert)
     router.push({
       path: '/guidance',
@@ -166,7 +203,7 @@
   }
 
   // Handle view history
-  const handleViewHistory = child => {
+  const handleViewHistory = (child) => {
     console.log('View history clicked:', child)
     router.push('/checkin')
     // Handle view history navigation
@@ -179,4 +216,38 @@
   })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+  .centered-alert {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    margin: 0 auto; /* Center the alert box itself */
+    max-width: 500px; /* Optional: Set a max width */
+    min-height: 60px;
+
+    :deep(.v-alert__content) {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 8px;
+    }
+
+    :deep(.v-alert__icon) {
+      margin: 0;
+      align-self: center;
+    }
+
+    :deep(.v-alert__message) {
+      flex: 1;
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center; /* Center text if needed */
+    }
+
+    :deep(.v-alert__dismissible) {
+      margin: 0;
+      align-self: center;
+    }
+  }
+</style>
