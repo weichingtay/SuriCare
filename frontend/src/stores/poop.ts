@@ -193,7 +193,7 @@ const getPoopForDate = computed(() => (date: string): PoopData => {
       }
 
       // Fetch real poop data from API
-      const response = await axios.get(`http://127.0.0.1:8000/poop/child/${childrenStore.currentChild.id}`)
+      const response = await axios.get(`http://127.0.0.1:8000/poop/child/${childrenStore.currentChild.id}?days=90`)
       const allPoops = response.data || []
       
           console.log(`📊 API returned ${allPoops.length} total poop records`) // ADD THIS

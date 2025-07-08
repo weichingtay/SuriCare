@@ -144,7 +144,7 @@ export const useSleepStore = defineStore('sleep', (): SleepStoreInterface => {
       console.log(`🌐 Calling API for child ${childrenStore.currentChild.id}`)
       
       // Fetch all sleep records for the child (last 60 days to match your pattern)
-      const response = await axios.get(`http://127.0.0.1:8000/sleeptime/${childrenStore.currentChild.id}`)
+      const response = await axios.get(`http://127.0.0.1:8000/sleeptime/${childrenStore.currentChild.id}?days=60`)
       const allSleepRecords = response.data || []
       
       console.log(`📊 API returned ${allSleepRecords.length} total sleep records`)
