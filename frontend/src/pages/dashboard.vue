@@ -84,24 +84,11 @@
             </div>
           </div>
 
+      
           <!-- Meal Section -->
           <div class="dashboard-section">
             <div class="section-header">
               <h2 class="section-title">Meal</h2>
-              <div class="view-toggle">
-                <button
-                  :class="['view-btn', { 'active': mealViewMode === 'weekly' }]"
-                  @click="setMealView('weekly')"
-                >
-                  Weekly
-                </button>
-                <button
-                  :class="['view-btn', { 'active': mealViewMode === 'monthly' }]"
-                  @click="setMealView('monthly')"
-                >
-                  Monthly
-                </button>
-              </div>
             </div>
             <div class="chart-container">
               <apexchart
