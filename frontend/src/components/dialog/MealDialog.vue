@@ -16,7 +16,7 @@
   >
     <template #custom-content>
       <div class="meal-content">
-
+        
         <!-- Meal Time and Consumption Level Row -->
         <div class="meal-time-consumption">
           <!-- Meal Time -->
@@ -115,7 +115,7 @@
         </div>
 
         <!-- Sub Categories for Milk -->
-        <div v-if="localMealCategory === 'milk'" class="milk-subcategory">
+        <div v-if="localMealCategory === 'Milk'" class="milk-subcategory">
           <div class="milk-buttons">
             <v-btn
               v-for="subCat in milkSubCategories"
@@ -134,7 +134,7 @@
         </div>
 
         <!-- Custom Meal Input for Others -->
-        <div v-if="localMealCategory === 'others'" class="custom-meal-section">
+        <div v-if="localMealCategory === 'Others'" class="custom-meal-section">
           <label class="section-label">Specify meal details</label>
           <v-text-field
             v-model="localCustomMeal"
