@@ -42,33 +42,47 @@ export function useMealOptions () {
 
   // Enhanced meal time options with icons
   const mealTimeOptions = computed(() => {
-    if (mealTimeCategories.value.length === 0) {
-      return fallbackMealTimeOptions
-    }
+  if (mealTimeCategories.value.length === 0) {
+    return fallbackMealTimeOptions
+  }
 
-    return mealTimeCategories.value.map(item => ({
+  return mealTimeCategories.value.map(item => {
+    const value = item.value?.toLowerCase().trim() // Handle case and spaces
+    
+    return {
       ...item,
-      icon: item.value === 'breakfast' ? 'mdi-weather-sunny' :
-        item.value === 'lunch' ? 'mdi-white-balance-sunny' :
-          item.value === 'dinner' ? 'mdi-weather-night' :
-            'mdi-silverware-fork-knife',
-    }))
+      icon: value === 'breakfast' ? 'mdi-weather-sunny' :
+            value === 'lunch' ? 'mdi-white-balance-sunny' :
+            value === 'dinner' ? 'mdi-weather-night' :
+            'mdi-help-circle', // Different icon to see which ones are unmapped
+    }
   })
+})
 
   // Enhanced meal category options with icons
   const mealCategoryOptions = computed(() => {
-    if (mealCategories.value.length === 0) {
-      return fallbackMealCategoryOptions
-    }
+  if (mealCategories.value.length === 0) {
+    return fallbackMealCategoryOptions
+  }
 
-    return mealCategories.value.map(item => ({
+  return mealCategories.value.map(item => {
+    console.log('🔍 Mapping icon for item:', item) // Debug log
+    
+    const value = item.value?.toLowerCase() // Handle case sensitivity
+    
+    return {
       ...item,
-      icon: item.value === 'milk' ? 'mdi-cup' :
-        item.value === 'solid' ? 'mdi-food-apple' :
-          item.value === 'mixed' ? 'mdi-bowl-mix' :
-            'mdi-dots-horizontal',
-    }))
+      icon: 
+        
+
+            value === 'milk' ? 'mdi-cup' :
+            value === 'solid' ? 'mdi-food-apple' :
+            value === 'mixed' ? 'mdi-bowl-mix' :
+            value === 'others' ? 'mdi-dots-horizontal' :
+            'mdi-silverware-fork-knife' // Different default to identify unmapped items
+    }
   })
+})
 
   // Consumption level options
   const consumptionOptions = computed(() => {

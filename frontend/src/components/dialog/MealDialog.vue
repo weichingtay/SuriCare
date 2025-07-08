@@ -1,8 +1,8 @@
 <template>
   <BaseCheckInDialog
     class="mealdialog"
-    icon="mdi-food"
-    icon-color="#000000"
+    icon="mdi-silverware-fork-knife"
+    icon-color="#D87179"
     :loading="loading"
     max-width="1000px"
     :model-value="modelValue"
