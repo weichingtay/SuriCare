@@ -890,55 +890,92 @@ const fetchSleep = async (selectedDateParam) => {
     const response = await axios.get(`http://127.0.0.1:8000/sleeptime/${childId}`)
     const api_data = response.data
 
+    // Create baseline date range for x-axis (last 7 days for weekly, 30 days for monthly)
+    const days = sleepViewMode.value === 'weekly' ? 7 : 30
+    const baselineDates = []
+    
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(selectedDate.value)
+      date.setDate(date.getDate() - i)
+      baselineDates.push({
+        x: date.getTime(),
+        y: 0 // Zero sleep hours as placeholder
+      })
+    }
+
     if (!api_data || api_data.length === 0) {
-      console.log('No sleep data available')
+      console.log('No sleep data available - showing baseline dates')
+      // Show empty chart with date labels
+      sleepSeries.value = [
+        { name: 'Nap', data: baselineDates.map(d => ({...d})) },
+        { name: 'Night', data: baselineDates.map(d => ({...d})) }
+      ]
+      
+      actual.sleep_time.nap = []
+      actual.sleep_time.night = []
       return
     }
 
-    // Process the data similar to your existing logic
-    const nap_series = api_data
-      .filter(item => {
-        const start_hour = new Date(item.start_time).getHours()
-        return start_hour >= 12 && start_hour <= 16
-      })
-      .map(item => {
-        const x = new Date(item.check_in)
-        const time_ms = new Date(item.end_time) - new Date(item.start_time)
-        const total_hours = Math.floor(time_ms / (1000 * 60 * 60))
-        const total_mins = Math.floor((time_ms % (1000 * 60 * 60)) / 60000) / 60
-        const y = Number((total_hours + total_mins).toFixed(1))
-        return { x, y }
-      })
+    // Process actual sleep data
+    const nap_series = []
+    const night_series = []
 
-    const night_series = api_data
-      .filter(item => {
-        const start_hour = new Date(item.start_time).getHours()
-        return start_hour >= 20 && start_hour <= 22
-      })
-      .map(item => {
-        const x = new Date(item.check_in)
-        const time_ms = new Date(item.end_time) - new Date(item.start_time)
-        const total_hours = Math.floor(time_ms / (1000 * 60 * 60))
-        const total_mins = Math.floor((time_ms % (1000 * 60 * 60)) / 60000) / 60
-        const y = Number((total_hours + total_mins).toFixed(1))
-        return { x, y }
-      })
+    api_data.forEach(item => {
+      const x = new Date(item.check_in)
+      const time_ms = new Date(item.end_time) - new Date(item.start_time)
+      const total_hours = time_ms / (1000 * 60 * 60)
+      const y = Number(total_hours.toFixed(1))
+      const start_hour = new Date(item.start_time).getHours()
 
-    actual.sleep_time.nap = nap_series
-    actual.sleep_time.night = night_series
+      // For now, put all sleep as night sleep since your data shows 8+ hour sleeps
+      night_series.push({ x: x.getTime(), y })
+    })
 
-    // Calculate Y-axis range for sleep data
-    if (nap_series.length > 0 || night_series.length > 0) {
-      const napHours = nap_series.map(item => item.y)
-      const nightHours = night_series.map(item => item.y)
-      setY_max_for_sleep(napHours, nightHours)
+    // Merge actual data with baseline dates to ensure x-axis shows full date range
+    const createFullSeries = (actualData) => {
+      const dataMap = new Map(actualData.map(item => [
+        new Date(item.x).toDateString(), 
+        item.y
+      ]))
+      
+      return baselineDates.map(baseline => {
+        const dateKey = new Date(baseline.x).toDateString()
+        return {
+          x: baseline.x,
+          y: dataMap.get(dateKey) || 0
+        }
+      })
     }
+
+    const napSeriesWithDates = createFullSeries([])
+    const nightSeriesWithDates = createFullSeries(night_series)
+
+    actual.sleep_time.nap = napSeriesWithDates
+    actual.sleep_time.night = nightSeriesWithDates
 
     // Apply date filtering
     updateChartsForDate()
 
   } catch (error) {
     console.error('Error fetching sleep data: ' + error)
+    
+    // Even on error, show baseline dates
+    const days = sleepViewMode.value === 'weekly' ? 7 : 30
+    const errorBaseline = []
+    
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(selectedDate.value)
+      date.setDate(date.getDate() - i)
+      errorBaseline.push({
+        x: date.getTime(),
+        y: 0
+      })
+    }
+    
+    sleepSeries.value = [
+      { name: 'Nap', data: errorBaseline },
+      { name: 'Night', data: errorBaseline }
+    ]
   }
 }
 
@@ -1104,6 +1141,8 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
       return
     }
 
+    const poopByDate = {}
+
     poopData.forEach(poop => {
       const date = new Date(poop.check_in).toDateString()
       poopByDate[date] = (poopByDate[date] || 0) + 1
@@ -1163,7 +1202,9 @@ const updateHealthSymptomsForDate = async (targetDate) => {
       // Convert backend symptoms to our format
       healthSymptoms.value = symptomsData.map((symptom, index) => ({
         id: index + 1,
-        date: symptom.check_in.split('T')[0], // Extract date part
+       date: typeof symptom.check_in === 'string' 
+  ? symptom.check_in.split('T')[0] 
+  : new Date(symptom.check_in).toISOString().split('T')[0], // Extract date part
         type: symptom.symptom || 'Unknown',
         description: symptom.note || 'No additional notes provided'
       }))
