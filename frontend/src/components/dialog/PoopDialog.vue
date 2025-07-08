@@ -19,22 +19,27 @@
         <div class="color-section">
           <label class="section-label">Color</label>
           <div class="color-options">
-            <div v-if="isPoopOptionsLoading" class="d-flex justify-center pa-4">
-              <v-progress-circular indeterminate size="20" />
+            <div
+              v-if="isPoopOptionsLoading"
+              class="d-flex justify-center pa-4"
+            >
+              <v-progress-circular
+                indeterminate
+                size="20"
+              />
             </div>
             <div
               v-for="poopColor in colorOptions"
               v-else
               :key="poopColor.value"
               class="color-option"
-              :class="{ 'selected': localColor === poopColor.value }"
+              :class="{ selected: localColor === poopColor.value }"
               @click="selectColor(poopColor.value)"
             >
               <div
                 class="color-circle"
                 :style="{
                   backgroundColor: poopColor.hex,
-
                 }"
               />
               <div class="color-label">
@@ -42,7 +47,10 @@
               </div>
             </div>
           </div>
-          <div v-if="errors.color" class="error-message">
+          <div
+            v-if="errors.color"
+            class="error-message"
+          >
             {{ errors.color }}
           </div>
         </div>
@@ -51,15 +59,21 @@
         <div class="texture-section">
           <label class="section-label">Consistency</label>
           <div class="texture-options">
-            <div v-if="isPoopOptionsLoading" class="d-flex justify-center pa-4">
-              <v-progress-circular indeterminate size="20" />
+            <div
+              v-if="isPoopOptionsLoading"
+              class="d-flex justify-center pa-4"
+            >
+              <v-progress-circular
+                indeterminate
+                size="20"
+              />
             </div>
             <div
               v-for="poopTexture in textureOptions"
               v-else
               :key="poopTexture.value"
               class="texture-option"
-              :class="{ 'selected': localTexture === poopTexture.value }"
+              :class="{ selected: localTexture === poopTexture.value }"
               @click="selectTexture(poopTexture.value)"
             >
               <!-- Texture Visual -->
@@ -68,15 +82,17 @@
                   alt="texture"
                   class="texture-image"
                   :src="poopTexture.image"
-                >
+                />
                 <div class="texture-label">
                   {{ poopTexture.label }}
                 </div>
               </div>
-
             </div>
           </div>
-          <div v-if="errors.texture" class="error-message">
+          <div
+            v-if="errors.texture"
+            class="error-message"
+          >
             {{ errors.texture }}
           </div>
         </div>
@@ -139,27 +155,37 @@
   let colorTimeout = null
   let textureTimeout = null
 
-  watch(() => props.modelValue, newValue => {
-    if (newValue) {
-      localColor.value = props.color || ''
-      localTexture.value = props.texture || ''
-      errors.value = {}
-    }
-  }, { immediate: true })
+  watch(
+    () => props.modelValue,
+    (newValue) => {
+      if (newValue) {
+        localColor.value = props.color || ''
+        localTexture.value = props.texture || ''
+        errors.value = {}
+      }
+    },
+    { immediate: true }
+  )
 
-  watch(() => props.color, newValue => {
-    if (props.modelValue) {
-      localColor.value = newValue || ''
+  watch(
+    () => props.color,
+    (newValue) => {
+      if (props.modelValue) {
+        localColor.value = newValue || ''
+      }
     }
-  })
+  )
 
-  watch(() => props.texture, newValue => {
-    if (props.modelValue) {
-      localTexture.value = newValue || ''
+  watch(
+    () => props.texture,
+    (newValue) => {
+      if (props.modelValue) {
+        localTexture.value = newValue || ''
+      }
     }
-  })
+  )
 
-  watch(localColor, newValue => {
+  watch(localColor, (newValue) => {
     if (colorTimeout) clearTimeout(colorTimeout)
     colorTimeout = setTimeout(() => {
       emit('update:color', newValue)
@@ -169,7 +195,7 @@
     }, 100)
   })
 
-  watch(localTexture, newValue => {
+  watch(localTexture, (newValue) => {
     if (textureTimeout) clearTimeout(textureTimeout)
     textureTimeout = setTimeout(() => {
       emit('update:texture', newValue)
@@ -179,11 +205,11 @@
     }, 100)
   })
 
-  const selectColor = color => {
+  const selectColor = (color) => {
     localColor.value = color
   }
 
-  const selectTexture = texture => {
+  const selectTexture = (texture) => {
     localTexture.value = texture
   }
 
@@ -213,7 +239,7 @@
     return isColorValid && isTextureValid
   }
 
-  const handleDialogUpdate = value => {
+  const handleDialogUpdate = (value) => {
     emit('update:modelValue', value)
     if (!value) {
       nextTick(() => {
@@ -232,65 +258,67 @@
   }
 
   const handleSave = async () => {
-  console.log('🐾 PoopDialog handleSave clicked!')
-  
-  if (!validateForm()) {
-    console.log('❌ Validation failed:', errors.value)
-    return
-  }
+    console.log('🐾 PoopDialog handleSave clicked!')
 
-  const poopData = {
-    color: localColor.value,
-    texture: localTexture.value,
-    notes: props.notes,
-  }
+    if (!validateForm()) {
+      console.log('❌ Validation failed:', errors.value)
+      return
+    }
 
-  console.log('📦 Poop data to save:', poopData)
-  errors.value = {}
-  
-  try {
-    console.log('💾 About to call checkinStore.savePoop...')
-    
-    // Save to store (which handles backend integration)
-    await checkinStore.savePoop(poopData)
-    console.log('✅ Poop save completed successfully!')
-    
-    // Close dialog on success
-    handleDialogUpdate(false)
-  } catch (error) {
-    console.error('❌ Failed to save poop data:', error)
+    const poopData = {
+      color: localColor.value,
+      texture: localTexture.value,
+      notes: props.notes,
+    }
+
+    console.log('📦 Poop data to save:', poopData)
+    errors.value = {}
+
+    try {
+      console.log('💾 About to call checkinStore.savePoop...')
+
+      // Save to store (which handles backend integration)
+      await checkinStore.savePoop(poopData)
+      console.log('✅ Poop save completed successfully!')
+
+      emit('save', poopData)
+
+      // Close dialog on success
+      handleDialogUpdate(false)
+    } catch (error) {
+      console.error('❌ Failed to save poop data:', error)
+    }
   }
-}
 </script>
 
 <style scoped>
-.poop-content {
+  .poop-content {
     display: flex;
     flex-direction: column;
     gap: 20px;
-}
+  }
 
-.color-section,
-.texture-section {
+  .color-section,
+  .texture-section {
     display: flex;
     flex-direction: column;
-}
+  }
 
-.section-label {
+  .section-label {
     font-size: 12px;
     font-weight: 500;
     color: #333;
     margin-bottom: 4px;
-}
+  }
 
-.color-options {
+  .color-options {
     display: flex;
     gap: 12px;
     justify-content: flex-start;
     flex-wrap: wrap;
-}
+  }
 
-.color-option {
+  .color-option {
     width: 47px;
     height: 61px;
     display: flex;
@@ -298,41 +326,41 @@
     align-items: center;
     cursor: pointer;
     transition: all 0.2s;
-    border: 1px #E0E0E0 solid;
+    border: 1px #e0e0e0 solid;
     border-radius: 8px;
     padding: 8px;
-}
+  }
 
-.color-option.selected{
-    border:1px solid #d32f2f;
-}
+  .color-option.selected {
+    border: 1px solid #d32f2f;
+  }
 
-.color-circle {
+  .color-circle {
     width: 24px;
     height: 24px;
     border-radius: 100%;
     margin-bottom: 4px;
-}
+  }
 
-.color-label {
+  .color-label {
     font-size: 10px;
     color: #333;
     font-weight: 500;
     text-align: center;
     white-space: nowrap;
-}
+  }
 
-.texture-options {
+  .texture-options {
     display: flex;
     gap: 12px;
     justify-content: space-between;
-}
+  }
 
-.texture-option {
+  .texture-option {
     width: 56px;
     height: 74px;
     border-radius: 8px;
-    background-color: #FFffff;
+    background-color: #ffffff;
     border: 1px solid #e0e0e0;
     cursor: pointer;
     display: flex;
@@ -340,50 +368,48 @@
     align-items: center;
     justify-content: center;
     padding: 8px;
-}
+  }
 
-.texture-option.selected {
-    border: 1px solid #D87179;
+  .texture-option.selected {
+    border: 1px solid #d87179;
     transform: scale(1.05);
-}
+  }
 
-.texture-option:hover {
+  .texture-option:hover {
     transform: scale(1.05);
-}
+  }
 
-.texture-image{
+  .texture-image {
     /* margin-bottom: 4px; */
     width: 40px;
     height: 40px;
     border-radius: 100%;
-    background-color: #FFFDE6;
-}
+    background-color: #fffde6;
+  }
 
-.texture-label {
+  .texture-label {
     font-size: 10px;
     color: #333;
     font-weight: 500;
     text-align: center;
     line-height: 1.2;
-}
+  }
 
-.color-option:hover {
+  .color-option:hover {
     transform: scale(1.05);
-}
+  }
 
-/* .color-option.selected {
+  /* .color-option.selected {
     transform: scale(1.05);
 } */
 
-.error-message {
-    color: #D87179;
+  .error-message {
+    color: #d87179;
     font-size: 12px;
     margin-top: 8px;
-}
+  }
 
-.color-options {
+  .color-options {
     min-height: 70px;
-}
-
-
+  }
 </style>

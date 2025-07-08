@@ -16,15 +16,20 @@
   >
     <template #custom-content>
       <div class="meal-content">
-
         <!-- Meal Time and Consumption Level Row -->
         <div class="meal-time-consumption">
           <!-- Meal Time -->
           <div class="meal-time-section">
             <label class="section-label">Meal Time</label>
             <div class="meal-time-buttons">
-              <div v-if="isMealOptionsLoading" class="d-flex justify-center pa-4">
-                <v-progress-circular indeterminate size="20" />
+              <div
+                v-if="isMealOptionsLoading"
+                class="d-flex justify-center pa-4"
+              >
+                <v-progress-circular
+                  indeterminate
+                  size="20"
+                />
               </div>
               <v-btn
                 v-for="time in mealTimeOptions"
@@ -45,7 +50,10 @@
                 {{ time.label }}
               </v-btn>
             </div>
-            <div v-if="errors.mealTime" class="error-message">
+            <div
+              v-if="errors.mealTime"
+              class="error-message"
+            >
               {{ errors.mealTime }}
             </div>
           </div>
@@ -68,12 +76,19 @@
               @update:model-value="clearError('consumptionLevel')"
             >
               <template #prepend-inner>
-                <v-icon class="mr-1" color="grey-darken-1" size="16">
+                <v-icon
+                  class="mr-1"
+                  color="grey-darken-1"
+                  size="16"
+                >
                   mdi-percent
                 </v-icon>
               </template>
             </v-select>
-            <div v-if="errors.consumptionLevel" class="error-message">
+            <div
+              v-if="errors.consumptionLevel"
+              class="error-message"
+            >
               {{ errors.consumptionLevel }}
             </div>
           </div>
@@ -81,24 +96,33 @@
 
         <!-- Consumption Level -->
 
-
         <!-- Meal Category -->
         <div class="meal-category-section">
           <label class="section-label">Meal Category</label>
           <div class="meal-category-buttons">
-            <div v-if="isMealOptionsLoading" class="d-flex justify-center pa-4">
-              <v-progress-circular indeterminate size="20" />
+            <div
+              v-if="isMealOptionsLoading"
+              class="d-flex justify-center pa-4"
+            >
+              <v-progress-circular
+                indeterminate
+                size="20"
+              />
             </div>
             <v-btn
               v-for="category in mealCategoryOptions"
               v-else
               :key="category.value"
               class="meal-category-btn"
-              :color="localMealCategory === category.value ? 'primary' : 'default'"
+              :color="
+                localMealCategory === category.value ? 'primary' : 'default'
+              "
               :disabled="loading"
               rounded="20"
               size="small"
-              :variant="localMealCategory === category.value ? 'flat' : 'outlined'"
+              :variant="
+                localMealCategory === category.value ? 'flat' : 'outlined'
+              "
               @click="selectMealCategory(category.value)"
             >
               <v-icon
@@ -109,13 +133,19 @@
               {{ category.label }}
             </v-btn>
           </div>
-          <div v-if="errors.mealCategory" class="error-message">
+          <div
+            v-if="errors.mealCategory"
+            class="error-message"
+          >
             {{ errors.mealCategory }}
           </div>
         </div>
 
         <!-- Sub Categories for Milk -->
-        <div v-if="localMealCategory === 'milk'" class="milk-subcategory">
+        <div
+          v-if="localMealCategory === 'milk'"
+          class="milk-subcategory"
+        >
           <div class="milk-buttons">
             <v-btn
               v-for="subCat in milkSubCategories"
@@ -134,7 +164,10 @@
         </div>
 
         <!-- Custom Meal Input for Others -->
-        <div v-if="localMealCategory === 'others'" class="custom-meal-section">
+        <div
+          v-if="localMealCategory === 'others'"
+          class="custom-meal-section"
+        >
           <label class="section-label">Specify meal details</label>
           <v-text-field
             v-model="localCustomMeal"
@@ -148,7 +181,10 @@
             @focus="clearError('customMeal')"
             @input="clearError('customMeal')"
           />
-          <div v-if="errors.customMeal" class="error-message">
+          <div
+            v-if="errors.customMeal"
+            class="error-message"
+          >
             {{ errors.customMeal }}
           </div>
         </div>
@@ -158,8 +194,8 @@
 </template>
 
 <script setup lang="ts">
-   import { useMealOptions } from '@/composables/useMealOptions'
- import { nextTick, ref, watch } from 'vue'
+  import { useMealOptions } from '@/composables/useMealOptions'
+  import { nextTick, ref, watch } from 'vue'
   import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
   import { useCheckinStore } from '@/stores/checkin' // Add this import
 
@@ -224,7 +260,7 @@
     isLoading: isMealOptionsLoading,
   } = useMealOptions()
 
-    const checkinStore = useCheckinStore()
+  const checkinStore = useCheckinStore()
   const localMealTime = ref('')
   const localConsumptionLevel = ref('')
   const localMealCategory = ref('')
@@ -238,50 +274,69 @@
   let subCategoryTimeout = null
   let customMealTimeout = null
 
-  watch(() => props.modelValue, newValue => {
-    if (newValue) {
-      // Reset all form data when opening dialog
-      localMealTime.value = props.mealTime || ''
-      localConsumptionLevel.value = props.consumptionLevel || ''
-      localMealCategory.value = props.mealCategory || ''
-      localSubCategory.value = props.subCategory || ''
-      localCustomMeal.value = props.customMeal || ''
-      // Clear all errors when opening
-      errors.value = {}
-    }
-  }, { immediate: true })
+  watch(
+    () => props.modelValue,
+    (newValue) => {
+      if (newValue) {
+        // Reset all form data when opening dialog
+        localMealTime.value = props.mealTime || ''
+        localConsumptionLevel.value = props.consumptionLevel || ''
+        localMealCategory.value = props.mealCategory || ''
+        localSubCategory.value = props.subCategory || ''
+        localCustomMeal.value = props.customMeal || ''
+        // Clear all errors when opening
+        errors.value = {}
+      }
+    },
+    { immediate: true }
+  )
 
-  watch(() => props.mealTime, newValue => {
-    if (props.modelValue) {
-      localMealTime.value = newValue || ''
+  watch(
+    () => props.mealTime,
+    (newValue) => {
+      if (props.modelValue) {
+        localMealTime.value = newValue || ''
+      }
     }
-  })
+  )
 
-  watch(() => props.consumptionLevel, newValue => {
-    if (props.modelValue) {
-      localConsumptionLevel.value = newValue || ''
+  watch(
+    () => props.consumptionLevel,
+    (newValue) => {
+      if (props.modelValue) {
+        localConsumptionLevel.value = newValue || ''
+      }
     }
-  })
+  )
 
-  watch(() => props.mealCategory, newValue => {
-    if (props.modelValue) {
-      localMealCategory.value = newValue || ''
+  watch(
+    () => props.mealCategory,
+    (newValue) => {
+      if (props.modelValue) {
+        localMealCategory.value = newValue || ''
+      }
     }
-  })
+  )
 
-  watch(() => props.subCategory, newValue => {
-    if (props.modelValue) {
-      localSubCategory.value = newValue || ''
+  watch(
+    () => props.subCategory,
+    (newValue) => {
+      if (props.modelValue) {
+        localSubCategory.value = newValue || ''
+      }
     }
-  })
+  )
 
-  watch(() => props.customMeal, newValue => {
-    if (props.modelValue) {
-      localCustomMeal.value = newValue || ''
+  watch(
+    () => props.customMeal,
+    (newValue) => {
+      if (props.modelValue) {
+        localCustomMeal.value = newValue || ''
+      }
     }
-  })
+  )
 
-  watch(localMealTime, newValue => {
+  watch(localMealTime, (newValue) => {
     if (mealTimeTimeout) clearTimeout(mealTimeTimeout)
     mealTimeTimeout = setTimeout(() => {
       emit('update:mealTime', newValue)
@@ -291,7 +346,7 @@
     }, 100)
   })
 
-  watch(localConsumptionLevel, newValue => {
+  watch(localConsumptionLevel, (newValue) => {
     if (consumptionTimeout) clearTimeout(consumptionTimeout)
     consumptionTimeout = setTimeout(() => {
       emit('update:consumptionLevel', newValue)
@@ -301,7 +356,7 @@
     }, 100)
   })
 
-  watch(localMealCategory, newValue => {
+  watch(localMealCategory, (newValue) => {
     if (categoryTimeout) clearTimeout(categoryTimeout)
     categoryTimeout = setTimeout(() => {
       emit('update:mealCategory', newValue)
@@ -318,14 +373,14 @@
     }, 100)
   })
 
-  watch(localSubCategory, newValue => {
+  watch(localSubCategory, (newValue) => {
     if (subCategoryTimeout) clearTimeout(subCategoryTimeout)
     subCategoryTimeout = setTimeout(() => {
       emit('update:subCategory', newValue)
     }, 100)
   })
 
-  watch(localCustomMeal, newValue => {
+  watch(localCustomMeal, (newValue) => {
     if (customMealTimeout) clearTimeout(customMealTimeout)
     customMealTimeout = setTimeout(() => {
       emit('update:customMeal', newValue)
@@ -335,21 +390,21 @@
     }, 100)
   })
 
-  const clearError = field => {
+  const clearError = (field) => {
     if (errors.value[field]) {
       delete errors.value[field]
     }
   }
 
-  const selectMealTime = time => {
+  const selectMealTime = (time) => {
     localMealTime.value = time
   }
 
-  const selectMealCategory = category => {
+  const selectMealCategory = (category) => {
     localMealCategory.value = category
   }
 
-  const selectSubCategory = subCat => {
+  const selectSubCategory = (subCat) => {
     localSubCategory.value = subCat
   }
 
@@ -396,10 +451,15 @@
     const isConsumptionValid = validateConsumptionLevel()
     const isCategoryValid = validateMealCategory()
     const isCustomMealValid = validateCustomMeal()
-    return isMealTimeValid && isConsumptionValid && isCategoryValid && isCustomMealValid
+    return (
+      isMealTimeValid &&
+      isConsumptionValid &&
+      isCategoryValid &&
+      isCustomMealValid
+    )
   }
 
-  const handleDialogUpdate = value => {
+  const handleDialogUpdate = (value) => {
     emit('update:modelValue', value)
     if (!value) {
       nextTick(() => {
@@ -438,10 +498,11 @@
     }
 
     errors.value = {}
-    
+
     try {
       // Save to store (which handles backend integration)
       await checkinStore.saveMeal(mealData)
+      emit('save', mealData)
       // Close dialog on success
       handleDialogUpdate(false)
     } catch (error) {
@@ -452,42 +513,40 @@
 </script>
 
 <style scoped>
-
-
-.meal-content {
+  .meal-content {
     display: flex;
     flex-direction: column;
     gap: 20px;
-}
+  }
 
-.meal-time-consumption {
+  .meal-time-consumption {
     display: flex;
     gap: 28px;
-}
+  }
 
-.meal-time-section,
-.consumption-section {
+  .meal-time-section,
+  .consumption-section {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border-radius:4px !important;
-}
+    border-radius: 4px !important;
+  }
 
-.section-label {
+  .section-label {
     font-size: 12px;
     font-weight: 500;
     color: #333;
     margin-bottom: 4px;
-}
+  }
 
-.meal-time-buttons {
+  .meal-time-buttons {
     display: flex;
     gap: 8px;
-}
+  }
 
-.meal-time-btn,
-.meal-category-btn,
-.milk-sub-btn {
+  .meal-time-btn,
+  .meal-category-btn,
+  .milk-sub-btn {
     text-transform: none;
     font-weight: 400;
     min-width: 70px;
@@ -496,149 +555,148 @@
     border: 1px solid #e0e0e0 !important;
     border-radius: 4px;
     color: #333 !important;
-}
+  }
 
-.meal-time-btn.v-btn--variant-flat,
-.meal-category-btn.v-btn--variant-flat {
-    background-color: #D87179 !important;
+  .meal-time-btn.v-btn--variant-flat,
+  .meal-category-btn.v-btn--variant-flat {
+    background-color: #d87179 !important;
     color: white !important;
-}
+  }
 
-.meal-time-btn.v-btn--variant-flat .v-icon,
-.meal-category-btn.v-btn--variant-flat .v-icon {
+  .meal-time-btn.v-btn--variant-flat .v-icon,
+  .meal-category-btn.v-btn--variant-flat .v-icon {
     color: white !important;
-}
+  }
 
-.milk-sub-btn.v-btn--variant-flat {
-    background-color:#D87179 !important;
+  .milk-sub-btn.v-btn--variant-flat {
+    background-color: #d87179 !important;
     color: white !important;
-}
+  }
 
-.consumption-select {
+  .consumption-select {
     width: 160px !important;
     min-width: 170px !important;
     max-width: 170px !important;
     border-radius: 4px !important;
     font-size: 14px !important;
-}
+  }
 
-/* Updated styles for consumption dropdown */
-.consumption-select :deep(.v-field) {
+  /* Updated styles for consumption dropdown */
+  .consumption-select :deep(.v-field) {
     min-height: 32px !important;
     border-radius: 4px !important;
     width: 120px !important;
     font-size: 14px !important;
-}
+  }
 
-.consumption-select :deep(.v-field__input) {
+  .consumption-select :deep(.v-field__input) {
     min-height: 32px !important;
     padding-top: 4px !important;
     padding-bottom: 4px !important;
     font-size: 14px !important;
-}
+  }
 
-.consumption-select :deep(.v-field__input input) {
+  .consumption-select :deep(.v-field__input input) {
     font-size: 14px !important;
-}
+  }
 
-.consumption-select :deep(.v-field__input .v-field__field) {
+  .consumption-select :deep(.v-field__input .v-field__field) {
     font-size: 14px !important;
-}
+  }
 
-.consumption-select :deep(.v-select__selection) {
+  .consumption-select :deep(.v-select__selection) {
     font-size: 14px !important;
-}
+  }
 
-.consumption-select :deep(.v-select__selection-text) {
+  .consumption-select :deep(.v-select__selection-text) {
     font-size: 14px !important;
-}
+  }
 
-.consumption-select :deep(.v-field__overlay) {
+  .consumption-select :deep(.v-field__overlay) {
     font-size: 14px !important;
-}
+  }
 
-.consumption-select :deep(.v-field__outline) {
+  .consumption-select :deep(.v-field__outline) {
     border-radius: 4px !important;
-}
+  }
 
-/* Dropdown menu width and options font size */
-.consumption-select :deep(.v-overlay__content) {
+  /* Dropdown menu width and options font size */
+  .consumption-select :deep(.v-overlay__content) {
     width: 200px !important;
-}
+  }
 
-.consumption-select :deep(.v-list) {
+  .consumption-select :deep(.v-list) {
     width: 200px !important;
-}
+  }
 
-.consumption-select :deep(.v-list-item) {
+  .consumption-select :deep(.v-list-item) {
     font-size: 14px !important;
     min-height: 32px !important;
-}
+  }
 
-.consumption-select :deep(.v-list-item-title) {
+  .consumption-select :deep(.v-list-item-title) {
     font-size: 14px !important;
-}
+  }
 
-.consumption-select :deep(.v-list-item__content) {
+  .consumption-select :deep(.v-list-item__content) {
     font-size: 14px !important;
-}
+  }
 
-
-.meal-category-section {
+  .meal-category-section {
     display: flex;
     flex-direction: column;
-}
+  }
 
-.meal-category-buttons {
+  .meal-category-buttons {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-}
+  }
 
-.milk-subcategory {
+  .milk-subcategory {
     display: flex;
     flex-direction: column;
-}
+  }
 
-.milk-buttons {
+  .milk-buttons {
     display: flex;
     gap: 8px;
-}
+  }
 
-.custom-meal-section {
+  .custom-meal-section {
     display: flex;
     flex-direction: column;
-}
+  }
 
-.custom-meal-input {
+  .custom-meal-input {
     min-width: 300px;
-}
+  }
 
-.error-message {
+  .error-message {
     color: #d32f2f;
     font-size: 12px;
     margin-top: 8px;
-}
+  }
 
-.v-btn {
+  .v-btn {
     box-shadow: none !important;
-}
+  }
 
-.v-btn:hover {
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-}
+  .v-btn:hover {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  }
 
-/* Make textarea wider for meal dialog */
-:deep(.notes-textarea) {
+  /* Make textarea wider for meal dialog */
+  :deep(.notes-textarea) {
     width: 800px !important;
     min-width: 600px !important;
-}
+  }
 
-:deep(.notes-textarea .v-field) {
+  :deep(.notes-textarea .v-field) {
     width: 800px !important;
-}
+  }
 
-:deep(.dialog-notes-section) {
+  :deep(.dialog-notes-section) {
     width: 800px !important;
-}
+  }
 </style>
