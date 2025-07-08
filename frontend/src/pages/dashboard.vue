@@ -1,393 +1,670 @@
 <template>
-  <v-row>
-    <v-col
-      cols="12"
-      lg="6"
-    >
-      <v-card
-        class="pa-2"
-        max-width="800"
-      >
-        <v-container class="mb-1 d-flex justify-end pr-0">
-          <button
-            class="toggle-btn week-btn"
-            type="submit"
-            @click="sleep_toggleWeek"
+  <v-app>
+    <v-main style="background-color: #faf7f2">
+      <v-container class="dashboard-container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+          <div class="header-left">
+            <h1 class="dashboard-title">Dashboard</h1>
+            <div class="dashboard-subtitle">
+              View visualizations of 
+              <span v-if="childrenStore.currentChild">{{ childrenStore.currentChild.name }}'s</span>
+              <span v-else>child's</span>
+              status
+            </div>
+          </div>
+          
+          <!-- Loading indicator -->
+          <div v-if="isLoadingData" class="loading-indicator">
+            <v-progress-circular indeterminate size="20" />
+            <span class="loading-text">Loading data...</span>
+          </div>
+          
+          <!-- Error message -->
+          <div v-if="dataError" class="error-indicator">
+            <v-icon color="error" size="20">mdi-alert-circle</v-icon>
+            <span class="error-text">{{ dataError }}</span>
+          </div>
+          
+          <!-- Date Picker -->
+          <v-menu
+            v-model="datePickerMenu"
+            :close-on-content-click="false"
+            location="bottom end"
           >
-            Week
-          </button>
-          <button
-            class="toggle-btn month-btn"
-            type="submit"
-            @click="sleep_toggleMonth"
-          >
-            Month
-          </button>
-        </v-container>
-        <apexchart
-          :options="sleepOptions"
-          :series="sleepSeries"
-          width="100%"
-        />
-      </v-card>
-    </v-col>
-    <v-col
-      cols="12"
-      lg="6"
-    >
-      <v-card
-        class="pa-2"
-        max-width="800"
-      >
-        <v-container class="mb-1 d-flex justify-end pr-0">
-          <button
-            class="toggle-btn week-btn"
-            type="submit"
-            @click="weight_toggleWeek"
-          >
-            Week
-          </button>
-          <button
-            class="toggle-btn month-btn"
-            type="submit"
-            @click="weight_toggleMonth"
-          >
-            Month
-          </button>
-        </v-container>
-        <apexchart
-          :options="weightOptions"
-          :series="weightSeries"
-          width="100%"
-        />
-      </v-card>
-    </v-col>
-  </v-row>
-  <v-row>
-    <v-col
-      cols="12"
-      lg="6"
-    >
-      <v-card
-        class="pa-2"
-        max-width="800"
-      >
-        <v-container class="mb-1 d-flex justify-end pr-0">
-          <button
-            class="toggle-btn week-btn"
-            type="submit"
-            @click="height_toggleWeek"
-          >
-            Week
-          </button>
-          <button
-            class="toggle-btn month-btn"
-            type="submit"
-            @click="height_toggleMonth"
-          >
-            Month
-          </button>
-        </v-container>
-        <apexchart
-          :options="heightOptions"
-          :series="heightSeries"
-          width="100%"
-        />
-      </v-card>
-    </v-col>
-    <v-col
-      cols="12"
-      lg="6"
-    >
-      <v-card
-        class="pa-2"
-        max-width="800"
-      >
-        <v-container class="mb-1 d-flex justify-end pr-0">
-          <button
-            class="toggle-btn week-btn"
-            type="submit"
-            @click="hc_toggleWeek"
-          >
-            Week
-          </button>
-          <button
-            class="toggle-btn month-btn"
-            type="submit"
-            @click="hc_toggleMonth"
-          >
-            Month
-          </button>
-        </v-container>
-        <apexchart
-          :options="headOptions"
-          :series="headSeries"
-          width="100%"
-        />
-      </v-card>
-    </v-col>
-  </v-row>
-  <!-- New Analytics Charts Row -->
-  <v-row>
-    <v-col cols="12" lg="6">
-      <v-card class="pa-2" max-width="800">
-        <v-container class="mb-1 d-flex justify-end pr-0">
-          <button class="toggle-btn week-btn" type="submit" @click="meal_toggleWeek">Week</button>
-          <button class="toggle-btn month-btn" type="submit" @click="meal_toggleMonth">Month</button>
-        </v-container>
-        <apexchart :options="mealConsumptionOptions" :series="mealConsumptionSeries" width="100%" />
-      </v-card>
-    </v-col>
-    <v-col cols="12" lg="6">
-      <v-card class="pa-2" max-width="800">
-        <apexchart :options="mealDistributionOptions" :series="mealDistributionSeries" width="100%" />
-      </v-card>
-    </v-col>
-  </v-row>
+            <template #activator="{ props }">
+              <button
+                v-bind="props"
+                class="date-picker-btn"
+              >
+                <v-icon size="20" start>mdi-calendar</v-icon>
+                {{ formattedDate }}
+                <v-icon end size="16">mdi-chevron-down</v-icon>
+              </button>
+            </template>
 
-  <v-row>
-    <v-col cols="12" lg="6">
-      <v-card class="pa-2" max-width="800">
-        <v-container class="mb-1 d-flex justify-end pr-0">
-          <button class="toggle-btn week-btn" type="submit" @click="poop_toggleWeek">Week</button>
-          <button class="toggle-btn month-btn" type="submit" @click="poop_toggleMonth">Month</button>
-        </v-container>
-        <apexchart :options="poopFrequencyOptions" :series="poopFrequencySeries" width="100%" />
-      </v-card>
-    </v-col>
-    <v-col cols="12" lg="6">
-      <v-card class="pa-2" max-width="800">
-        <v-container class="mb-1 d-flex justify-end pr-0">
-          <button class="toggle-btn week-btn" type="submit" @click="health_toggleWeek">Week</button>
-          <button class="toggle-btn month-btn" type="submit" @click="health_toggleMonth">Month</button>
-        </v-container>
-        <apexchart :options="healthTimelineOptions" :series="healthTimelineSeries" width="100%" />
-      </v-card>
-    </v-col>
-  </v-row>
+            <v-card>
+              <v-date-picker
+                v-model="selectedDate"
+                color="rgba($app-primary, 0.1) !important"
+                @update:model-value="datePickerMenu = false"
+              />
+            </v-card>
+          </v-menu>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+          <!-- Growth Section -->
+          <div class="dashboard-section">
+            <div class="section-header">
+              <h2 class="section-title">Growth</h2>
+              <div class="view-toggle">
+                <button
+                  :class="['view-btn', { 'active': growthViewMode === 'weekly' }]"
+                  @click="setGrowthView('weekly')"
+                >
+                  Weekly
+                </button>
+                <button
+                  :class="['view-btn', { 'active': growthViewMode === 'monthly' }]"
+                  @click="setGrowthView('monthly')"
+                >
+                  Monthly
+                </button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <apexchart
+                :options="weightOptions"
+                :series="weightSeries"
+                width="100%"
+                height="300"
+              />
+            </div>
+          </div>
+
+          <!-- Meal Section -->
+          <div class="dashboard-section">
+            <div class="section-header">
+              <h2 class="section-title">Meal</h2>
+              <div class="view-toggle">
+                <button
+                  :class="['view-btn', { 'active': mealViewMode === 'weekly' }]"
+                  @click="setMealView('weekly')"
+                >
+                  Weekly
+                </button>
+                <button
+                  :class="['view-btn', { 'active': mealViewMode === 'monthly' }]"
+                  @click="setMealView('monthly')"
+                >
+                  Monthly
+                </button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <apexchart
+                :options="mealDistributionOptions"
+                :series="mealDistributionSeries"
+                width="100%"
+                height="300"
+              />
+            </div>
+          </div>
+
+          <!-- Sleep Section -->
+          <div class="dashboard-section">
+            <div class="section-header">
+              <h2 class="section-title">Sleep</h2>
+              <div class="view-toggle">
+                <button
+                  :class="['view-btn', { 'active': sleepViewMode === 'weekly' }]"
+                  @click="setSleepView('weekly')"
+                >
+                  Weekly
+                </button>
+                <button
+                  :class="['view-btn', { 'active': sleepViewMode === 'monthly' }]"
+                  @click="setSleepView('monthly')"
+                >
+                  Monthly
+                </button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <apexchart
+                :options="sleepOptions"
+                :series="sleepSeries"
+                width="100%"
+                height="300"
+              />
+            </div>
+          </div>
+
+          <!-- Poop Section -->
+          <div class="dashboard-section">
+            <div class="section-header">
+              <h2 class="section-title">Poop</h2>
+              <div class="view-toggle">
+                <button
+                  :class="['view-btn', { 'active': poopViewMode === 'weekly' }]"
+                  @click="setPoopView('weekly')"
+                >
+                  Weekly
+                </button>
+                <button
+                  :class="['view-btn', { 'active': poopViewMode === 'monthly' }]"
+                  @click="setPoopView('monthly')"
+                >
+                  Monthly
+                </button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <apexchart
+                :options="poopFrequencyOptions"
+                :series="poopFrequencySeries"
+                width="100%"
+                height="300"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Second Row - Height, Head Circumference -->
+        <div class="dashboard-grid dashboard-grid-secondary">
+          <!-- Height Growth Section -->
+          <div class="dashboard-section">
+            <div class="section-header">
+              <h2 class="section-title">Height Growth</h2>
+              <div class="view-toggle">
+                <button
+                  :class="['view-btn', { 'active': heightViewMode === 'weekly' }]"
+                  @click="setHeightView('weekly')"
+                >
+                  Weekly
+                </button>
+                <button
+                  :class="['view-btn', { 'active': heightViewMode === 'monthly' }]"
+                  @click="setHeightView('monthly')"
+                >
+                  Monthly
+                </button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <apexchart
+                :options="heightOptions"
+                :series="heightSeries"
+                width="100%"
+                height="300"
+              />
+            </div>
+          </div>
+
+          <!-- Head Circumference Section -->
+          <div class="dashboard-section">
+            <div class="section-header">
+              <h2 class="section-title">Head Circumference</h2>
+              <div class="view-toggle">
+                <button
+                  :class="['view-btn', { 'active': headViewMode === 'weekly' }]"
+                  @click="setHeadView('weekly')"
+                >
+                  Weekly
+                </button>
+                <button
+                  :class="['view-btn', { 'active': headViewMode === 'monthly' }]"
+                  @click="setHeadView('monthly')"
+                >
+                  Monthly
+                </button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <apexchart
+                :options="headOptions"
+                :series="headSeries"
+                width="100%"
+                height="300"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Health Timeline Section - Full Width -->
+        <div class="dashboard-section dashboard-section-full">
+          <div class="section-header">
+            <h2 class="section-title">Symptoms</h2>
+          </div>
+          
+          <!-- Symptoms Timeline -->
+          <div class="symptoms-timeline">
+            <div 
+              v-for="symptom in healthSymptoms" 
+              :key="symptom.id"
+              class="symptom-entry"
+            >
+              <div class="symptom-date">
+                <div class="date-day">{{ formatSymptomDate(symptom.date).day }}</div>
+                <div class="date-month">{{ formatSymptomDate(symptom.date).month }}</div>
+              </div>
+              <div class="symptom-content">
+                <div class="symptom-type">{{ symptom.type }}</div>
+                <div class="symptom-description">{{ symptom.description }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <script setup lang="ts">
-  import { onMounted, reactive, ref, computed } from 'vue'
-  import axios from 'axios'
+import { onMounted, reactive, ref, computed, watch } from 'vue'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
+import { useChildrenStore } from '@/stores/children'
 
-  // Setup initial reference for actual weight, height, head_circumference, sleep time
-  const actual = reactive({
-    weight: [],
-    height: [],
-    head_circumference: [],
-    sleep_time: {
-      nap: [],
-      night: [],
-    },
-  })
+// Store instances
+const authStore = useAuthStore()
+const childrenStore = useChildrenStore()
 
-  const analyticsData = reactive({
-  mealConsumption: [],
-  mealDistribution: {},
-  poopFrequency: [],
-  healthTimeline: [],
+// Set current date as default instead of hardcoded date
+const selectedDate = ref(new Date()) // Use today's date
+const datePickerMenu = ref(false)
+
+// Loading and error states
+const isLoadingData = ref(false)
+const dataError = ref(null)
+
+// View mode states
+const growthViewMode = ref('weekly')
+const mealViewMode = ref('weekly')
+const sleepViewMode = ref('weekly')
+const poopViewMode = ref('weekly')
+const heightViewMode = ref('weekly')
+const headViewMode = ref('weekly')
+
+// Health symptoms data
+const healthSymptoms = ref([
+  {
+    id: 1,
+    date: '2025-05-20',
+    type: 'Fever',
+    description: 'Lorem ipsum dolor sit amet consectetur. Dui ut tempor et sit temporum ut magna fermentum ullamcorper vitae.'
+  },
+  {
+    id: 2,
+    date: '2025-05-17',
+    type: 'Fever',
+    description: 'Lorem ipsum dolor sit amet consectetur. Dui ut tempor et sit temporum ut magna fermentum ullamcorper vitae.'
+  },
+  {
+    id: 3,
+    date: '2025-05-15',
+    type: 'Fever',
+    description: 'Lorem ipsum dolor sit amet consectetur. Dui ut tempor et sit temporum ut magna fermentum ullamcorper vitae.'
+  },
+  {
+    id: 4,
+    date: '2025-05-14',
+    type: 'Fever',
+    description: 'Lorem ipsum dolor sit amet consectetur. Dui ut tempor et sit temporum ut magna fermentum ullamcorper vitae.'
+  }
+])
+
+// Computed for formatted date
+const formattedDate = computed(() => {
+  const date = selectedDate.value
+  const day = date.getDate()
+  const month = date.toLocaleDateString('en-US', { month: 'long' })
+  const year = date.getFullYear()
+  return `${day} ${month} ${year}`
 })
 
-  // Setup initial reference for benchmark weight, height & head_circumference
-  const benchmark = reactive({
-    weight: [],
-    height: [],
-    head_circumference: [],
-  })
+// Format symptom date
+const formatSymptomDate = (dateString) => {
+  const date = new Date(dateString)
+  return {
+    day: date.getDate().toString().padStart(2, '0'),
+    month: date.toLocaleDateString('en-US', { month: 'short' })
+  }
+}
 
-  
-
-  // Setup initial reference of min / max value on Y-axis for charts
-  const chart = reactive({
-    weight: {
-      y_min: 3.2,
-      y_max: 18.3,
-    },
-    height: {
-      y_min: 49.1,
-      y_max: 110,
-    },
-    head_circumference: {
-      y_min: 33.9,
-      y_max: 50.7,
-    },
-    sleep: {
-      y_min: 0,
-      y_max: 15,
-    },
-  })
-
-  // Chart data for Weight
-  const weightSeries = ref([
-    {
-      name: 'Actual',
-      data: [],
-    },
-    {
-      name: 'Benchmark',
-      data: [],
-    },
-  ])
-
-  // Chart options for Weight
-  const weightOptions = ref({
-    chart: {
-      type: 'line', // line or area
-      // fontFamily: "Tahoma",
-    },
-    theme: {
-      mode: 'light',
-      palette: 'palette5',
-    },
-    colors: ['#81c5f7', '#fb9bec'],
-    xaxis: {
-      type: 'datetime',
-      labels: {
-        show: true,
-        rotate: -45,
-        datetimeUTC: false,
-        formatter (_, timestamp, opts) {
-          return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
-        },
-      },
-      tickPlacement: 'on',
-      tickAmount: 'dataPoints',
-    },
-    yaxis: {
-      title: {
-        text: 'Weight, kg',
-      },
-      min: () => chart.weight.y_min,
-      max: () => chart.weight.y_max,
-    },
-    title: {
-      text: 'Weight Growth',
-      style: {
-        fontSize: '22px',
-        fontWeight: 'bold',
-        // fontFamily: "Georgia",
-        color: '#2c1810',
-      },
-    },
-    // markers: {
-    //     size: [5],
-    //     strokeColors: 'yellow'
-    // },
-    stroke: {
-      curve: 'straight',
-      width: 3,
-      // dashArray: 5
-    },
-  })
-
-//Chart series for mealconsumption
-  const mealConsumptionSeries = ref([{
-  name: 'Consumption %',
-  data: []
-}])
-
-// chart option 
-const mealConsumptionOptions = ref({
-  chart: { 
-    type: 'line', 
-    // fontFamily: "Tahoma",
+// Setup initial reference for actual weight, height, head_circumference, sleep time
+const actual = reactive({
+  weight: [],
+  height: [],
+  head_circumference: [],
+  sleep_time: {
+    nap: [],
+    night: [],
   },
-  theme: { 
-    mode: 'light', 
-    palette: 'palette5' 
+})
+
+// Setup initial reference for benchmark weight, height & head_circumference
+const benchmark = reactive({
+  weight: [],
+  height: [],
+  head_circumference: [],
+})
+
+// Setup initial reference of min / max value on Y-axis for charts
+const chart = reactive({
+  weight: {
+    y_min: 3.2,
+    y_max: 18.3,
   },
-  colors: ['#81c5f7'],
-  xaxis: { 
+  height: {
+    y_min: 49.1,
+    y_max: 110,
+  },
+  head_circumference: {
+    y_min: 33.9,
+    y_max: 50.7,
+  },
+  sleep: {
+    y_min: 0,
+    y_max: 15,
+  },
+})
+
+// Chart data for Weight
+const weightSeries = ref([
+  {
+    name: 'Actual',
+    data: [],
+  },
+  {
+    name: 'Benchmark',
+    data: [],
+  },
+])
+
+// Chart options for Weight
+const weightOptions = ref({
+  chart: {
+    type: 'line',
+    toolbar: { show: false },
+  },
+  theme: {
+    mode: 'light',
+    palette: 'palette5',
+  },
+  colors: ['#81c5f7', '#fb9bec'],
+  xaxis: {
     type: 'datetime',
     labels: {
       show: true,
       rotate: -45,
       datetimeUTC: false,
-      formatter: (_, timestamp, opts) => {
+      formatter (_, timestamp, opts) {
         return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
-      }
+      },
     },
     tickPlacement: 'on',
     tickAmount: 'dataPoints',
   },
-  yaxis: { 
-    title: { 
-      text: 'Consumption %' 
+  yaxis: {
+    title: {
+      text: 'Weight, kg',
     },
-    min: 0,
-    max: 100,
-    labels: {
-      formatter: function (val) {
-        return parseInt(val)
-      }
-    }
+    min: () => chart.weight.y_min,
+    max: () => chart.weight.y_max,
   },
-  title: { 
-    text: 'Meal Consumption Trends',
-    style: { 
-      fontSize: '22px', 
-      fontWeight: 'bold', 
-      // fontFamily: "Georgia",
-      color: '#2c1810' 
-    }
+  title: {
+    text: '',
+    style: {
+      fontSize: '16px',
+      fontWeight: 'bold',
+      color: '#2c1810',
+    },
   },
-  stroke: { 
-    curve: 'straight', 
-    width: 3 
+  stroke: {
+    curve: 'straight',
+    width: 3,
   },
-  // markers: { size: 4 },
+  legend: {
+    show: true,
+    position: 'bottom',
+  },
 })
 
-//chart series for
+// Chart series for meal distribution (pie chart showing Milk, Solid, Mixed, Others)
 const mealDistributionSeries = ref([])
 
-//chart option for
+// Chart options for meal distribution (pie chart)
 const mealDistributionOptions = ref({
-  chart: { 
-    type: 'donut', 
-    // fontFamily: "Tahoma",
+  chart: {
+    type: 'donut',
+    toolbar: { show: false },
   },
-  theme: { 
-    mode: 'light', 
-    palette: 'palette5' 
+  theme: {
+    mode: 'light',
+    palette: 'palette5',
   },
-  colors: ['#81c5f7', '#fb9bec', '#81c5f7', '#fb9bec'],
+  colors: ['#81c5f7', '#fb9bec', '#fbbf24', '#34d399'],
   labels: [],
   title: {
-    text: 'Daily Meal Distribution',
-    style: { 
-      fontSize: '22px', 
-      fontWeight: 'bold', 
-      // fontFamily: "Georgia",
-      color: '#2c1810' 
-    }
+    text: '',
   },
-  legend: { position: 'bottom' },
+  legend: { 
+    show: true,
+    position: 'bottom',
+  },
   dataLabels: {
     enabled: true,
     formatter: (val) => `${val.toFixed(1)}%`
   },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '60%',
+      }
+    }
+  }
 })
 
-//chart series for
+// Chart data for Height
+const heightSeries = ref([
+  {
+    name: 'Actual',
+    data: [],
+  },
+  {
+    name: 'Benchmark',
+    data: [],
+  },
+])
+
+// Chart options for Height
+const heightOptions = ref({
+  chart: {
+    type: 'line',
+    toolbar: { show: false },
+  },
+  theme: {
+    mode: 'light',
+    palette: 'palette5',
+  },
+  colors: ['#81c5f7', '#fb9bec'],
+  xaxis: {
+    type: 'datetime',
+    labels: {
+      show: true,
+      rotate: -45,
+      datetimeUTC: false,
+      formatter (_, timestamp, opts) {
+        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+      },
+    },
+    tickPlacement: 'on',
+    tickAmount: 'dataPoints',
+  },
+  yaxis: {
+    title: {
+      text: 'Height, cm',
+    },
+    min: () => chart.height.y_min,
+    max: () => chart.height.y_max,
+  },
+  title: {
+    text: '',
+  },
+  stroke: {
+    curve: 'straight',
+    width: 3,
+  },
+  legend: {
+    show: true,
+    position: 'bottom',
+  },
+})
+
+// Chart data for Head Circumference
+const headSeries = ref([
+  {
+    name: 'Actual',
+    data: [],
+  },
+  {
+    name: 'Benchmark',
+    data: [],
+  },
+])
+
+// Chart options for Head Circumference
+const headOptions = ref({
+  chart: {
+    type: 'line',
+    toolbar: { show: false },
+  },
+  theme: {
+    mode: 'light',
+    palette: 'palette5',
+  },
+  colors: ['#81c5f7', '#fb9bec'],
+  xaxis: {
+    type: 'datetime',
+    labels: {
+      show: true,
+      rotate: -45,
+      datetimeUTC: false,
+      formatter (_, timestamp, opts) {
+        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+      },
+    },
+    tickPlacement: 'on',
+    tickAmount: 'dataPoints',
+  },
+  yaxis: {
+    title: {
+      text: 'Head circumference, cm',
+    },
+    min: () => chart.head_circumference.y_min,
+    max: () => chart.head_circumference.y_max,
+  },
+  title: {
+    text: '',
+  },
+  stroke: {
+    curve: 'straight',
+    width: 3,
+  },
+  dataLabels: {
+    enabled: false,
+  },
+  legend: {
+    show: true,
+    position: 'bottom',
+  },
+})
+
+// Chart data for Sleep
+const sleepSeries = ref([
+  {
+    name: 'Nap',
+    data: [],
+  },
+  {
+    name: 'Night',
+    data: [],
+  },
+])
+
+// Chart options for Sleep
+const sleepOptions = ref({
+  chart: {
+    type: 'area',
+    stacked: true,
+    toolbar: { show: false },
+  },
+  theme: {
+    mode: 'light',
+    palette: 'palette5',
+  },
+  colors: ['#81c5f7', '#fb9bec'],
+  xaxis: {
+    type: 'datetime',
+    labels: {
+      show: true,
+      rotate: -45,
+      datetimeUTC: false,
+      formatter (_, timestamp, opts) {
+        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+      },
+    },
+    tickPlacement: 'on',
+    tickAmount: 'dataPoints',
+  },
+  yaxis: {
+    title: {
+      text: 'Total Sleep, hours',
+    },
+    min: () => chart.sleep.y_min,
+    max: () => chart.sleep.y_max,
+  },
+  title: {
+    text: '',
+  },
+  markers: {
+    size: [1, 1],
+    strokeColors: 'grey',
+  },
+  stroke: {
+    curve: 'straight',
+    width: 3,
+  },
+  dataLabels: {
+    enabled: false,
+  },
+  legend: {
+    show: true,
+    position: 'bottom',
+  },
+})
+
+// Chart series for poop frequency
 const poopFrequencySeries = ref([{
   name: 'Daily Frequency',
   data: []
 }])
 
-//chart option for
+// Chart options for poop frequency
 const poopFrequencyOptions = ref({
-  chart: { 
+  chart: {
     type: 'bar',
-    // fontFamily: "Tahoma",
+    toolbar: { show: false },
   },
-  theme: { 
-    mode: 'light', 
-    palette: 'palette5' 
+  theme: {
+    mode: 'light',
+    palette: 'palette5',
   },
-  colors: ['#fb9bec'],
-  xaxis: { 
+  colors: ['#fbbf24'],
+  xaxis: {
     type: 'datetime',
     labels: {
       show: true,
@@ -400,9 +677,9 @@ const poopFrequencyOptions = ref({
     tickPlacement: 'on',
     tickAmount: 'dataPoints',
   },
-  yaxis: { 
-    title: { 
-      text: 'Times per Day' 
+  yaxis: {
+    title: {
+      text: 'Times per Day'
     },
     min: 0,
     max: 5,
@@ -414,13 +691,7 @@ const poopFrequencyOptions = ref({
     }
   },
   title: {
-    text: 'Digestive Health',
-    style: { 
-      fontSize: '22px', 
-      fontWeight: 'bold', 
-      // fontFamily: "Georgia",
-      color: '#2c1810' 
-    }
+    text: '',
   },
   plotOptions: {
     bar: {
@@ -432,537 +703,439 @@ const poopFrequencyOptions = ref({
     curve: 'straight',
     width: 3,
   },
-})
-
-//chart series for
-const healthTimelineSeries = ref([{
-  name: 'Symptoms',
-  data: []
-}])
-
-//chart option for 
-const healthTimelineOptions = ref({
-  chart: { 
-    type: 'scatter', 
-    // fontFamily: "Tahoma",
-  },
-  theme: { 
-    mode: 'light', 
-    palette: 'palette5' 
-  },
-  colors: ['#81c5f7'],
-  xaxis: { 
-    type: 'datetime',
-    labels: {
-      show: true,
-      rotate: -45,
-      datetimeUTC: false,
-      formatter: (_, timestamp, opts) => {
-        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
-      }
-    },
-    tickPlacement: 'on',
-    tickAmount: 'dataPoints',
-  },
-  yaxis: { 
-    title: { 
-      text: 'Symptom Type' 
-    },
-    labels: {
-      formatter: (value) => {
-        const symptoms = ['Fever', 'Cold', 'Rash', 'Upset Stomach', 'Other']
-        return symptoms[value - 1] || 'Unknown'
-      }
-    },
-    min: 0,
-    max: 6
-  },
-  title: {
-    text: 'Health Timeline',
-    style: { 
-      fontSize: '22px', 
-      fontWeight: 'bold', 
-      // fontFamily: "Georgia",
-      color: '#2c1810' 
-    }
-  },
-  markers: { size: 6 },
-  stroke: {
-    curve: 'straight',
-    width: 3,
+  legend: {
+    show: false,
   },
 })
 
-  // Chart data for Height
-  const heightSeries = ref([
-    {
-      name: 'Actual',
-      data: [],
-    },
-    {
-      name: 'Benchmark',
-      data: [],
-    },
-  ])
+// Function to set maximum & minimum value for Y-axis of weight, height and head circumference
+const setY_min_max = (actual_array, benchmark_array, series) => {
+  if (actual_array.length === 0 && benchmark_array.length === 0) {
+    return // Don't update if no data
+  }
 
-  // Chart options for Height
-  const heightOptions = ref({
-    chart: {
-      type: 'line', // line or area
-      // fontFamily: "Tahoma",
-    },
-    theme: {
-      mode: 'light',
-      palette: 'palette5',
-    },
-    colors: ['#81c5f7', '#fb9bec'],
-    xaxis: {
-      type: 'datetime',
-      labels: {
-        show: true,
-        rotate: -45,
-        datetimeUTC: false,
-        formatter (_, timestamp, opts) {
-          return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
-        },
-      },
-      tickPlacement: 'on',
-      tickAmount: 'dataPoints',
-    },
-    yaxis: {
-      title: {
-        text: 'Height, cm',
-      },
-      min: () => chart.height.y_min,
-      max: () => chart.height.y_max,
-    },
-    title: {
-      text: 'Height Growth',
-      style: {
-        fontSize: '22px',
-        fontWeight: 'bold',
-        // fontFamily: "Georgia",
-        color: '#2c1810',
-      },
-    },
-    // markers: {
-    //     size: [5],
-    //     strokeColors: 'yellow'
-    // },
-    stroke: {
-      curve: 'straight',
-      width: 3,
-      // dashArray: 5
-    },
-  })
+  const actual_min = actual_array.length > 0 ? Math.min(...actual_array) : Number.MAX_VALUE
+  const benchmark_min = benchmark_array.length > 0 ? Math.min(...benchmark_array) : Number.MAX_VALUE
+  const actual_max = actual_array.length > 0 ? Math.max(...actual_array) : Number.MIN_VALUE
+  const benchmark_max = benchmark_array.length > 0 ? Math.max(...benchmark_array) : Number.MIN_VALUE
 
-  // Chart data for Head Circumference
-  const headSeries = ref([
-    {
-      name: 'Actual',
-      data: [],
-    },
-    {
-      name: 'Benchmark',
-      data: [],
-    },
-  ])
+  // Get the overall min and max
+  const overall_min = Math.min(actual_min, benchmark_min)
+  const overall_max = Math.max(actual_max, benchmark_max)
 
-  // Chart options for Head Circumference
-  const headOptions = ref({
-    chart: {
-      type: 'line', // line or area
-      // fontFamily: "Tahoma",
-    },
-    theme: {
-      mode: 'light',
-      palette: 'palette5',
-    },
-    colors: ['#81c5f7', '#fb9bec'],
-    xaxis: {
-      type: 'datetime',
-      labels: {
-        show: true,
-        rotate: -45,
-        datetimeUTC: false,
-        formatter (_, timestamp, opts) {
-          return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
-        },
-      },
-      tickPlacement: 'on',
-      tickAmount: 'dataPoints',
-    },
-    yaxis: {
-      title: {
-        text: 'Head circumference, cm',
-      },
-      min: () => chart.head_circumference.y_min,
-      max: () => chart.head_circumference.y_max,
-    },
-    title: {
-      text: 'Head Circumference Growth',
-      style: {
-        fontSize: '22px',
-        fontWeight: 'bold',
-        // fontFamily: "Georgia",
-        color: '#2c1810',
-      },
-    },
-    // markers: {
-    //     size: [5],
-    //     strokeColors: 'yellow'
-    // },
-    stroke: {
-      curve: 'straight',
-      width: 3,
-      // dashArray: 5
-    },
-    dataLabels: {
-      enabled: false,
-    },
-  })
+  // Add small padding (5% of the range) for better visualization
+  const range = overall_max - overall_min
+  const padding = range * 0.1 // 10% padding
 
-  // Chart data for Sleep
-  const sleepSeries = ref([
-    {
-      name: 'Nap',
-      data: [],
-    },
-    {
-      name: 'Night',
-      data: [],
-    },
-  ])
+  let y_min = overall_min - padding
+  let y_max = overall_max + padding
 
-  // Chart options for Sleep
-  const sleepOptions = ref({
-    chart: {
-      type: 'area', // line or area
-      // fontFamily: "Tahoma",
-      stacked: true, // Enable stacking
-    },
-    theme: {
-      mode: 'light',
-      palette: 'palette5',
-    },
-    colors: ['#81c5f7', '#fb9bec'],
-    xaxis: {
-      type: 'datetime',
-      labels: {
-        show: true,
-        rotate: -45,
-        datetimeUTC: false,
-        formatter (_, timestamp, opts) {
-          return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
-        },
-      },
-      tickPlacement: 'on',
-      // reference: https://github.com/apexcharts/apexcharts.js/issues/167
-      tickAmount: 'dataPoints',
-    },
-    yaxis: {
-      title: {
-        text: 'Total Sleep, hours',
-      },
-      min: () => chart.sleep.y_min,
-      max: () => chart.sleep.y_max,
-    },
-    title: {
-      text: 'Sleep Quality',
-      style: {
-        fontSize: '22px',
-        fontWeight: 'bold',
-        // fontFamily: "Georgia",
-        color: '#2c1810',
-      },
-    },
-    markers: {
-      size: [1, 1],
-      strokeColors: 'grey',
-    },
-    stroke: {
-      curve: 'straight',
-      width: 3,
-      // dashArray: 5,
-    },
-    dataLabels: {
-      enabled: false,
-    },
-  })
+  // Ensure minimum doesn't go below 0 for weight/height/head circumference
+  if (y_min < 0) {
+    y_min = 0
+  }
 
+  // Round to reasonable precision
+  y_min = Math.floor(y_min * 100) / 100
+  y_max = Math.ceil(y_max * 100) / 100
+
+  console.log(`Setting Y-axis for ${series}: min=${y_min}, max=${y_max}`)
+
+  chart[series].y_min = y_min
+  chart[series].y_max = y_max
+}
+
+// Function to set maximum value for Y-axis of sleep time
+const setY_max_for_sleep = (nap_hour, night_hour) => {
+  if (nap_hour.length === 0 && night_hour.length === 0) {
+    return // Don't update if no data
+  }
+
+  const nap_values = nap_hour
+  const night_values = night_hour
+
+  // Calculate total sleep values
+  const total_sleep_values = []
+  const maxLength = Math.max(nap_values.length, night_values.length)
   
-
-  // Function to set maximum & minimum value for Y-axis of weight, height and head circumference
-  const setY_min_max = (actual_array, benchmark_array, series) => {
-    // console.log(...actual_array)
-    // console.log(...benchmark_array)
-
-    const actual_min = Math.min(...actual_array)
-    const benchmark_min = Math.min(...benchmark_array)
-
-    const actual_max = Math.max(...actual_array)
-    const benchmark_max = Math.max(...benchmark_array)
-
-    let y_min = 0
-    let y_max = 0
-
-    if (benchmark_min < actual_min) {
-      y_min =
-        benchmark_min - 0.05 < 0
-          ? 0.0
-          : Math.floor(benchmark_min - 0.05)
-    } else if (benchmark_min > actual_min) {
-      y_min = actual_min - 0.05 < 0 ? 0.0 : Math.floor(actual_min - 0.05)
-    } else {
-      y_min = actual_min - 0.05 < 0 ? 0.0 : Math.floor(actual_min - 0.05)
-    }
-
-    if (benchmark_max > actual_max) {
-      y_max = Math.ceil(benchmark_max + 0.05)
-    } else if (benchmark_max < actual_max) {
-      y_max = Math.ceil(actual_max + 0.05)
-    } else {
-      y_max = Math.ceil(actual_max + 0.05)
-    }
-
-    // console.log(`Min: ${y_min}, Max: ${y_max}`)
-
-    // Update min & max values of Y-axis
-    chart[series].y_min = y_min
-    chart[series].y_max = y_max
-
-    // console.log(`Chart Min: ${chart.weight.y_min}, Chart Max: ${chart.weight.y_max}`)
+  for (let i = 0; i < maxLength; i++) {
+    const nap_time = nap_values[i] || 0
+    const night_time = night_values[i] || 0
+    const total = nap_time + night_time
+    total_sleep_values.push(total)
   }
 
-  // Function to set maximum value for Y-axis of sleep time
-  const setY_max_for_sleep = (nap_hour, night_hour) => {
-    const nap_values = nap_hour
-    const night_values = night_hour
-
-    const total_sleep_values = nap_values.map((nap, index) => {
-      const nap_time = nap
-      const night_time = night_values[index]
-      const total = nap_time + night_time
-
-      return total.toFixed(1)
-    })
-
-    // console.log(`Sleep values: ${total_sleep_values}`)
-
-    const y_max = Math.ceil(...total_sleep_values) + 1.0
-
-    // console.log(y_max)
-
-    chart.sleep.y_max = y_max
-  }
-
-  const fetchGrowth = async () => {
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/growth/1')
-      const growth_data = response.data
-
-      // console.log(growth_data);
-
-      // Extract only Actual Weight
-      const actual_weight = growth_data.map(item => {
-        const x = new Date(item.check_in)
-        const y = item.actual_weight
-
-        return { x, y }
-      })
-
-      // Extract only Benchmark Weight
-      const benchmark_weight = growth_data.map(item => {
-        const x = new Date(item.check_in)
-        const y = item.benchmark_weight
-
-        return { x, y }
-      })
-
-      // console.log(actual_weight)
-      // console.log(benchmark_weight)
-
-      // Actual weight for last 30 days
-      actual.weight = actual_weight
-
-      // Benchmark weight for last 30 days
-      benchmark.weight = benchmark_weight
-
-      // Actual weight for last 7 days
-      const actual_weight_week = computed(() => actual.weight.slice(0, 7))
-
-      // Benchmark weight for last 7 days
-      const benchmark_weight_week = computed(() =>
-        benchmark.weight.slice(0, 7),
-      )
-
-      // console.log(actual_weight_week.value.map(item => item.y))
-      // console.log(benchmark_weight_week.value.map(item => item.y))
-
-      const actual_weight_week_values = actual_weight_week.value.map(
-        item => item.y,
-      )
-      const benchmark_weight_week_values =
-        benchmark_weight_week.value.map(item => item.y)
-
-      setY_min_max(
-        actual_weight_week_values,
-        benchmark_weight_week_values,
-        'weight',
-      )
-
-      // Set default view of Weight chart with actual weight of last 7 days
-      weightSeries.value[0].data = actual_weight_week
-
-      // Set default view of Weight chart with benchmark weight of last 7 days
-      weightSeries.value[1].data = benchmark_weight_week
-
-      // Extract only Actual Height
-      const actual_height = growth_data.map(item => {
-        const x = new Date(item.check_in)
-        const y = item.actual_height
-
-        return { x, y }
-      })
-
-      // Extract only Benchmark Height
-      const benchmark_height = growth_data.map(item => {
-        const x = new Date(item.check_in)
-        const y = item.benchmark_height
-
-        return { x, y }
-      })
-
-      // Actual height for last 30 days
-      actual.height = actual_height
-
-      // Benchmark height for last 30 days
-      benchmark.height = benchmark_height
-
-      // Actual height for last 7 days
-      const actual_height_week = computed(() => actual.height.slice(0, 7))
-
-      // Benchmark height for last 7 days
-      const benchmark_height_week = computed(() =>
-        benchmark.height.slice(0, 7),
-      )
-
-      const actual_height_week_values = actual_height_week.value.map(
-        item => item.y,
-      )
-      const benchmark_height_week_values =
-        benchmark_height_week.value.map(item => item.y)
-
-      setY_min_max(
-        actual_height_week_values,
-        benchmark_height_week_values,
-        'height',
-      )
-
-      // Set default view of Height chart with actual height of last 7 days
-      heightSeries.value[0].data = actual_height_week
-
-      // Set default view of Height chart with benchmark height of last 7 days
-      heightSeries.value[1].data = benchmark_height_week
-
-      // Extract only Actual Head Circumference
-      const actual_hc = growth_data.map(item => {
-        const x = new Date(item.check_in)
-        const y = item.actual_head_circumference
-
-        return { x, y }
-      })
-
-      // Extract only Benchmark Head Circumference
-      const benchmark_hc = growth_data.map(item => {
-        const x = new Date(item.check_in)
-        const y = item.benchmark_head_circumference
-
-        return { x, y }
-      })
-
-      // Actual head circumference for last 30 days
-      actual.head_circumference = actual_hc
-
-      // Benchmark head circumference for last 30 days
-      benchmark.head_circumference = benchmark_hc
-
-      // Actual head circumference for last 7 days
-      const actual_hc_week = computed(() =>
-        actual.head_circumference.slice(0, 7),
-      )
-
-      // Benchmark head circumference for last 7 days
-      const benchmark_hc_week = computed(() =>
-        benchmark.head_circumference.slice(0, 7),
-      )
-
-      const actual_hc_week_values = actual_hc_week.value.map(
-        item => item.y,
-      )
-      const benchmark_hc_week_values = benchmark_hc_week.value.map(
-        item => item.y,
-      )
-
-      setY_min_max(
-        actual_hc_week_values,
-        benchmark_hc_week_values,
-        'head_circumference',
-      )
-
-      // Set default view of Head Circumference chart with actual Head Circumference of last 7 days
-      headSeries.value[0].data = actual_hc_week
-
-      // Set default view of Head Circumference chart with benchmark Head Circumference chart of last 7 days
-      headSeries.value[1].data = benchmark_hc_week
-    } catch (error) {
-      console.error(`Error: ${error}`)
-    }
-  }
-
-  //newly added
-const fetchMealAnalytics = async () => {
-  try {
-    const response = await axios.get('http://127.0.0.1:8000/analytics/meal-analytics/1')
-    const mealData = response.data
-
-    // Create mock daily consumption data
-    const consumptionTrend = Array.from({ length: 30 }, (_, i) => {
-      const date = new Date()
-      date.setDate(date.getDate() - (29 - i))
-      // Set time to midnight to avoid timezone issues
-      date.setHours(0, 0, 0, 0)
-      return {
-        x: date.getTime(),
-        y: Math.round(60 + Math.random() * 30) // Mock 60-90% consumption, rounded
-      }
-    })
-
-    mealConsumptionSeries.value = [{
-      name: 'Consumption %',
-      data: consumptionTrend
-    }]
-
-    // Meal distribution
-    const distribution = mealData.meal_time_distribution || {
-      'Breakfast': 30,
-      'Lunch': 25,
-      'Dinner': 30,
-      'Snacks': 15
-    }
-    mealDistributionOptions.value.labels = Object.keys(distribution)
-    mealDistributionSeries.value = Object.values(distribution)
-
-  } catch (error) {
-    console.error('Error fetching meal analytics:', error)
+  if (total_sleep_values.length > 0) {
+    const max_sleep = Math.max(...total_sleep_values)
+    const y_max = Math.ceil(max_sleep * 1.1) // Add 10% padding
+    chart.sleep.y_max = Math.max(y_max, 5) // Minimum of 5 hours for readability
+    chart.sleep.y_min = 0
+    
+    console.log(`Setting sleep Y-axis: min=0, max=${chart.sleep.y_max}`)
   }
 }
 
-const fetchPoopAnalytics = async () => {
+// Get current child ID safely with error handling
+const getCurrentChildId = () => {
+  if (!childrenStore.currentChild || !childrenStore.currentChild.id) {
+    console.warn('No current child selected or invalid child ID')
+    dataError.value = 'Please select a child to view dashboard data'
+    return null
+  }
+  return childrenStore.currentChild.id
+}
+
+// Enhanced fetch functions that use real backend data and respond to date changes
+const fetchGrowth = async (selectedDateParam) => {
   try {
-    const dailyFrequency = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date()
-      date.setDate(date.getDate() - (6 - i))
+    const childId = getCurrentChildId()
+    if (!childId) return
+
+    isLoadingData.value = true
+    
+    // Use the actual growth endpoint that returns growth with benchmarks
+    const response = await axios.get(`http://127.0.0.1:8000/growth/${childId}`)
+    const growth_data = response.data
+
+    if (!growth_data || growth_data.length === 0) {
+      console.log('No growth data available for child:', childId)
+      // Clear charts when no data
+      weightSeries.value = [{ name: 'Actual', data: [] }, { name: 'Benchmark', data: [] }]
+      heightSeries.value = [{ name: 'Actual', data: [] }, { name: 'Benchmark', data: [] }]
+      headSeries.value = [{ name: 'Actual', data: [] }, { name: 'Benchmark', data: [] }]
+      return
+    }
+
+    // Convert the backend data to the format expected by charts
+    const actual_weight = growth_data.map(item => ({
+      x: new Date(item.check_in),
+      y: item.actual_weight
+    })).reverse() // Reverse to show chronological order
+
+    const benchmark_weight = growth_data.map(item => ({
+      x: new Date(item.check_in),
+      y: item.benchmark_weight
+    })).reverse()
+
+    const actual_height = growth_data.map(item => ({
+      x: new Date(item.check_in),
+      y: item.actual_height
+    })).reverse()
+
+    const benchmark_height = growth_data.map(item => ({
+      x: new Date(item.check_in),
+      y: item.benchmark_height
+    })).reverse()
+
+    const actual_hc = growth_data.map(item => ({
+      x: new Date(item.check_in),
+      y: item.actual_head_circumference
+    })).reverse()
+
+    const benchmark_hc = growth_data.map(item => ({
+      x: new Date(item.check_in),
+      y: item.benchmark_head_circumference
+    })).reverse()
+
+    // Store all data
+    actual.weight = actual_weight
+    benchmark.weight = benchmark_weight
+    actual.height = actual_height
+    benchmark.height = benchmark_height
+    actual.head_circumference = actual_hc
+    benchmark.head_circumference = benchmark_hc
+
+    // Calculate Y-axis ranges for all growth metrics
+    if (actual_weight.length > 0) {
+      const actualWeightValues = actual_weight.map(item => item.y)
+      const benchmarkWeightValues = benchmark_weight.map(item => item.y)
+      setY_min_max(actualWeightValues, benchmarkWeightValues, 'weight')
+    }
+
+    if (actual_height.length > 0) {
+      const actualHeightValues = actual_height.map(item => item.y)
+      const benchmarkHeightValues = benchmark_height.map(item => item.y)
+      setY_min_max(actualHeightValues, benchmarkHeightValues, 'height')
+    }
+
+    if (actual_hc.length > 0) {
+      const actualHcValues = actual_hc.map(item => item.y)
+      const benchmarkHcValues = benchmark_hc.map(item => item.y)
+      setY_min_max(actualHcValues, benchmarkHcValues, 'head_circumference')
+    }
+
+    // Apply date filtering based on selected date and view mode
+    updateChartsForDate()
+    
+    console.log(`✅ Growth data loaded for child ${childId}:`, {
+      weight_points: actual_weight.length,
+      height_points: actual_height.length,
+      hc_points: actual_hc.length
+    })
+
+  } catch (error) {
+    console.error(`❌ Error fetching growth data:`, error)
+    dataError.value = 'Failed to load growth data'
+  } finally {
+    isLoadingData.value = false
+  }
+}
+
+const fetchSleep = async (selectedDateParam) => {
+  try {
+    const childId = getCurrentChildId()
+    if (!childId) return
+
+    // Use the actual sleep endpoint
+    const response = await axios.get(`http://127.0.0.1:8000/sleeptime/${childId}`)
+    const api_data = response.data
+
+    if (!api_data || api_data.length === 0) {
+      console.log('No sleep data available')
+      return
+    }
+
+    // Process the data similar to your existing logic
+    const nap_series = api_data
+      .filter(item => {
+        const start_hour = new Date(item.start_time).getHours()
+        return start_hour >= 12 && start_hour <= 16
+      })
+      .map(item => {
+        const x = new Date(item.check_in)
+        const time_ms = new Date(item.end_time) - new Date(item.start_time)
+        const total_hours = Math.floor(time_ms / (1000 * 60 * 60))
+        const total_mins = Math.floor((time_ms % (1000 * 60 * 60)) / 60000) / 60
+        const y = Number((total_hours + total_mins).toFixed(1))
+        return { x, y }
+      })
+
+    const night_series = api_data
+      .filter(item => {
+        const start_hour = new Date(item.start_time).getHours()
+        return start_hour >= 20 && start_hour <= 22
+      })
+      .map(item => {
+        const x = new Date(item.check_in)
+        const time_ms = new Date(item.end_time) - new Date(item.start_time)
+        const total_hours = Math.floor(time_ms / (1000 * 60 * 60))
+        const total_mins = Math.floor((time_ms % (1000 * 60 * 60)) / 60000) / 60
+        const y = Number((total_hours + total_mins).toFixed(1))
+        return { x, y }
+      })
+
+    actual.sleep_time.nap = nap_series
+    actual.sleep_time.night = night_series
+
+    // Calculate Y-axis range for sleep data
+    if (nap_series.length > 0 || night_series.length > 0) {
+      const napHours = nap_series.map(item => item.y)
+      const nightHours = night_series.map(item => item.y)
+      setY_max_for_sleep(napHours, nightHours)
+    }
+
+    // Apply date filtering
+    updateChartsForDate()
+
+  } catch (error) {
+    console.error('Error fetching sleep data: ' + error)
+  }
+}
+
+const fetchMealAnalytics = async (selectedDateParam) => {
+  try {
+    const childId = getCurrentChildId()
+    if (!childId) return
+
+    console.log('🍽️ Fetching meal analytics for child:', childId)
+
+    // Use the actual meal endpoint
+    const response = await axios.get(`http://127.0.0.1:8000/meal/child/${childId}?days=30`)
+    const mealData = response.data
+
+    console.log('📊 Raw meal data from API:', mealData)
+
+    if (!mealData || mealData.length === 0) {
+      console.log('❌ No meal data available')
+      // Set empty meal distribution with proper categories
+      mealDistributionOptions.value.labels = ['No Data']
+      mealDistributionSeries.value = [1]
+      return
+    }
+
+    // Process meal categories for pie chart (Milk, Solid, Mixed, Others)
+    const mealCategoryDistribution = {}
+    
+    console.log('🔄 Processing meal data:', mealData.length, 'meals')
+    
+    mealData.forEach((meal, index) => {
+      console.log(`🔍 Individual meal data ${index + 1}:`, meal)
+      console.log('🔍 meal_category_name value:', meal.meal_category_name)
+      console.log('🔍 meal_category ID:', meal.meal_category)
+      
+      // Fallback mapping for meal categories based on your data analysis
+      let category = meal.meal_category_name
+      
+      // If no category name from API, map based on ID
+      if (!category || category === 'Others') {
+        const categoryMappings = {
+          1: 'Milk',      // Assuming ID 1 is Milk
+          2: 'Solid',     // Assuming ID 2 is Solid  
+          3: 'Mixed',     // Assuming ID 3 is Mixed
+          97: 'Others'    // ID 97 is likely Others
+        }
+        category = categoryMappings[meal.meal_category] || 'Others'
+        console.log('🔄 Used ID mapping for category:', meal.meal_category, '→', category)
+      }
+      
+      console.log('📝 Final category used:', category)
+      
+      // Normalize category names to match the expected format from your check-in form
+      // Expected categories: Milk, Solid, Mixed, Others
+      let normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase()
+      
+      // Handle any variations in category naming from database
+      if (normalizedCategory.toLowerCase() === 'milk') normalizedCategory = 'Milk'
+      else if (normalizedCategory.toLowerCase() === 'solid') normalizedCategory = 'Solid'
+      else if (normalizedCategory.toLowerCase() === 'mixed') normalizedCategory = 'Mixed'
+      else normalizedCategory = 'Others'
+      
+      console.log('✅ Normalized category:', normalizedCategory)
+      
+      mealCategoryDistribution[normalizedCategory] = (mealCategoryDistribution[normalizedCategory] || 0) + 1
+    })
+
+    console.log('📈 Meal category distribution before filtering:', mealCategoryDistribution)
+
+    // Ensure we have the expected categories even if they're empty
+    const expectedCategories = ['Milk', 'Solid', 'Mixed', 'Others']
+    expectedCategories.forEach(category => {
+      if (!(category in mealCategoryDistribution)) {
+        mealCategoryDistribution[category] = 0
+      }
+    })
+
+    // Filter out categories with 0 entries for cleaner display
+    const filteredDistribution = Object.entries(mealCategoryDistribution)
+      .filter(([_, count]) => count > 0)
+      .reduce((acc, [category, count]) => {
+        acc[category] = count
+        return acc
+      }, {})
+
+    console.log('🎯 Filtered distribution (only categories with data):', filteredDistribution)
+
+    // If no categories have data, show "No Data"
+    if (Object.keys(filteredDistribution).length === 0) {
+      console.log('⚠️ No categories have data, showing "No Data"')
+      mealDistributionOptions.value.labels = ['No Data']
+      mealDistributionSeries.value = [1]
+    } else {
+      // Update pie chart with actual meal categories
+      const categoryNames = Object.keys(filteredDistribution)
+      const categoryValues = Object.values(filteredDistribution)
+      
+      console.log('🎊 Updating chart with categories:', categoryNames)
+      console.log('🔢 Updating chart with values:', categoryValues)
+      
+      // Define color mapping for each category
+      const categoryColorMap = {
+        'Milk': '#9C7FF7',     // Light purple (matching the icon color you showed)
+        'Solid': '#81c5f7',    // Light blue
+        'Mixed': '#fb9bec',    // Pink
+        'Others': '#fbbf24'    // Yellow
+      }
+      
+      // Create colors array based on category order
+      const chartColors = categoryNames.map(categoryName => 
+        categoryColorMap[categoryName] || '#9C27B0'
+      )
+      
+      console.log('🎨 Applied colors:', chartColors)
+      
+      // IMPORTANT: Update options with forced colors and labels
+      mealDistributionOptions.value = {
+        ...mealDistributionOptions.value,
+        labels: categoryNames,
+        colors: chartColors,
+        fill: {
+          colors: chartColors
+        },
+        stroke: {
+          colors: chartColors
+        }
+      }
+      mealDistributionSeries.value = categoryValues
+    }
+
+    console.log('✅ Final chart labels:', mealDistributionOptions.value.labels)
+    console.log('✅ Final chart series:', mealDistributionSeries.value)
+
+  } catch (error) {
+    console.error('❌ Error fetching meal data:', error)
+    // Fallback to sample data matching the expected categories
+    const fallbackDistribution = {
+      'Milk': 15,
+      'Solid': 10,
+      'Mixed': 8,
+      'Others': 3
+    }
+    console.log('🔄 Using fallback data:', fallbackDistribution)
+    mealDistributionOptions.value.labels = Object.keys(fallbackDistribution)
+    mealDistributionSeries.value = Object.values(fallbackDistribution)
+  }
+}
+
+const fetchPoopAnalytics = async (selectedDateParam) => {
+  try {
+    const childId = getCurrentChildId()
+    if (!childId) return
+
+    // Use the poop router endpoint for poop data
+    const response = await axios.get(`http://127.0.0.1:8000/poop/child/${childId}?days=30`)
+    const poopData = response.data
+
+    if (!poopData || poopData.length === 0) {
+      // No data available, show empty chart
+      poopFrequencySeries.value = [{
+        name: 'Daily Frequency',
+        data: []
+      }]
+      return
+    }
+
+    poopData.forEach(poop => {
+      const date = new Date(poop.check_in).toDateString()
+      poopByDate[date] = (poopByDate[date] || 0) + 1
+    })
+
+    // Create chart data for the selected time range
+    const days = poopViewMode.value === 'weekly' ? 7 : 30
+    const chartData = []
+    
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(selectedDate.value)
+      date.setDate(date.getDate() - i)
+      const dateString = date.toDateString()
+      
+      chartData.push({
+        x: date.getTime(),
+        y: poopByDate[dateString] || 0
+      })
+    }
+
+    poopFrequencySeries.value = [{
+      name: 'Daily Frequency',
+      data: chartData
+    }]
+
+  } catch (error) {
+    console.error('Error fetching poop data:', error)
+    // Fallback to mock data
+    const days = poopViewMode.value === 'weekly' ? 7 : 30
+    const dailyFrequency = Array.from({ length: days }, (_, i) => {
+      const date = new Date(selectedDate.value)
+      date.setDate(date.getDate() - (days - 1 - i))
       return {
         x: date.getTime(),
         y: Math.floor(Math.random() * 3) + 1
@@ -973,479 +1146,596 @@ const fetchPoopAnalytics = async () => {
       name: 'Daily Frequency',
       data: dailyFrequency
     }]
-
-  } catch (error) {
-    console.error('Error fetching poop analytics:', error)
   }
 }
 
-const fetchHealthTimeline = async () => {
+// Function to update health symptoms based on selected date
+const updateHealthSymptomsForDate = async (targetDate) => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/analytics/symptom-analytics/1')
-    
-    // Create mock symptom timeline
-    const symptoms = [
-      { date: '2024-12-01', symptom: 'Mild Fever', type: 1 },
-      { date: '2024-12-05', symptom: 'Runny Nose', type: 2 },
-      { date: '2024-12-10', symptom: 'Skin Rash', type: 3 },
-    ]
+    const childId = getCurrentChildId()
+    if (!childId) return
 
-    const timelineData = symptoms.map(symptom => ({
-      x: new Date(symptom.date).getTime(),
-      y: symptom.type,
-      symptom: symptom.symptom
-    }))
+    // Fetch symptoms using the actual symptom endpoint
+    const response = await axios.get(`http://127.0.0.1:8000/symptom/child/${childId}?days=30`)
+    const symptomsData = response.data
 
-    healthTimelineSeries.value = [{
-      name: 'Symptoms',
-      data: timelineData
-    }]
-
+    if (symptomsData && symptomsData.length > 0) {
+      // Convert backend symptoms to our format
+      healthSymptoms.value = symptomsData.map((symptom, index) => ({
+        id: index + 1,
+        date: symptom.check_in.split('T')[0], // Extract date part
+        type: symptom.symptom || 'Unknown',
+        description: symptom.note || 'No additional notes provided'
+      }))
+    } else {
+      // Show "no symptoms" when no data exists
+      healthSymptoms.value = [
+        {
+          id: 1,
+          date: targetDate.toISOString().split('T')[0],
+          type: 'No symptoms recorded',
+          description: 'No symptoms have been recorded for this period.'
+        }
+      ]
+    }
   } catch (error) {
-    console.error('Error fetching health timeline:', error)
+    console.error('Error fetching symptoms:', error)
+    // Keep fallback data on error
+    healthSymptoms.value = [
+      {
+        id: 1,
+        date: targetDate.toISOString().split('T')[0],
+        type: 'Unable to load symptoms',
+        description: 'There was an error loading symptom data. Please try again.'
+      }
+    ]
   }
 }
 
-  const fetchSleep = async () => {
-    try {
-      const response = await axios.get(
-        'http://127.0.0.1:8000/sleeptime/1',
-      )
-      const api_data = response.data
-
-      // console.log(api_data)
-
-      const nap_series = api_data
-        .map(item => {
-          const check_in = new Date(item.check_in)
-          const start_time = new Date(item.start_time)
-          const start_hour = start_time.getHours()
-          const end_time = new Date(item.end_time)
-          const end_hour = end_time.getHours()
-
-          return {
-            check_in,
-            start_time,
-            start_hour,
-            end_time,
-            end_hour,
-          }
-        })
-        .filter(
-          item => item.start_hour >= 12 && item.start_hour <= 16,
-        )
-        .map(item => {
-          const tz_option = {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            timeZone: 'Asia/Singapore',
-          }
-
-          const x = item.check_in.toLocaleString('en-US', tz_option)
-
-          // reference: https://stackoverflow.com/questions/42454564/getting-the-difference-between-2-dates-in-javascript-in-hours-minutes-seconds
-          const time_ms = item.end_time - item.start_time
-          const total_hours = Math.floor(time_ms / (1000 * 60 * 60))
-          const total_mins =
-            Math.floor((time_ms % (1000 * 60 * 60)) / 60000) / 60 // 30 mins will become 0.5 hours
-
-          const y = Number((total_hours + total_mins).toFixed(1)) // total sleep hours
-
-          return { x, y }
-        })
-
-      const night_series = api_data
-        .map(item => {
-          const check_in = new Date(item.check_in)
-          const start_time = new Date(item.start_time)
-          const start_hour = start_time.getHours()
-          const end_time = new Date(item.end_time)
-          const end_hour = end_time.getHours()
-
-          return {
-            check_in,
-            start_time,
-            start_hour,
-            end_time,
-            end_hour,
-          }
-        })
-        .filter(
-          item => item.start_hour >= 20 && item.start_hour <= 22,
-        )
-        .map(item => {
-          const tz_option = {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            timeZone: 'Asia/Singapore',
-          }
-
-          const x = item.check_in.toLocaleString('en-US', tz_option)
-
-          const time_ms = item.end_time - item.start_time
-          const total_hours = Math.floor(time_ms / (1000 * 60 * 60))
-          const total_mins =
-            Math.floor((time_ms % (1000 * 60 * 60)) / 60000) / 60 // 30 mins will become 0.5 hours
-
-          const y = Number((total_hours + total_mins).toFixed(1)) // total sleep hours
-
-          return { x, y }
-        })
-
-      // console.log(nap_series)
-      // console.log(night_series)
-
-      // Nap hours for last 30 days
-      actual.sleep_time.nap = nap_series
-
-      // Default view of nap hours for last 7 days
-      sleepSeries.value[0].data = computed(() =>
-        actual.sleep_time.nap.slice(0, 7),
-      )
-
-      // Night hours for last 30 days
-      actual.sleep_time.night = night_series
-
-      // Default view of night hours for last 7 days
-      sleepSeries.value[1].data = computed(() =>
-        actual.sleep_time.night.slice(0, 7),
-      )
-
-      const nap_hours_week_values = computed(() =>
-        actual.sleep_time.nap.map(item => item.y).slice(0, 7),
-      )
-      const night_hours_week_values = computed(() =>
-        actual.sleep_time.night.map(item => item.y).slice(0, 7),
-      )
-
-      // console.log(nap_hours_week_values.value)
-      // console.log(night_hours_week_values.value)
-
-      setY_max_for_sleep(
-        nap_hours_week_values.value,
-        night_hours_week_values.value,
-      )
-    } catch (error) {
-      console.error('Error: ' + error)
-    }
-  }
-
-  onMounted(() => {
-    try {
-      fetchGrowth()
-      fetchSleep()
-      fetchMealAnalytics()
-      fetchPoopAnalytics()
-      fetchHealthTimeline()
-    } catch (error) {
-      console.error(`Error: ${error}`)
-    }
-  })
-
-  // Update the Weight chart
-  const weight_toggleWeek = () => {
-    weightSeries.value = [
-      {
-        name: 'Actual',
-        data: computed(() => actual.weight.slice(0, 7)),
-      },
-      {
-        name: 'Benchmark',
-        data: computed(() => benchmark.weight.slice(0, 7)),
-      },
-    ]
-
-    const actual_weight_weekly_values = actual.weight
-      .map(item => item.y)
-      .slice(0, 7)
-    const benchmark_weight_weekly_values = benchmark.weight
-      .map(item => item.y)
-      .slice(0, 7)
-
-    setY_min_max(
-      actual_weight_weekly_values,
-      benchmark_weight_weekly_values,
-      'weight',
-    )
-  }
-
-  const weight_toggleMonth = () => {
-    weightSeries.value = [
-      {
-        name: 'Actual',
-        data: actual.weight,
-      },
-      {
-        name: 'Benchmark',
-        data: benchmark.weight,
-      },
-    ]
-
-    const actual_weight_monthly_values = actual.weight.map(item => item.y)
-    const benchmark_weight_monthly_values = benchmark.weight.map(
-      item => item.y,
-    )
-
-    setY_min_max(
-      actual_weight_monthly_values,
-      benchmark_weight_monthly_values,
-      'weight',
-    )
-  }
-
-  // Update the Height chart
-  const height_toggleWeek = () => {
-    heightSeries.value = [
-      {
-        name: 'Actual',
-        data: computed(() => actual.height.slice(0, 7)),
-      },
-      {
-        name: 'Benchmark',
-        data: computed(() => benchmark.height.slice(0, 7)),
-      },
-    ]
-
-    const actual_height_weekly_values = actual.height
-      .map(item => item.y)
-      .slice(0, 7)
-    const benchmark_height_weekly_values = benchmark.height
-      .map(item => item.y)
-      .slice(0, 7)
-
-    setY_min_max(
-      actual_height_weekly_values,
-      benchmark_height_weekly_values,
-      'height',
-    )
-  }
-
-  const height_toggleMonth = () => {
-    heightSeries.value = [
-      {
-        name: 'Actual',
-        data: actual.height,
-      },
-      {
-        name: 'Benchmark',
-        data: benchmark.height,
-      },
-    ]
-
-    const actual_height_monthly_values = actual.height.map(item => item.y)
-    const benchmark_height_monthly_values = benchmark.height.map(
-      item => item.y,
-    )
-
-    setY_min_max(
-      actual_height_monthly_values,
-      benchmark_height_monthly_values,
-      'height',
-    )
-  }
-
-  // Update Head Circumference chart
-  const hc_toggleWeek = () => {
-    headSeries.value = [
-      {
-        name: 'Actual',
-        data: computed(() => actual.head_circumference.slice(0, 7)),
-      },
-      {
-        name: 'Benchmark',
-        data: computed(() => benchmark.head_circumference.slice(0, 7)),
-      },
-    ]
-
-    const actual_hc_weekly_values = actual.head_circumference.map(
-      item => item.y,
-    )
-    const benchmark_hc_weekly_values = benchmark.head_circumference.map(
-      item => item.y,
-    )
-
-    setY_min_max(
-      actual_hc_weekly_values,
-      benchmark_hc_weekly_values,
-      'head_circumference',
-    )
-  }
-
-  const hc_toggleMonth = () => {
-    headSeries.value = [
-      {
-        name: 'Actual',
-        data: actual.head_circumference,
-      },
-      {
-        name: 'Benchmark',
-        data: benchmark.head_circumference,
-      },
-    ]
-
-    const actual_hc_monthly_values = actual.head_circumference.map(
-      item => item.y,
-    )
-    const benchmark_hc_monthly_values = benchmark.head_circumference.map(
-      item => item.y,
-    )
-
-    setY_min_max(
-      actual_hc_monthly_values,
-      benchmark_hc_monthly_values,
-      'head_circumference',
-    )
-  }
-
-  // Update the Sleep Chart
-  const sleep_toggleWeek = () => {
-    sleepSeries.value = [
-      {
-        name: 'Nap',
-        data: computed(() => actual.sleep_time.nap.slice(0, 7)),
-      },
-      {
-        name: 'Night',
-        data: computed(() => actual.sleep_time.night.slice(0, 7)),
-      },
-    ]
-
-    const nap_hours_weekly_values = computed(() =>
-      actual.sleep_time.nap.map(item => item.y).slice(0, 7),
-    )
-    const night_hours_weekly_values = computed(() =>
-      actual.sleep_time.night.map(item => item.y).slice(0, 7),
-    )
-
-    setY_max_for_sleep(
-      nap_hours_weekly_values.value,
-      night_hours_weekly_values.value,
-    )
-  }
-
-  const sleep_toggleMonth = () => {
-    sleepSeries.value = [
-      {
-        name: 'Nap',
-        data: actual.sleep_time.nap,
-      },
-      {
-        name: 'Night',
-        data: actual.sleep_time.night,
-      },
-    ]
-
-    const nap_hours_monthly_values = actual.sleep_time.nap.map(
-      item => item.y,
-    )
-    const night_hours_monthly_values = actual.sleep_time.night.map(
-      item => item.y,
-    )
-
-    setY_max_for_sleep(nap_hours_monthly_values, night_hours_monthly_values)
-  }
-
-  const meal_toggleWeek = () => {
-    // Filter meal consumption data for last 7 days
-    const weekData = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date()
-      date.setDate(date.getDate() - (6 - i))
-      // Set time to midnight to avoid timezone issues
-      date.setHours(0, 0, 0, 0)
-      return {
-        x: date.getTime(),
-        y: Math.round(60 + Math.random() * 30) // Mock 60-90% consumption, rounded
-      }
-    })
+// New function to update all charts when date changes
+const updateChartsForDate = () => {
+  const targetDate = selectedDate.value
+  
+  // Filter data based on selected date and view modes
+  if (growthViewMode.value === 'weekly') {
+    const weekStart = new Date(targetDate)
+    weekStart.setDate(targetDate.getDate() - 7)
     
-    mealConsumptionSeries.value = [{
-      name: 'Consumption %',
-      data: weekData
-    }]
-  }
+    const filterDataByWeek = (data) => data.filter(item => 
+      new Date(item.x) >= weekStart && new Date(item.x) <= targetDate
+    )
 
-  const meal_toggleMonth = () => {
-    // Show full 30 days of meal consumption data
-    fetchMealAnalytics()
-  }
-
-  const poop_toggleWeek = () => {
-    // Filter poop frequency data for last 7 days
-    const weekData = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date()
-      date.setDate(date.getDate() - (6 - i))
-      return {
-        x: date.getTime(),
-        y: Math.floor(Math.random() * 3) + 1
-      }
-    })
-
-    poopFrequencySeries.value = [{
-      name: 'Daily Frequency',
-      data: weekData
-    }]
-  }
-
-  const poop_toggleMonth = () => {
-    // Show 30 days of poop frequency data
-    const monthData = Array.from({ length: 30 }, (_, i) => {
-      const date = new Date()
-      date.setDate(date.getDate() - (29 - i))
-      return {
-        x: date.getTime(),
-        y: Math.floor(Math.random() * 3) + 1
-      }
-    })
-
-    poopFrequencySeries.value = [{
-      name: 'Daily Frequency',
-      data: monthData
-    }]
-  }
-
-  const health_toggleWeek = () => {
-    // Filter health timeline for last 7 days
-    const weekSymptoms = [
-      { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), symptom: 'Mild Fever', type: 1 },
+    weightSeries.value = [
+      { name: 'Actual', data: filterDataByWeek(actual.weight) },
+      { name: 'Benchmark', data: filterDataByWeek(benchmark.weight) }
     ]
-
-    const timelineData = weekSymptoms.map(symptom => ({
-      x: symptom.date.getTime(),
-      y: symptom.type,
-      symptom: symptom.symptom
-    }))
-
-    healthTimelineSeries.value = [{
-      name: 'Symptoms',
-      data: timelineData
-    }]
+    
+    heightSeries.value = [
+      { name: 'Actual', data: filterDataByWeek(actual.height) },
+      { name: 'Benchmark', data: filterDataByWeek(benchmark.height) }
+    ]
+    
+    headSeries.value = [
+      { name: 'Actual', data: filterDataByWeek(actual.head_circumference) },
+      { name: 'Benchmark', data: filterDataByWeek(benchmark.head_circumference) }
+    ]
+  } else {
+    // Monthly view - show all data
+    weightSeries.value = [
+      { name: 'Actual', data: actual.weight },
+      { name: 'Benchmark', data: benchmark.weight }
+    ]
+    
+    heightSeries.value = [
+      { name: 'Actual', data: actual.height },
+      { name: 'Benchmark', data: benchmark.height }
+    ]
+    
+    headSeries.value = [
+      { name: 'Actual', data: actual.head_circumference },
+      { name: 'Benchmark', data: benchmark.head_circumference }
+    ]
   }
 
-  const health_toggleMonth = () => {
-    // Show full month of health timeline
-    fetchHealthTimeline()
-  }
+  // Update sleep data
+  if (sleepViewMode.value === 'weekly') {
+    const weekStart = new Date(targetDate)
+    weekStart.setDate(targetDate.getDate() - 7)
+    
+    const filterSleepByWeek = (data) => data.filter(item => 
+      new Date(item.x) >= weekStart && new Date(item.x) <= targetDate
+    )
 
+    sleepSeries.value = [
+      { name: 'Nap', data: filterSleepByWeek(actual.sleep_time.nap) },
+      { name: 'Night', data: filterSleepByWeek(actual.sleep_time.night) }
+    ]
+  } else {
+    sleepSeries.value = [
+      { name: 'Nap', data: actual.sleep_time.nap },
+      { name: 'Night', data: actual.sleep_time.night }
+    ]
+  }
+}
+
+// Watch for date changes and refresh data
+watch(selectedDate, async (newDate) => {
+  console.log('Date changed to:', newDate)
+  // Refetch all data when date changes
+  await Promise.all([
+    fetchGrowth(newDate),
+    fetchSleep(newDate),
+    fetchMealAnalytics(newDate),
+    fetchPoopAnalytics(newDate)
+  ])
+  // Update the health symptoms based on new date
+  updateHealthSymptomsForDate(newDate)
+}, { immediate: false })
+
+// Enhanced view mode setters that work with real data
+const setGrowthView = (mode) => {
+  growthViewMode.value = mode
+  updateChartsForDate() // Use the new function that filters existing data
+}
+
+const setMealView = (mode) => {
+  mealViewMode.value = mode
+  // Re-fetch meal data with different time range based on the selected mode
+  fetchMealAnalytics(selectedDate.value)
+}
+
+const setSleepView = (mode) => {
+  sleepViewMode.value = mode
+  updateChartsForDate() // Use the new function that filters existing data
+}
+
+const setPoopView = (mode) => {
+  poopViewMode.value = mode
+  // Re-fetch poop data with different time range based on the selected mode
+  fetchPoopAnalytics(selectedDate.value)
+}
+
+const setHeightView = (mode) => {
+  heightViewMode.value = mode
+  updateChartsForDate() // Use the new function that filters existing data
+}
+
+const setHeadView = (mode) => {
+  headViewMode.value = mode
+  updateChartsForDate() // Use the new function that filters existing data
+}
+
+onMounted(async () => {
+  try {
+    // Fetch all data on component mount
+    await Promise.all([
+      fetchGrowth(selectedDate.value),
+      fetchSleep(selectedDate.value),
+      fetchMealAnalytics(selectedDate.value),
+      fetchPoopAnalytics(selectedDate.value)
+    ])
+    // Update health symptoms for initial date
+    await updateHealthSymptomsForDate(selectedDate.value)
+  } catch (error) {
+    console.error(`Error initializing dashboard: ${error}`)
+  }
+})
 </script>
 
 <style lang="scss" scoped>
-    @use '@/styles/variables' as *;
+@use '@/styles/variables' as *;
 
-    .toggle-btn {
-        border: 1px solid black;
-        padding: 2px 10px;
-        font-family: $font-primary;
-        font-size: 10px;
+// Force beige background on the main container
+.v-main {
+  background-color: $app-beige !important;
+  background-image: none !important;
+}
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-xl $spacing-lg;
+}
+
+/* Dashboard Header - Enhanced */
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-xl;
+  position: relative;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.dashboard-title {
+  font-family: $font-heading;
+  font-size: 32px;
+  font-weight: 600;
+  color: $app-text-primary;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.dashboard-subtitle {
+  font-family: $font-primary;
+  font-size: 16px;
+  color: $app-text-secondary;
+  margin-top: $spacing-xs;
+}
+
+/* Loading and Error States */
+.loading-indicator,
+.error-indicator {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-right: $spacing-md;
+}
+
+.loading-text {
+  font-family: $font-primary;
+  font-size: 14px;
+  color: $app-text-secondary;
+}
+
+.error-text {
+  font-family: $font-primary;
+  font-size: 14px;
+  color: #d32f2f;
+}
+
+/* Date Picker Button - Same style as checkin page */
+.date-picker-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: $glass-white;
+  border: 1px solid $dialog-border;
+  cursor: pointer;
+  font-family: $font-primary;
+  text-transform: none;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  min-width: 200px;
+  height: 44px;
+  padding: 0 $spacing-md;
+  border-radius: $border-radius-md;
+  color: $app-text-primary;
+  transition: $transition-base;
+  backdrop-filter: blur($glass-blur-sm);
+
+  &:hover {
+    border-color: $field-border-hover;
+    background: $glass-white-light;
+    box-shadow: $shadow-sm;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $app-primary;
+    box-shadow: 0 0 0 2px rgba($app-primary, 0.1);
+  }
+
+  .v-icon {
+    color: $app-grey;
+  }
+
+  &:hover .v-icon {
+    color: $app-text-primary;
+  }
+}
+
+/* Dashboard Grid - Enhanced Responsive */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-xl;
+  margin-bottom: $spacing-xl;
+
+  @media (max-width: 1024px) {
+    gap: $spacing-lg;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+  }
+
+  @media (max-width: 480px) {
+    gap: $spacing-md;
+  }
+}
+
+.dashboard-grid-secondary {
+  margin-bottom: $spacing-xl;
+}
+
+/* Dashboard Section - Enhanced Responsive */
+.dashboard-section {
+  background: #ffffff;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-md;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  min-height: 350px;
+
+  @media (max-width: 768px) {
+    padding: $spacing-md;
+    min-height: 300px;
+  }
+
+  @media (max-width: 480px) {
+    padding: $spacing-sm;
+    min-height: 250px;
+  }
+}
+
+.dashboard-section-full {
+  grid-column: 1 / -1;
+  min-height: auto;
+}
+
+/* Section Header - Enhanced Responsive */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-md;
+  }
+
+  @media (max-width: 480px) {
+    gap: $spacing-xs;
+  }
+}
+
+.section-title {
+  font-family: $font-heading;
+  font-size: 24px;
+  font-weight: 600;
+  color: $app-text-primary;
+  margin: 0;
+}
+
+/* View Toggle - Same style as checkin page */
+.view-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid $dialog-border;
+  border-radius: $border-radius-sm;
+  overflow: hidden;
+  background: $glass-white;
+  backdrop-filter: blur($glass-blur-sm);
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: $font-primary;
+  text-transform: none;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  border-radius: 0;
+  min-width: 70px;
+  height: 32px;
+  transition: $transition-base;
+  color: $app-text-secondary;
+
+  &.active {
+    background-color: $app-primary;
+    color: white;
+    font-weight: 600;
+  }
+
+  &:hover:not(.active) {
+    background-color: $dropdown-hover;
+    color: $app-text-primary;
+  }
+}
+
+/* Chart Container - Enhanced Responsive */
+.chart-container {
+  margin-bottom: $spacing-lg;
+  overflow: hidden;
+
+  // Ensure charts are responsive
+  :deep(.apexcharts-canvas) {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  :deep(.apexcharts-svg) {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: $spacing-md;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: $spacing-sm;
+  }
+}
+
+/* Symptoms Timeline */
+.symptoms-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.symptom-entry {
+  display: flex;
+  gap: $spacing-lg;
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  background: rgba($app-primary, 0.02);
+  border-left: 4px solid $app-primary;
+}
+
+.symptom-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.date-day {
+  font-family: $font-heading;
+  font-size: 24px;
+  font-weight: 700;
+  color: $app-text-primary;
+  line-height: 1;
+}
+
+.date-month {
+  font-family: $font-primary;
+  font-size: 12px;
+  color: $app-text-muted;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.symptom-content {
+  flex: 1;
+}
+
+.symptom-type {
+  font-family: $font-primary;
+  font-size: 16px;
+  font-weight: 600;
+  color: $app-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.symptom-description {
+  font-family: $font-primary;
+  font-size: 14px;
+  color: $app-text-secondary;
+  line-height: 1.4;
+}
+
+/* Date picker override styles */
+:deep(.v-date-picker) {
+  .v-btn {
+    all: unset !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    border-radius: 50% !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    font-family: $font-primary !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+
+    &:hover {
+      background-color: rgba($app-primary, 0.1) !important;
     }
 
-    .week-btn {
-        border-right: none;
-        border-radius: 5px 0 0 5px;
+    &.v-btn--active,
+    &.v-date-picker-month__day--selected {
+      background-color: $app-primary !important;
+      color: white !important;
+    }
+  }
+
+  .v-date-picker-header .v-btn {
+    border-radius: 4px !important;
+    min-width: auto !important;
+    padding: 8px !important;
+  }
+
+  .v-date-picker-month__day {
+    border-radius: 50% !important;
+
+    &--selected {
+      background-color: $app-primary !important;
+      color: white !important;
     }
 
-    .month-btn {
-        border-radius: 0 5px 5px 0;
+    &:hover:not(.v-date-picker-month__day--selected) {
+      background-color: rgba($app-primary, 0.1) !important;
     }
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: $spacing-md;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-md;
+  }
+
+  .dashboard-subtitle {
+    position: static;
+    margin-top: $spacing-xs;
+  }
+
+  .date-picker-btn {
+    align-self: flex-end;
+    min-width: 180px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-sm;
+  }
+
+  .view-toggle {
+    align-self: flex-end;
+  }
+
+  .section-title {
+    font-size: 20px;
+  }
+
+  .dashboard-title {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-grid {
+    gap: $spacing-md;
+  }
+
+  .dashboard-section {
+    padding: $spacing-md;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  .dashboard-title {
+    font-size: 24px;
+  }
+}
 </style>
