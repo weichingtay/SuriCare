@@ -14,6 +14,8 @@ export interface MealsData {
   percentages: MealPercentages
   refusedItems: string[]
   preferences: string[]
+  enteredMeals: string[]  // Track which meals were actually entered
+
 }
 
 interface MealsByDateCache {
@@ -75,20 +77,24 @@ export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
     console.log(`🔄 Processing ${meals.length} meals...`)
     
     const percentages = { breakfast: 0, lunch: 0, dinner: 0 }
-    
+    const enteredMeals = new Set<string>()
+
     meals.forEach((meal, index) => {
       const timeName = getMealTimeName(meal.meal_time_category)
       const consumption = meal.consumption_level || 0 // Convert 0.75 → 75
       
       console.log(`  📋 Meal ${index + 1}: ${timeName} = ${consumption}%`)
       
+      enteredMeals.add(timeName)
+
+
       if (timeName === 'breakfast') percentages.breakfast = Math.max(percentages.breakfast, consumption)
       else if (timeName === 'lunch') percentages.lunch = Math.max(percentages.lunch, consumption)
       else if (timeName === 'dinner') percentages.dinner = Math.max(percentages.dinner, consumption)
     })
     
     console.log(`🎯 Final percentages:`, percentages)
-    return percentages
+  return { percentages, enteredMeals: Array.from(enteredMeals) }
   }
 
   // Extract meal information (refused items, preferences)
@@ -173,17 +179,19 @@ const response = await axios.get(`http://127.0.0.1:8000/meal/child/${childrenSto
 
       // Cache the result
       mealsCache.value[targetDate] = {
-        percentages,
-        refusedItems,
-        preferences
-      }
+  percentages,
+  refusedItems,
+  preferences,
+  hasInput: mealsForDate.length > 0,
+  enteredMeals
+}
 
       console.log(`✅ Cached data for ${targetDate}:`, mealsCache.value[targetDate])
       
       // Force reactivity update
       mealsCache.value = { ...mealsCache.value }
 
-    } catch (error) {
+      } catch (error) {
       console.error(`❌ Error fetching meals:`, error)
       errorMessage.value = error instanceof Error ? error.message : 'Unknown error'
       
@@ -220,7 +228,9 @@ const response = await axios.get(`http://127.0.0.1:8000/meal/child/${childrenSto
       return {
         percentages: { breakfast: 0, lunch: 0, dinner: 0 },
         refusedItems: [],
-        preferences: []
+        preferences: [],
+          hasInput: false  // No input yet
+
       }
     }
     
@@ -234,11 +244,11 @@ const response = await axios.get(`http://127.0.0.1:8000/meal/child/${childrenSto
     const mealCount = Object.values(meals.percentages).filter(p => p > 0).length
     
     // Return dash if no meals have data
-    if (mealCount === 0) {
-      return '-'
-    }
+  if (!meals || !meals.hasInput) {
+    return '-'
+  }
     
-    return mealCount
+  return meals.enteredMeals.length
   })
 
   // Update meals for a date
