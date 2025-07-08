@@ -138,7 +138,7 @@ export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
       console.log(`🌐 Calling API for child ${childrenStore.currentChild.id}`)
       
       // Fetch all meals for the child
-      const response = await axios.get(`http://127.0.0.1:8000/meal/child/${childrenStore.currentChild.id}`)
+const response = await axios.get(`http://127.0.0.1:8000/meal/child/${childrenStore.currentChild.id}?days=60`)
       const allMeals = response.data || []
       
       console.log(`📊 API returned ${allMeals.length} total meals`)
