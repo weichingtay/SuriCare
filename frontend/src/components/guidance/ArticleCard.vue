@@ -1,4 +1,4 @@
-<!-- <template>
+<template>
   <v-card
     class="mx-auto article-card"
     rounded="lg"
@@ -85,6 +85,6 @@
   .article-card:hover {
     transform: translateY(-2px);
   }
-</style> -->
+</style>
 
 
