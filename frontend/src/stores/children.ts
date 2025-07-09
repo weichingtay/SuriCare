@@ -124,7 +124,7 @@ export const useChildrenStore = defineStore('children', () => {
             id: row.id,
             name: row.name,
             age: calcAge(row.birth_date),
-            avatar: 'https://images.pexels.com/photos/2806752/pexels-photo-2806752.jpeg', // placeholder
+            avatar: new URL('@/assets/puisim.jpg', import.meta.url).href,
             growth: {
               height: 0,
               weight: 0,
