@@ -404,6 +404,8 @@
 
       console.log('✅ Symptoms saved successfully')
 
+      // Emit save event for parent component
+      emit('save')
       // Close dialog and reset form
       resetFormData()
       emit('update:modelValue', false)

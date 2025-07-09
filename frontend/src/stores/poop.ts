@@ -99,6 +99,7 @@ import type { ComputedRef, Ref } from 'vue'
 // ADD THESE TWO IMPORTS:
 import axios from 'axios'
 import { useChildrenStore } from './children'
+import { timestampToDateString, dateToString } from '@/utils/dateUtils'
 
 export interface PoopData {
   count: number
@@ -118,6 +119,8 @@ interface PoopStore {
   getPoopForDate: ComputedRef<(date: string) => PoopData>
   fetchPoopForDate: (date: string) => Promise<void>
   updatePoopForDate: (date: string, poopData: PoopData) => Promise<void>
+  invalidateCache: (date?: string) => void
+  refreshPoopForDate: (date: string) => Promise<void>
 }
 
 export const usePoopStore = defineStore('poop', (): PoopStore => {
@@ -126,17 +129,7 @@ export const usePoopStore = defineStore('poop', (): PoopStore => {
   const isLoading = ref<boolean>(false)
   const error = ref<string | null>(null)
 
-   // ADD THIS HELPER FUNCTION HERE:
-  const timestampToDateString = (timestamp: string): string => {
-    const date = new Date(timestamp)
-
-    // Get the date in your local timezone (GMT+8)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    
-    return `${year}-${month}-${day}`
-  }
+   // Date utilities are now imported from shared utils
 
   // REMOVE THIS ENTIRE MOCK FUNCTION:
   // const generateMockPoopData = (date: string): PoopData => ({
@@ -330,6 +323,26 @@ const samplePoops = allPoops.slice(0, 3).map((poop: any) => ({
     }
   }
 
+  // Invalidate cache for specific date or all dates
+  const invalidateCache = (date?: string) => {
+    if (date) {
+      delete poopByDate.value[date]
+      console.log(`🗑️ Invalidated poop cache for ${date}`)
+    } else {
+      poopByDate.value = {}
+      console.log(`🗑️ Cleared entire poop cache`)
+    }
+    // Force reactivity update
+    poopByDate.value = { ...poopByDate.value }
+  }
+
+  // Force refresh for specific date
+  const refreshPoopForDate = async (date: string): Promise<void> => {
+    console.log(`🔄 Force refreshing poop data for ${date}`)
+    invalidateCache(date)
+    await fetchPoopForDate(date)
+  }
+
   return {
     poopByDate,
     isLoading,
@@ -337,5 +350,7 @@ const samplePoops = allPoops.slice(0, 3).map((poop: any) => ({
     getPoopForDate,
     fetchPoopForDate,
     updatePoopForDate,
+    invalidateCache,
+    refreshPoopForDate,
   }
 })

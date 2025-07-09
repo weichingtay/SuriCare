@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
+import { timestampToDateString, dateToString } from '@/utils/dateUtils'
 
 export interface HealthData {
   status: string
@@ -21,6 +22,8 @@ interface HealthStore {
   getHealthForDate: ComputedRef<(date: string) => HealthData>
   fetchHealthForDate: (date: string) => Promise<void>
   updateHealthForDate: (date: string, healthData: HealthData) => Promise<void>
+  invalidateCache: (date?: string) => void
+  refreshHealthForDate: (date: string) => Promise<void>
 }
 
 // Possible health statuses and their corresponding messages
@@ -135,6 +138,26 @@ export const useHealthStore = defineStore('health', (): HealthStore => {
     }
   }
 
+  // Invalidate cache for specific date or all dates
+  const invalidateCache = (date?: string) => {
+    if (date) {
+      delete healthByDate.value[date]
+      console.log(`🗑️ Invalidated health cache for ${date}`)
+    } else {
+      healthByDate.value = {}
+      console.log(`🗑️ Cleared entire health cache`)
+    }
+    // Force reactivity update
+    healthByDate.value = { ...healthByDate.value }
+  }
+
+  // Force refresh for specific date
+  const refreshHealthForDate = async (date: string): Promise<void> => {
+    console.log(`🔄 Force refreshing health data for ${date}`)
+    invalidateCache(date)
+    await fetchHealthForDate(date)
+  }
+
   return {
     healthByDate,
     isLoading,
@@ -142,5 +165,7 @@ export const useHealthStore = defineStore('health', (): HealthStore => {
     getHealthForDate,
     fetchHealthForDate,
     updateHealthForDate,
+    invalidateCache,
+    refreshHealthForDate,
   }
 })

@@ -255,6 +255,8 @@
     await checkinStore.savePoop(poopData)
     console.log('✅ Poop save completed successfully!')
     
+    // Emit save event for parent component
+    emit('save')
     // Close dialog on success
     handleDialogUpdate(false)
   } catch (error) {

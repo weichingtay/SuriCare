@@ -23,7 +23,7 @@
               </svg>
             </div>
           </div>
-          <span class="breakdown-label">{{ meal.name }}</span>
+          <span class="breakdown-label">{{ meal.displayName }}</span>
         </div>
       </div>
     </template>

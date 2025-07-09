@@ -225,6 +225,18 @@ export const useCheckinStore = defineStore('checkin', () => {
     return response.json()
   }
 
+  // Photo upload helper function
+  const uploadPhotoToCloud = async (photo: File): Promise<string> => {
+    try {
+      // For now, return empty string - implement actual photo upload later
+      console.log('Photo upload not implemented yet, skipping:', photo.name)
+      return ''
+    } catch (error) {
+      console.error('Photo upload failed:', error)
+      return ''
+    }
+  }
+
 
   //SAVE SYMPTOM
    // Save Symptom using POST /symptom/ (NEW IMPLEMENTATION)
