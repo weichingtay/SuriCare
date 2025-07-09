@@ -269,25 +269,6 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
     console.log(`✅ Updated health data for ${date}:`, healthData)
   }
 
-  // Invalidate cache for specific date or all dates
-  const invalidateCache = (date?: string) => {
-    if (date) {
-      delete healthByDate.value[date]
-      console.log(`🗑️ Invalidated health cache for ${date}`)
-    } else {
-      healthByDate.value = {}
-      console.log(`🗑️ Cleared entire health cache`)
-    }
-    // Force reactivity update
-    healthByDate.value = { ...healthByDate.value }
-  }
-
-  // Force refresh for specific date
-  const refreshHealthForDate = async (date: string): Promise<void> => {
-    console.log(`🔄 Force refreshing health data for ${date}`)
-    invalidateCache(date)
-    await fetchHealthForDate(date)
-  }
 
   return {
     healthCache,
