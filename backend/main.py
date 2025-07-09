@@ -10,9 +10,18 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+@app.get("/")
+async def root():
+    return {"message": "SuriCare API is running"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "main"}
 
 app.include_router(users.router)
 app.include_router(children.router)

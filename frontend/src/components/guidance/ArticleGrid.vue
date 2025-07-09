@@ -17,8 +17,8 @@
                     >
                         <v-card-text class="pa-5">
                             <v-skeleton-loader
-                                type="card-heading, sentences, chip"
-                                :loading="true"
+                                type="card-heading,sentences,chip"
+                                loading
                             />
                         </v-card-text>
                     </v-card>
