@@ -1,11 +1,21 @@
 <template>
     <div>
-        <!-- Loading skeleton -->
+        <!-- Debug info -->
+        <div v-if="DEV_MODE" style="background: yellow; padding: 10px; margin: 10px; border: 2px solid red;">
+            <h3>DEBUG: ArticleGrid Component</h3>
+            <p>isLoading: {{ isLoading }}</p>
+            <p>error: {{ error }}</p>
+            <p>currentChild: {{ currentChild?.name || 'None' }}</p>
+            <p>currentArticles.length: {{ currentArticles.length }}</p>
+            <p>Current condition: {{ isLoading ? 'LOADING' : error ? 'ERROR' : currentArticles.length === 0 ? 'EMPTY' : 'SHOWING ARTICLES' }}</p>
+        </div>
+        <!-- Loading state -->
         <div v-if="isLoading">
+            <div v-if="DEV_MODE" style="background: blue; color: white; padding: 5px;">CONDITION: LOADING</div>
             <v-row>
                 <v-col
                     v-for="n in 6"
-                    :key="`skeleton-${n}`"
+                    :key="`loading-${n}`"
                     cols="12"
                     md="4"
                     sm="6"
@@ -16,21 +26,22 @@
                         variant="outlined"
                     >
                         <v-card-text class="pa-5">
-                            <v-skeleton-loader
-                                type="card-heading,sentences,chip"
-                                loading
-                            />
+                            <div class="text-center">
+                                <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                                <p class="mt-2">Loading articles...</p>
+                            </div>
                         </v-card-text>
                     </v-card>
                 </v-col>
             </v-row>
         </div>
 
-        <!-- Error state -->
+        <!-- Error state - only show if no articles available -->
         <div
-            v-else-if="error"
+            v-else-if="error && currentArticles.length === 0"
             class="text-center py-12"
         >
+            <div v-if="DEV_MODE" style="background: red; color: white; padding: 5px;">CONDITION: ERROR WITH NO ARTICLES</div>
             <v-icon
                 class="mb-4"
                 color="error"
@@ -56,6 +67,7 @@
             v-else-if="currentArticles.length === 0"
             class="text-center py-12"
         >
+            <div v-if="DEV_MODE" style="background: orange; color: white; padding: 5px;">CONDITION: NO ARTICLES</div>
             <v-icon
                 class="mb-4"
                 color="grey-lighten-2"
@@ -82,6 +94,10 @@
 
         <!-- Articles grid -->
         <v-row v-else>
+            <!-- Debug: Show we're in the articles section -->
+            <div v-if="DEV_MODE" style="background: green; color: white; padding: 10px; width: 100%;">
+                SHOWING ARTICLES SECTION - Count: {{ currentArticles.length }}
+            </div>
             <v-col
                 v-for="article in currentArticles"
                 :key="article.id"
@@ -101,6 +117,7 @@
     import { useGuidanceStore } from '@/stores/guidance'
     import { useChildrenStore } from '@/stores/children'
     import { useAuthStore } from '@/stores/auth'
+    import DEV_MODE, { devLog, devError } from '@/utils/devMode'
     import ArticleCard from './ArticleCard.vue'
 
     const guidanceStore = useGuidanceStore()
@@ -141,7 +158,7 @@
                 await guidanceStore.loadSavedArticles(authStore.userId)
             }
         } catch (err) {
-            console.error('Error loading articles on mount:', err)
+            devError('Error loading articles on mount:', err)
         }
     })
 
@@ -153,7 +170,7 @@
                 if (isUnmounted.value || !newChildId) return
                 await guidanceStore.loadArticlesForChild(newChildId)
             } catch (err) {
-                console.error('Error loading articles for child:', err)
+                devError('Error loading articles for child:', err)
             }
         },
     )

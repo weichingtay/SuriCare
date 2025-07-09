@@ -173,16 +173,14 @@ export const useGuidanceStore = defineStore('guidance', () => {
       console.error('Error loading articles:', err)
 
       // Fallback to default articles if AI fails
-      if (!articleCache.value[childId]) {
-        articleCache.value[childId] = {
-          articles: getDefaultArticles(child.age),
-          lastFetched: now,
-          childContext: {
-            id: child.id,
-            name: child.name,
-            age: child.age,
-            ageInMonths: calculateAgeInMonths(child.age)
-          }
+      articleCache.value[childId] = {
+        articles: getDefaultArticles(child.age),
+        lastFetched: now,
+        childContext: {
+          id: child.id,
+          name: child.name,
+          age: child.age,
+          ageInMonths: calculateAgeInMonths(child.age)
         }
       }
     } finally {

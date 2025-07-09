@@ -22,6 +22,13 @@
           <p class="text-body-1">Gain info here</p>
         </div>
 
+        <!-- Debug info -->
+        <div v-if="DEV_MODE" style="background: lightblue; padding: 10px; margin: 10px; border: 2px solid blue;">
+            <h3>DEBUG: Guidance Page</h3>
+            <p>currentTab: {{ currentTab }}</p>
+            <p>Should show ArticleGrid: {{ currentTab === 'guidance' }}</p>
+        </div>
+
         <!-- <AppHeader /> -->
         <NavigationTabs @tab-changed="handleTabChange" />
         <ArticleGrid v-if="currentTab === 'guidance'" />
@@ -77,6 +84,7 @@
   import { useRoute } from 'vue-router'
   import { storeToRefs } from 'pinia'
   import { useGuidanceStore } from '@/stores/guidance'
+  import DEV_MODE from '@/utils/devMode'
   import NavigationTabs from '../components/guidance/NavigationTabs.vue'
   import ArticleGrid from '../components/guidance/ArticleGrid.vue'
   import AlertsView from '../components/guidance/AlertsView.vue'
