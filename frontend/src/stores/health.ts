@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import axios from 'axios'
 import { useChildrenStore } from './children'
+import { timestampToDateString, dateToString } from '@/utils/dateUtils'
 
 export interface HealthData {
   status: string
@@ -49,14 +50,14 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
-    
+
     return `${year}-${month}-${day}`
   }
 
   // Process symptom data into health summary (following your poop/sleep pattern)
   const processHealthData = (symptomRecords: any[]): HealthData => {
     console.log(`🔄 Processing ${symptomRecords.length} symptom records...`)
-    
+
     if (symptomRecords.length === 0) {
       return {
         status: 'Healthy',
@@ -68,7 +69,7 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
 
     // Extract symptoms from records
     const symptoms = symptomRecords.map(record => record.symptom)
-    
+
     console.log(`📋 Extracted symptoms:`, symptoms)
 
     // Determine health status based on symptoms
@@ -77,24 +78,24 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
     let temperature: number | undefined
 
     // Check for fever-related symptoms
-    const hasFever = symptoms.some(symptom => 
+    const hasFever = symptoms.some(symptom =>
       symptom?.toLowerCase().includes('fever')
     )
-    
+
     // Check for high fever
-    const hasHighFever = symptoms.some(symptom => 
+    const hasHighFever = symptoms.some(symptom =>
       symptom?.toLowerCase().includes('high fever') ||
       symptom?.toLowerCase().includes('critical fever')
     )
-    
+
     // Check for cold symptoms
-    const hasCold = symptoms.some(symptom => 
+    const hasCold = symptoms.some(symptom =>
       symptom?.toLowerCase().includes('cough') ||
       symptom?.toLowerCase().includes('cold')
     )
-    
+
     // Check for allergy symptoms
-    const hasAllergy = symptoms.some(symptom => 
+    const hasAllergy = symptoms.some(symptom =>
       symptom?.toLowerCase().includes('rash') ||
       symptom?.toLowerCase().includes('allerg')
     )
@@ -126,7 +127,7 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
       temperature,
       lastUpdated: new Date().toISOString(),
     }
-    
+
     console.log(`🎯 Final health data:`, result)
     return result
   }
@@ -152,7 +153,7 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
   // Main fetch function (following your exact pattern)
   const fetchHealthForDate = async (targetDate: string): Promise<void> => {
     console.log(`🚀 Fetching health for date: ${targetDate}`)
-    
+
     // Don't fetch if already cached
     if (healthCache.value[targetDate]) {
       console.log(`📋 Already cached for ${targetDate}`)
@@ -164,20 +165,20 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
 
     try {
       const childrenStore = useChildrenStore()
-      
+
       if (!childrenStore.currentChild) {
         console.warn('⚠️ No current child selected')
         return
       }
 
       console.log(`🌐 Calling API for child ${childrenStore.currentChild.id}`)
-      
+
       // Fetch all symptom records for the child (using your existing endpoint)
       const response = await axios.get(`http://127.0.0.1:8000/symptom/child/${childrenStore.currentChild.id}?days=60`)
       const allSymptomRecords = response.data || []
-      
+
       console.log(`📊 API returned ${allSymptomRecords.length} total symptom records`)
-      
+
       // Debug: Show sample of symptom dates
       const sampleSymptoms = allSymptomRecords.slice(0, 3).map((symptom: any) => ({
         id: symptom.id,
@@ -187,18 +188,18 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
       }))
       console.log(`🔍 Sample symptom dates:`, sampleSymptoms)
       console.log(`🎯 Target date we're looking for: ${targetDate}`)
-      
+
       // Filter symptom records for target date
       const symptomsForDate = allSymptomRecords.filter((symptom: any) => {
         const symptomDate = timestampToDateString(symptom.check_in)
         const matches = symptomDate === targetDate
-        
+
         if (!matches) {
           console.log(`❌ Symptom ${symptom.id}: ${symptom.check_in} → ${symptomDate} ≠ ${targetDate}`)
         } else {
           console.log(`✅ Symptom ${symptom.id}: ${symptom.check_in} → ${symptomDate} = ${targetDate}`)
         }
-        
+
         return matches
       })
 
@@ -211,14 +212,14 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
       healthCache.value[targetDate] = processedData
 
       console.log(`✅ Cached health data for ${targetDate}:`, healthCache.value[targetDate])
-      
+
       // Force reactivity update
       healthCache.value = { ...healthCache.value }
 
     } catch (error) {
       console.error(`❌ Error fetching health data:`, error)
       errorMessage.value = error instanceof Error ? error.message : 'Unknown error'
-      
+
       // Set empty data on error
       healthCache.value[targetDate] = {
         status: 'Healthy',
@@ -234,21 +235,21 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
   // Get health for a specific date (following your exact pattern)
   const getHealthForDate = computed(() => (dateInput: string | Date): HealthData => {
     const dateString = dateInput instanceof Date ? dateToString(dateInput) : dateInput
-    
+
     console.log(`🔍 Getting health for ${dateString}`)
     console.log(`🗂️ Available cached dates:`, Object.keys(healthCache.value))
-    
+
     // Check if we have cached data
     const cachedData = healthCache.value[dateString]
-    
+
     if (!cachedData) {
       console.log(`📥 Not cached, triggering fetch for ${dateString}`)
-      
+
       // Trigger fetch but don't await it
       fetchHealthForDate(dateString).then(() => {
         console.log(`🔄 Fetch completed for ${dateString}, data should now be available`)
       })
-      
+
       // Return empty data while loading
       return {
         status: 'Healthy',
@@ -257,7 +258,7 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
         lastUpdated: '',
       }
     }
-    
+
     console.log(`📤 Returning cached health data for ${dateString}:`, cachedData)
     return cachedData
   })
@@ -267,6 +268,7 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
     healthCache.value[date] = healthData
     console.log(`✅ Updated health data for ${date}:`, healthData)
   }
+
 
   return {
     healthCache,

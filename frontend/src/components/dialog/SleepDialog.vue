@@ -362,8 +362,8 @@ const sleepStore = useSleepStore()
       localBedTime.value = null
       localAwakeTime.value = null
       
-      // Emit saved event for parent component
-      emit('saved', savedEntry)
+      // Emit save event for parent component
+      emit('save')
       emit('update:modelValue', false)
       
     } catch (error) {
