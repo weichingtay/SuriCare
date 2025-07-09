@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import axios from 'axios'
 import { useChildrenStore } from './children'
+import { timestampToDateString, dateToString } from '@/utils/dateUtils'
 
 export interface SleepData {
   nightHours: number
@@ -35,25 +36,7 @@ export const useSleepStore = defineStore('sleep', (): SleepStoreInterface => {
   const loadingState = ref<boolean>(false)
   const errorMessage = ref<string | null>(null)
 
-  // Utility: Convert Date to YYYY-MM-DD string
-  const dateToString = (date: Date): string => {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-
-  // Utility: Convert timestamp to YYYY-MM-DD string (handles both seconds and milliseconds)
-  const timestampToDateString = (timestamp: string): string => {
-    const date = new Date(timestamp)
-    
-    // Get the date in your local timezone (GMT+8)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    
-    return `${year}-${month}-${day}`
-  }
+  // Date utilities are now imported from shared utils
 
   // Process sleep data into your format
   const processSleepData = (sleepRecords: any[]): SleepData => {

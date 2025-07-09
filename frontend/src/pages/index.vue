@@ -50,25 +50,25 @@
     <MealDialog
       v-model="dialogs.meal"
       @close="dialogs.meal = false"
-      @save="handleMealSave"
+      @save="handleMealSaved"
     />
 
     <SleepDialog
       v-model="dialogs.sleep"
       @close="dialogs.sleep = false"
-      @save="handleSleepSave"
+      @save="handleSleepSaved"
     />
 
     <PoopDialog
       v-model="dialogs.poop"
       @close="dialogs.poop = false"
-      @save="handlePoopSave"
+      @save="handlePoopSaved"
     />
 
     <SymptomDialog
       v-model="dialogs.health"
       @close="dialogs.health = false"
-      @save="handleHealthSave"
+      @save="handleHealthSaved"
     />
   </v-app>
 </template>
@@ -77,6 +77,11 @@
   import { onMounted, reactive } from 'vue'
   import { useChildrenStore } from '@/stores/children'
   import { useSummaryStore } from '@/stores/summary'
+  import { useCheckinStore } from '@/stores/checkin'
+  import { useMealsStore } from '@/stores/meals'
+  import { useSleepStore } from '@/stores/sleep'
+  import { usePoopStore } from '@/stores/poop'
+  import { useHealthStore } from '@/stores/health'
   import { useRouter } from 'vue-router'
 
   // Import components
@@ -94,6 +99,11 @@
   // Use stores and composables
   const childrenStore = useChildrenStore()
   const summaryStore = useSummaryStore()
+  const checkinStore = useCheckinStore()
+  const mealsStore = useMealsStore()
+  const sleepStore = useSleepStore()
+  const poopStore = usePoopStore()
+  const healthStore = useHealthStore()
 
   const router = useRouter()
 
@@ -108,28 +118,74 @@
 
   // ===== SAVE HANDLERS =====
 
-  const handleMealSave = mealData => {
-    console.log('Saving meal data:', mealData)
-    // TODO: Save to store
-    dialogs.meal = false
+  const handleMealSaved = async () => {
+    console.log('🍽️ handleMealSaved called - Reloading meal data...')
+    try {
+      const currentDate = new Date()
+      const dateStr = currentDate.toISOString().split('T')[0]
+      
+      // Use meals store's built-in refresh method
+      if (mealsStore.refreshMealsForDate) {
+        await mealsStore.refreshMealsForDate(dateStr)
+        console.log('✅ Meal data reload completed successfully!')
+      } else {
+        console.error('❌ refreshMealsForDate method not available')
+      }
+    } catch (error) {
+      console.error('❌ Error reloading meal data:', error)
+    }
   }
 
-  const handleSleepSave = sleepData => {
-    console.log('Saving sleep data:', sleepData)
-    // TODO: Save to store
-    dialogs.sleep = false
+  const handleSleepSaved = async () => {
+    console.log('💤 handleSleepSaved called - Reloading sleep data...')
+    try {
+      const currentDate = new Date()
+      const dateStr = currentDate.toISOString().split('T')[0]
+      
+      // Use sleep store's built-in refresh method
+      if (sleepStore.refreshSleepForDate) {
+        await sleepStore.refreshSleepForDate(dateStr)
+        console.log('✅ Sleep data reload completed successfully!')
+      }
+    } catch (error) {
+      console.error('❌ Error reloading sleep data:', error)
+    }
   }
 
-  const handlePoopSave = poopData => {
-    console.log('Saving poop data:', poopData)
-    // TODO: Save to store
-    dialogs.poop = false
+  const handlePoopSaved = async () => {
+    console.log('💩 handlePoopSaved called - Reloading poop data...')
+    try {
+      const currentDate = new Date()
+      const dateStr = currentDate.toISOString().split('T')[0]
+      
+      // Use poop store's built-in refresh method
+      if (poopStore.refreshPoopForDate) {
+        await poopStore.refreshPoopForDate(dateStr)
+        console.log('✅ Poop data reload completed successfully!')
+      } else {
+        console.error('❌ refreshPoopForDate method not available')
+      }
+    } catch (error) {
+      console.error('❌ Error reloading poop data:', error)
+    }
   }
 
-  const handleHealthSave = healthData => {
-    console.log('Saving health data:', healthData)
-    // TODO: Save to store
-    dialogs.health = false
+  const handleHealthSaved = async () => {
+    console.log('🏥 handleHealthSaved called - Reloading health data...')
+    try {
+      const currentDate = new Date()
+      const dateStr = currentDate.toISOString().split('T')[0]
+      
+      // Use health store's built-in refresh method
+      if (healthStore.refreshHealthForDate) {
+        await healthStore.refreshHealthForDate(dateStr)
+        console.log('✅ Health data reload completed successfully!')
+      } else {
+        console.error('❌ refreshHealthForDate method not available')
+      }
+    } catch (error) {
+      console.error('❌ Error reloading health data:', error)
+    }
   }
 
   // ===== METHODS =====
@@ -151,9 +207,48 @@
   }
 
   // Load data for a specific date and current child
-  const loadDataForDate = date => {
+  const loadDataForDate = async (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0]
+    console.log('🔄 loadDataForDate called for:', dateStr)
+    
+    // Force refresh by clearing caches first
+    console.log('🗑️ Clearing caches for date:', dateStr)
+    
+    if (sleepStore.invalidateCache) {
+      sleepStore.invalidateCache(dateStr)
+    }
+    
+    // Clear caches for other stores by deleting the cached data
+    // This forces a fresh fetch from the API
+    try {
+      // Clear meals cache
+      if (mealsStore.mealsCache?.value) {
+        console.log('🗑️ Clearing meals cache for:', dateStr)
+        delete mealsStore.mealsCache.value[dateStr]
+        console.log('🗑️ Meals cache after clearing:', Object.keys(mealsStore.mealsCache.value))
+      }
+      
+      // Clear poop cache
+      if (poopStore.poopByDate?.value) {
+        console.log('🗑️ Clearing poop cache for:', dateStr)
+        delete poopStore.poopByDate.value[dateStr]
+        console.log('🗑️ Poop cache after clearing:', Object.keys(poopStore.poopByDate.value))
+      }
+      
+      // Clear health cache (if applicable)
+      if (healthStore.healthByDate?.value) {
+        console.log('🗑️ Clearing health cache for:', dateStr)
+        delete healthStore.healthByDate.value[dateStr]
+        console.log('🗑️ Health cache after clearing:', Object.keys(healthStore.healthByDate.value))
+      }
+    } catch (error) {
+      console.warn('Error clearing caches:', error)
+    }
+    
     // Load summary data from store
-    summaryStore.loadSummaryForDate(date, childrenStore.currentChild.id)
+    console.log('🔄 About to call summaryStore.loadSummaryForDate')
+    await summaryStore.loadSummaryForDate(date, childrenStore.currentChild.id)
+    console.log('✅ summaryStore.loadSummaryForDate completed')
   }
 
   // Handle health alert view more

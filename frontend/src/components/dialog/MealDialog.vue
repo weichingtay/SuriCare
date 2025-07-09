@@ -424,7 +424,10 @@
   }
 
   const handleSave = async () => {
+    console.log('🍽️ MealDialog handleSave clicked!')
+    
     if (!validateForm()) {
+      console.log('❌ Meal validation failed')
       return
     }
 
@@ -437,15 +440,23 @@
       notes: props.notes,
     }
 
+    console.log('🍽️ Meal data to save:', mealData)
     errors.value = {}
     
     try {
       // Save to store (which handles backend integration)
+      console.log('🍽️ About to call checkinStore.saveMeal...')
       await checkinStore.saveMeal(mealData)
+      console.log('✅ Meal save completed successfully!')
+      
+      // Emit save event to parent for reload
+      console.log('🍽️ Emitting save event to parent...')
+      emit('save')
+      
       // Close dialog on success
       handleDialogUpdate(false)
     } catch (error) {
-      console.error('Failed to save meal data:', error)
+      console.error('❌ Failed to save meal data:', error)
       // Error is already handled by the store
     }
   }
