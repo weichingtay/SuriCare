@@ -26,13 +26,13 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Loading state -->
         <div v-if="isLoading" class="d-flex justify-center align-center pa-8">
           <v-progress-circular indeterminate color="primary" size="40"></v-progress-circular>
           <span class="ml-4">Loading chat history...</span>
         </div>
-        
+
         <!-- Error state -->
         <v-alert
           v-if="error && showError"
@@ -57,7 +57,7 @@
             </v-btn>
           </div>
         </v-alert>
-        
+
         <ChatContent
           v-if="!isLoading"
           :messages="currentMessages"
@@ -96,19 +96,19 @@
   import ChatSidebar from '../components/chatbot/ChatSidebar.vue';
   import ChatContent from '../components/chatbot/ChatContent.vue';
   import { useChildrenStore } from '../stores/children';
-  
+
   // State
   const ownerId = ref(1); // Placeholder for the current user's ID
   const childrenStore = useChildrenStore();
-  
+
   // Single child selection for chat context
   const selectedChildForChat = ref<number | null>(null);
-  
+
   // Always use contextual chat when a child is selected
   const useContextualChat = computed(() => selectedChildForChat.value !== null);
   const chatHistory = ref([]);
   const currentChatId = ref<string | null>(null);
-  
+
   // Error handling state
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -125,7 +125,7 @@
     chatHistory.value.find((chat: any) => chat.id === currentChatId.value)
   );
 
-  const currentMessages = computed(() => 
+  const currentMessages = computed(() =>
     currentChat.value?.messages || []
   );
 
@@ -152,19 +152,19 @@
   // Methods
   const handleNewChat = async () => {
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
       const response = await axios.post(`${baseUrl}/chats?owner_id=${ownerId.value}`, {
         title: 'New Chat',
         child_id: selectedChildForChat.value
       });
       const newChat = response.data;
-      
+
       // Reload chat history to ensure we have the latest data and proper filtering
       await loadChatHistory();
-      
+
       // Set the new chat as current
       currentChatId.value = newChat.id;
-      
+
       // Clear any previous errors
       error.value = null;
       showError.value = false;
@@ -178,7 +178,7 @@
   const handleSelectChat = async (chatId: string) => {
     currentChatId.value = chatId;
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
       const response = await axios.get(`${baseUrl}/chats/${chatId}/messages`);
       const messages = response.data.map((msg: any) => ({
         id: msg.id,
@@ -207,17 +207,17 @@
 
   const confirmDeleteChat = async () => {
     if (chatToDelete.value === null) return;
-    
+
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
       await axios.delete(`${baseUrl}/chats/${chatToDelete.value}`);
-      
+
       // Remove chat from local state
       const chatIndex = chatHistory.value.findIndex((chat: any) => chat.id === chatToDelete.value);
       if (chatIndex !== -1) {
         chatHistory.value.splice(chatIndex, 1);
       }
-      
+
       // If the deleted chat was the current one, select another chat or clear selection
       if (currentChatId.value === chatToDelete.value) {
         if (chatHistory.value.length > 0) {
@@ -230,7 +230,7 @@
     } catch (error) {
       console.error('Error deleting chat:', error);
     }
-    
+
     showDeleteDialog.value = false;
     chatToDelete.value = null;
   };
@@ -259,20 +259,20 @@
   const loadChatHistory = async () => {
     isLoading.value = true;
     error.value = null;
-    
+
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
       // Build URL with optional child filter
       let url = `${baseUrl}/chats/${ownerId.value}`;
       if (selectedChildForChat.value !== null) {
         url += `?child_id=${selectedChildForChat.value}`;
       }
-      
+
       const response = await axios.get(url);
       chatHistory.value = await Promise.all(response.data.map(async (chat: any) => {
         let title = chat.title;
-        
+
         // If the title is still "New Chat", try to get the first message to use as title
         if (title === 'New Chat') {
           try {
@@ -283,7 +283,7 @@
               if (firstUserMessage) {
                 const messageText = firstUserMessage.message || firstUserMessage.text;
                 title = messageText.slice(0, 30) + (messageText.length > 30 ? '...' : '');
-                
+
                 // Update the title in the backend
                 try {
                   await axios.put(`${baseUrl}/chats/${chat.id}`, { title });
@@ -296,15 +296,15 @@
             console.error('Error fetching messages for title update:', error);
           }
         }
-        
-        return { 
-          ...chat, 
+
+        return {
+          ...chat,
           title,
           messages: [],
           date: formatDateForGrouping(chat.created_at || chat.updated_at || new Date().toISOString())
         };
       }));
-      
+
       if (chatHistory.value.length > 0) {
         currentChatId.value = chatHistory.value[0].id;
         await handleSelectChat(currentChatId.value);
@@ -327,10 +327,10 @@
   watch(() => childrenStore.currentChild, async (newChild, oldChild) => {
     if (newChild) {
       const newChildId = newChild.id;
-      
+
       // Update selected child for chat
       selectedChildForChat.value = newChildId;
-      
+
       // Reload chat history if the child actually changed
       if (!oldChild || oldChild.id !== newChildId) {
         await loadChatHistory();
@@ -349,7 +349,7 @@
     let currentChatIndex = chatHistory.value.findIndex(
       chat => chat.id === currentChatId.value
     );
-    
+
     // If no current chat exists, create a new one first
     if (currentChatIndex === -1) {
       await handleNewChat();
@@ -358,7 +358,7 @@
         chat => chat.id === currentChatId.value
       );
     }
-    
+
     if (currentChatIndex !== -1) {
       const newMessage = {
         id: Date.now(), // Temporary ID for immediate display
@@ -371,10 +371,10 @@
       if (chatHistory.value[currentChatIndex].messages.length === 1) {
         const newTitle = message.slice(0, 30) + (message.length > 30 ? '...' : '');
         chatHistory.value[currentChatIndex].title = newTitle;
-        
+
         // Update the title in the backend
         try {
-          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
           await axios.put(`${baseUrl}/chats/${currentChatId.value}`, {
             title: newTitle
           });
@@ -384,8 +384,8 @@
       }
 
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-        
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
         // Save user message to backend
         await axios.post(`${baseUrl}/chats/${currentChatId.value}/messages`, {
           message,
@@ -406,7 +406,7 @@
         // Start streaming response
         let streamUrl;
         let requestBody;
-        
+
         if (useContextualChat.value && selectedChildForChat.value !== null) {
           // Use contextual streaming endpoint
           streamUrl = `${baseUrl}/chat/contextual/stream`;
@@ -451,7 +451,7 @@
                 if (line.startsWith('data: ')) {
                   try {
                     const data = JSON.parse(line.slice(6));
-                    
+
                     if (data.content) {
                       fullResponse += data.content;
                       // Update the streaming message
@@ -494,7 +494,7 @@
       } catch (err: any) {
         console.error('Error sending message or fetching AI response:', err);
         const errorMessage = getErrorMessage(err);
-        
+
         // Update the streaming message with error
         const messageIndex = chatHistory.value[currentChatIndex].messages.findIndex(
           msg => msg.sender === 'ai' && msg.isStreaming

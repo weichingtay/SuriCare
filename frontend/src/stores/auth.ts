@@ -55,7 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!isInitialized.value) {
         supabase.auth.onAuthStateChange(async (event, currentSession) => {
           console.log('Auth state changed:', event)
-          
+
           session.value = currentSession
           user.value = currentSession?.user || null
 
@@ -69,9 +69,9 @@ export const useAuthStore = defineStore('auth', () => {
 
       // Get current session
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-      
+
       console.log('Got session from Supabase:', !!currentSession, sessionError)
-      
+
       if (sessionError) {
         throw sessionError
       }
@@ -81,7 +81,7 @@ export const useAuthStore = defineStore('auth', () => {
         session.value = currentSession
         user.value = currentSession.user
         console.log('User authenticated with session. isAuthenticated:', isAuthenticated.value)
-        
+
         // Try to fetch profile, but don't fail auth if it fails
         try {
           await fetchUserProfile()
@@ -117,13 +117,13 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('Fetching user profile for auth ID:', user.value.id)
       clearError()
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-      
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+
       // Get user profile by auth_user_id
       const response = await fetch(`${baseUrl}/user-profile/by-auth-id/${user.value.id}`)
-      
+
       console.log('Profile fetch response status:', response.status)
-      
+
       if (!response.ok) {
         if (response.status === 404) {
           console.log('Profile not found, creating new profile...')
@@ -169,8 +169,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-      
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+
       const response = await fetch(`${baseUrl}/user-profile/link-auth`, {
         method: 'POST',
         headers: {
@@ -261,7 +261,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (data.user) {
         user.value = data.user
         session.value = data.session
-        
+
         // Profile will be created automatically when user confirms email
         return { success: true }
       }
@@ -327,12 +327,12 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading: readonly(isLoading),
     error: readonly(error),
     isInitialized: readonly(isInitialized),
-    
+
     // Computed
     isAuthenticated,
     userId,
     userEmail,
-    
+
     // Actions
     initializeAuth,
     fetchUserProfile,

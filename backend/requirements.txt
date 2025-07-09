@@ -54,3 +54,6 @@ google-auth
 supabase
 faiss-cpu
 sentence-transformers
+google-generativeai
+beautifulsoup4
+aiohttp

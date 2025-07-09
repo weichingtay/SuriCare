@@ -34,7 +34,7 @@ GEMINI_API_KEY=your-gemini-api-key
 
 ### Frontend
 ```bash
-# Optional - defaults to http://localhost:8000
+# Optional - defaults to http://localhost:3000
 VITE_API_BASE_URL=your-custom-backend-url
 ```
 

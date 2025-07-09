@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import users, children, growth, sleep, chat, meal, poop, symptom, reference, analytics
+from app.routers import users, children, growth, sleep, chat, meal, poop, symptom, reference, analytics, guidance
 
 app = FastAPI()
 
@@ -10,11 +10,20 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Include all routers
+@app.get("/")
+async def root():
+    return {"message": "SuriCare API is running"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "main"}
+
 app.include_router(users.router)
 app.include_router(children.router)
 app.include_router(growth.router)
@@ -25,7 +34,7 @@ app.include_router(poop.router)
 app.include_router(symptom.router)
 app.include_router(reference.router)
 app.include_router(analytics.router)
-
+app.include_router(guidance.router)
 # Skip saved_articles for now since you don't have that model yet
 
 @app.get("/")
