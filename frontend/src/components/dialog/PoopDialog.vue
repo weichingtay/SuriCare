@@ -34,7 +34,6 @@
                 class="color-circle"
                 :style="{
                   backgroundColor: poopColor.hex,
-
                 }"
               />
               <div class="color-label">
@@ -73,7 +72,6 @@
                   {{ poopTexture.label }}
                 </div>
               </div>
-
             </div>
           </div>
           <div v-if="errors.texture" class="error-message">
@@ -88,7 +86,8 @@
 <script setup lang="ts">
   import { nextTick, ref, watch } from 'vue'
   import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
-  import { useCheckinStore } from '@/stores/checkin' // Add this import
+  import { useCheckinStore } from '@/stores/checkin'
+  import { usePoopOptions } from '@/composables/usePoopOptions'
 
   const props = defineProps({
     modelValue: {
@@ -111,6 +110,10 @@
       type: Boolean,
       default: false,
     },
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
   })
 
   const emit = defineEmits([
@@ -123,15 +126,13 @@
   ])
 
   // Use dynamic options from database
-  import { usePoopOptions } from '@/composables/usePoopOptions'
-
   const {
     colorOptions,
     textureOptions,
     isLoading: isPoopOptionsLoading,
   } = usePoopOptions()
 
-  const checkinStore = useCheckinStore() // Add this
+  const checkinStore = useCheckinStore()
   const localColor = ref('')
   const localTexture = ref('')
   const errors = ref({})
@@ -232,37 +233,46 @@
   }
 
   const handleSave = async () => {
-  console.log('🐾 PoopDialog handleSave clicked!')
-  
-  if (!validateForm()) {
-    console.log('❌ Validation failed:', errors.value)
-    return
-  }
-
-  const poopData = {
-    color: localColor.value,
-    texture: localTexture.value,
-    notes: props.notes,
-  }
-
-  console.log('📦 Poop data to save:', poopData)
-  errors.value = {}
-  
-  try {
-    console.log('💾 About to call checkinStore.savePoop...')
+    console.log('💩 PoopDialog handleSave clicked!')
     
-    // Save to store (which handles backend integration)
-    await checkinStore.savePoop(poopData)
-    console.log('✅ Poop save completed successfully!')
-    
-    // Emit save event for parent component
-    emit('save')
-    // Close dialog on success
-    handleDialogUpdate(false)
-  } catch (error) {
-    console.error('❌ Failed to save poop data:', error)
+    if (!validateForm()) {
+      console.log('❌ Poop validation failed:', errors.value)
+      return
+    }
+
+    const poopData = {
+      color: localColor.value,
+      texture: localTexture.value,
+      notes: props.notes,
+    }
+
+    console.log('💩 Poop data to save:', poopData)
+    errors.value = {}
+
+    if (props.isEditing) {
+      // 🖊️ EDIT MODE: Just emit to parent timeline, don't call store
+      console.log('📝 Edit mode: emitting save to timeline')
+      emit('save', poopData)
+    } else {
+      // ➕ CREATE MODE: Call store to create new entry (normal check-in)
+      console.log('➕ Create mode: calling checkinStore.savePoop for new entry')
+      
+      try {
+        console.log('💩 About to call checkinStore.savePoop...')
+        
+        // Save to store (which handles backend integration)
+        await checkinStore.savePoop(poopData)
+        console.log('✅ Poop save completed successfully!')
+        
+        // Emit save event for parent component
+        emit('save')
+        // Close dialog on success
+        handleDialogUpdate(false)
+      } catch (error) {
+        console.error('❌ Failed to save poop data:', error)
+      }
+    }
   }
-}
 </script>
 
 <style scoped>
@@ -354,7 +364,6 @@
 }
 
 .texture-image{
-    /* margin-bottom: 4px; */
     width: 40px;
     height: 40px;
     border-radius: 100%;
@@ -373,10 +382,6 @@
     transform: scale(1.05);
 }
 
-/* .color-option.selected {
-    transform: scale(1.05);
-} */
-
 .error-message {
     color: #D87179;
     font-size: 12px;
@@ -386,6 +391,4 @@
 .color-options {
     min-height: 70px;
 }
-
-
 </style>

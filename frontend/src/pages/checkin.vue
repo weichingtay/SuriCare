@@ -167,19 +167,19 @@
       />
 
       <!-- Poop Edit Dialog -->
-      <PoopDialog
-        v-model="poopEditDialog.show"
-        :loading="poopEditDialog.loading"
-        :color="poopEditData.color"
-        :texture="poopEditData.texture"
-        :notes="poopEditData.notes"
-        @update:color="poopEditData.color = $event"
-        @update:texture="poopEditData.texture = $event"
-        @update:notes="poopEditData.notes = $event"
-        @save="handlePoopEditSave"
-        @close="closePoopEditDialog"
-      />
-
+     <PoopDialog
+  v-model="poopEditDialog.show"
+  :loading="poopEditDialog.loading"
+  :color="poopEditData.color"
+  :texture="poopEditData.texture"
+  :notes="poopEditData.notes"
+  :is-editing="true"
+  @update:color="poopEditData.color = $event"
+  @update:texture="poopEditData.texture = $event"
+  @update:notes="poopEditData.notes = $event"
+  @save="handlePoopEditSave"
+  @close="closePoopEditDialog"
+/>
       <!-- Delete Confirmation Dialog -->
 <v-dialog v-model="deleteConfirmDialog.show" max-width="400" persistent>
   <v-card>
@@ -405,7 +405,7 @@ const deleteConfirmDialog = ref({
       carerId: 2, // Default carer ID for poop
       carerName: 'Sarah', // Default carer name
       data: {
-        status: 'Diaper change',
+        status: 'Had bowel movement',
         details: formatPoopDetails(poop)
       },
       rawData: poop // Keep raw data for editing
@@ -467,25 +467,25 @@ const deleteConfirmDialog = ref({
   }
 
   const formatPoopDetails = (poop: any) => {
-    const parts = []
-    
-    if (poop.color_name && poop.texture_name) {
-      parts.push(`${poop.color_name}, ${poop.texture_name}`)
-    } else if (poop.color_name) {
-      parts.push(poop.color_name)
-    } else if (poop.texture_name) {
-      parts.push(poop.texture_name)
-    }
-    
-    // Add default description
-    if (parts.length > 0) {
-      parts.push('consistency')
-    } else {
-      parts.push('normal consistency')
-    }
-    
-    return parts.join(' - ')
+  const parts = []
+  
+  console.log('🔍 Formatting poop details for:', poop)
+  
+  // Add color and texture information
+  if (poop.color_name && poop.texture_name) {
+    parts.push(`${poop.color_name}, ${poop.texture_name} consistency`)
+  } else if (poop.color_name) {
+    parts.push(`${poop.color_name} consistency`)
+  } else if (poop.texture_name) {
+    parts.push(`${poop.texture_name} consistency`)
+  } else {
+    parts.push('normal consistency')
   }
+  
+  const result = parts.join(' - ')
+  console.log('📝 Formatted poop details:', result)
+  return result
+}
 
   // Filter mock data by selected date and current child
   const filteredMockCheckins = computed(() => {
@@ -858,68 +858,80 @@ const confirmDelete = async () => {
     }
   }
 
-  const handlePoopEditSave = async () => {
-    console.log('💾 Saving poop edit:', poopEditData.value)
-    
-    if (!poopEditDialog.value.editingId) {
-      console.error('No poop ID to edit')
-      return
-    }
-
-    poopEditDialog.value.loading = true
-    
-    try {
-      const poopId = poopEditDialog.value.editingId
-      
-      // Get the lookup data to map frontend values back to IDs
-      await Promise.all([
-        colorOptions.value.length === 0 ? loadPoopColors() : Promise.resolve(),
-        textureOptions.value.length === 0 ? loadPoopTextures() : Promise.resolve()
-      ])
-      
-      // Map frontend values back to database IDs
-      const colorId = colorOptions.value.find(opt => opt.value === poopEditData.value.color)?.id
-      const textureId = textureOptions.value.find(opt => opt.value === poopEditData.value.texture)?.id
-      
-      // Prepare the update payload matching your backend schema
-      const updatePayload = {
-        id: poopId,
-        child_id: childrenStore.currentChild.id,
-        color: colorId,
-        texture: textureId,
-        note: poopEditData.value.notes,
-        check_in: new Date().toISOString() // Keep original timestamp or use current
-      }
-      
-      console.log(`🔄 Updating poop ID ${poopId} with payload:`, updatePayload)
-      
-      // Call the actual update API
-      const response = await fetch(`http://127.0.0.1:8000/poop/${poopId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatePayload)
-      })
-      
-      if (!response.ok) {
-        throw new Error(`Failed to update poop: ${response.status} ${response.statusText}`)
-      }
-      
-      const updatedPoop = await response.json()
-      console.log('✅ Poop updated successfully:', updatedPoop)
-      
-      // Refresh the timeline data to show the updated record
-      await loadData()
-      closePoopEditDialog()
-      
-    } catch (error) {
-      console.error('❌ Failed to update poop:', error)
-      // You might want to show an error message to the user here
-    } finally {
-      poopEditDialog.value.loading = false
-    }
+  const handlePoopEditSave = async (poopData) => {
+  console.log('💾 Saving poop edit:', poopData)
+  
+  if (!poopEditDialog.value.editingId) {
+    console.error('No poop ID to edit')
+    return
   }
+
+  poopEditDialog.value.loading = true
+  
+  try {
+    const poopId = poopEditDialog.value.editingId
+    
+    // Get original poop data
+    const originalPoop = rawPoopData.value.find(poop => poop.id === poopId)
+    if (!originalPoop) {
+      throw new Error('Original poop data not found')
+    }
+    
+    // Map frontend values back to database IDs
+    const colorId = colorOptions.value.find(opt => opt.value === poopData.color)?.id
+    const textureId = textureOptions.value.find(opt => opt.value === poopData.texture)?.id
+    
+    if (!colorId || !textureId) {
+      throw new Error('Invalid color or texture selected')
+    }
+    
+    // FIXED: Ensure check_in is a proper datetime string, not timestamp
+    let checkInValue = originalPoop.check_in
+    if (typeof checkInValue === 'number') {
+      // Convert timestamp to ISO string
+      checkInValue = new Date(checkInValue).toISOString()
+    } else if (typeof checkInValue === 'string' && !checkInValue.includes('T')) {
+      // If it's already a string but not ISO format, convert it
+      checkInValue = new Date(checkInValue).toISOString()
+    }
+    
+    const updatePayload = {
+      id: poopId,
+      child_id: originalPoop.child_id,
+      color: colorId,
+      texture: textureId,
+      note: poopData.notes || null,
+      check_in: checkInValue  // FIXED: Now sends proper datetime string
+    }
+    
+    console.log('📝 Sending update payload:', updatePayload)
+    
+    // Call API
+    const response = await fetch(`http://127.0.0.1:8000/poop/${poopId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatePayload)
+    })
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`API error: ${response.status} - ${errorText}`)
+    }
+    
+    // Clear cache and reload data
+    rawMealsData.value = []
+    rawPoopData.value = []
+    await new Promise(resolve => setTimeout(resolve, 500))
+    await loadData()
+    closePoopEditDialog()
+    
+  } catch (error) {
+    console.error('❌ Failed to update poop:', error)
+    alert(`Failed to update poop: ${error.message}`)
+  } finally {
+    poopEditDialog.value.loading = false
+  }
+}
 
   // Load real data when component mounts or date changes
   const loadData = async () => {
@@ -986,16 +998,25 @@ const confirmDelete = async () => {
         console.log(`📊 API returned ${allPoop.length} total poop records`)
         
         // Filter poop for target date
-        const poopForDate = allPoop.filter((poop: any) => {
-          const poopDate = poop.check_in.split('T')[0] // Get YYYY-MM-DD part
-          const matches = poopDate === dateStr
-          
-          if (matches) {
-            console.log(`✅ Poop ${poop.id}: ${poop.check_in} matches ${dateStr}`)
-          }
-          
-          return matches
-        })
+        // Filter poop for target date
+const poopForDate = allPoop.filter((poop: any) => {
+  // Handle both string and Date objects
+  let poopDate
+  if (typeof poop.check_in === 'string') {
+    poopDate = poop.check_in.split('T')[0] // Get YYYY-MM-DD part
+  } else {
+    // If it's already a Date object, convert to string
+    poopDate = new Date(poop.check_in).toISOString().split('T')[0]
+  }
+  
+  const matches = poopDate === dateStr
+  
+  if (matches) {
+    console.log(`✅ Poop ${poop.id}: ${poop.check_in} matches ${dateStr}`)
+  }
+  
+  return matches
+})
         
         console.log(`📅 Found ${poopForDate.length} poop records for ${dateStr}`)
         rawPoopData.value = poopForDate
