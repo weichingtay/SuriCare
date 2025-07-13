@@ -43,7 +43,7 @@
                     <v-date-picker
                       v-model="selectedDate"
                       color="rgba($app-primary, 0.1) !important"
-                      @update:model-value="datePickerMenu = false"
+                      @update:model-value="handleDateChange"
                     />
                   </v-card>
                 </v-menu>
@@ -63,8 +63,14 @@
             </div>
           </div>
 
+          <!-- Loading State -->
+          <div v-if="isLoading" class="text-center py-12">
+            <v-progress-circular indeterminate size="48" color="primary" />
+            <p class="text-grey mt-4">Loading check-in history...</p>
+          </div>
+
           <!-- Timeline -->
-          <div class="timeline-content">
+          <div v-else class="timeline-content">
             <div v-if="filteredCheckins.length === 0" class="text-center py-12">
               <v-icon class="mb-3" color="grey-lighten-1" size="48">mdi-calendar-blank</v-icon>
               <p class="text-grey">No check-ins found for the selected filters.</p>
@@ -73,7 +79,7 @@
             <div v-else class="timeline-list">
               <div
                 v-for="(checkin, index) in filteredCheckins"
-                :key="checkin.id"
+                :key="`${checkin.type}-${checkin.id}`"
                 class="timeline-item"
               >
                 <!-- Timeline Line -->
@@ -125,12 +131,12 @@
                       <v-icon size="20">mdi-pencil</v-icon>
                     </button>
                     <button
-                      class="action-btn"
-                      title="Delete"
-                      @click="deleteCheckin(checkin.id)"
-                    >
-                      <v-icon size="20">mdi-delete</v-icon>
-                    </button>
+  class="action-btn"
+  title="Delete"
+  @click="deleteCheckin(checkin)"
+>
+  <v-icon size="20">mdi-delete</v-icon>
+</button>
                   </div>
                 </div>
               </div>
@@ -138,6 +144,60 @@
           </div>
         </div>
       </v-container>
+
+      <!-- Edit Dialogs -->
+      <!-- Meal Edit Dialog -->
+      <MealDialog
+        v-model="mealEditDialog.show"
+        :loading="mealEditDialog.loading"
+        :meal-time="mealEditData.mealTime"
+        :consumption-level="mealEditData.consumptionLevel"
+        :meal-category="mealEditData.mealCategory"
+        :sub-category="mealEditData.subCategory"
+        :custom-meal="mealEditData.customMeal"
+        :notes="mealEditData.notes"
+        :is-editing="true"
+        @update:consumption-level="mealEditData.consumptionLevel = $event"
+        @update:meal-category="mealEditData.mealCategory = $event"
+        @update:sub-category="mealEditData.subCategory = $event"
+        @update:custom-meal="mealEditData.customMeal = $event"
+        @update:notes="mealEditData.notes = $event"
+        @save="handleMealEditSave"
+        @close="closeMealEditDialog"
+      />
+
+      <!-- Poop Edit Dialog -->
+      <PoopDialog
+        v-model="poopEditDialog.show"
+        :loading="poopEditDialog.loading"
+        :color="poopEditData.color"
+        :texture="poopEditData.texture"
+        :notes="poopEditData.notes"
+        @update:color="poopEditData.color = $event"
+        @update:texture="poopEditData.texture = $event"
+        @update:notes="poopEditData.notes = $event"
+        @save="handlePoopEditSave"
+        @close="closePoopEditDialog"
+      />
+
+      <!-- Delete Confirmation Dialog -->
+<v-dialog v-model="deleteConfirmDialog.show" max-width="400" persistent>
+  <v-card>
+    <v-card-title class="text-h6">
+      <v-icon class="mr-2" color="error">mdi-delete</v-icon>
+      Confirm Delete
+    </v-card-title>
+    <v-card-text>
+      <p>Are you sure you want to delete this entry?</p>
+      <p class="text-caption text-grey">This action cannot be undone.</p>
+    </v-card-text>
+    <v-card-actions>
+      <v-spacer />
+      <v-btn text @click="deleteConfirmDialog.show = false">Cancel</v-btn>
+      <v-btn color="error" @click="confirmDelete">Delete</v-btn>
+    </v-card-actions>
+  </v-card>
+</v-dialog>
     </v-main>
   </v-app>
 </template>
@@ -145,30 +205,75 @@
 <script setup lang="ts">
   import { computed, onMounted, ref, watch } from 'vue'
   import { useChildrenStore } from '@/stores/children'
-  // TODO: Add checkins store import when implemented
-  // import { useCheckinsStore } from '@/stores/checkins'
-  // import type { CheckinData } from '@/stores/checkins'
+  import { useMealsStore } from '@/stores/meals'
+  import { usePoopStore } from '@/stores/poop'
+  import { useCheckinStore } from '@/stores/checkin'
+  import { useMealOptions } from '@/composables/useMealOptions'
+  import { usePoopOptions } from '@/composables/usePoopOptions'
+  import { timestampToDateString } from '@/utils/dateUtils'
+  import MealDialog from '@/components/dialog/MealDialog.vue'
+  import PoopDialog from '@/components/dialog/PoopDialog.vue'
 
   // Store
   const childrenStore = useChildrenStore()
-  // TODO: Initialize checkins store when implemented
-  // const checkinsStore = useCheckinsStore()
+  const mealsStore = useMealsStore()
+  const poopStore = usePoopStore()
+  const checkinStore = useCheckinStore()
+
+  // Composables for mapping IDs to values
+  const { mealTimeOptions, mealCategoryOptions, consumptionOptions } = useMealOptions()
+  const { colorOptions, textureOptions } = usePoopOptions()
 
   // Local state for UI controls
-  const selectedDate = ref(new Date('2025-05-15'))
+  const selectedDate = ref(new Date())
   const selectedCategory = ref('all')
   const viewMode = ref('Daily')
   const datePickerMenu = ref(false)
+  const isLoading = ref(false)
 
-  // TODO: Replace with actual checkins store data
-  // Local checkins data (temporary - will be replaced with actual checkins store later)
-  const checkins = ref([
-    // Sample data for Jennie (ID: 1)
+  // Edit dialog states
+  const mealEditDialog = ref({
+    show: false,
+    loading: false,
+    editingId: null
+  })
+
+  const poopEditDialog = ref({
+    show: false,
+    loading: false,
+    editingId: null
+  })
+
+  // Edit form data
+  const mealEditData = ref({
+    mealTime: '',
+    consumptionLevel: '',
+    mealCategory: '',
+    subCategory: '',
+    customMeal: '',
+    notes: ''
+  })
+
+  const poopEditData = ref({
+    color: '',
+    texture: '',
+    notes: ''
+  })
+
+const deleteConfirmDialog = ref({
+  show: false,
+  itemToDelete: null,
+  itemType: null
+})
+
+  // Mock data for Growth, Sleep, Health (keeping original structure)
+  const mockCheckins = ref([
+    // Sample Growth data
     {
       id: 1,
       type: 'growth',
-      timestamp: new Date('2025-05-15T15:20:00'),
-      childId: 1,
+      timestamp: new Date(),
+      childId: childrenStore.currentChild?.id || 1,
       carerId: 1,
       carerName: 'Dr. Smith',
       data: {
@@ -176,23 +281,12 @@
         details: 'Height: 100cm, Weight: 20kg, Head: 45cm',
       },
     },
+    // Sample Sleep data
     {
       id: 2,
-      type: 'meal',
-      timestamp: new Date('2025-05-15T12:30:00'),
-      childId: 1,
-      carerId: 2,
-      carerName: 'Sarah',
-      data: {
-        status: 'Had lunch',
-        details: 'Vegetable puree with rice, consumed 85%',
-      },
-    },
-    {
-      id: 3,
       type: 'sleep',
-      timestamp: new Date('2025-05-15T10:08:00'),
-      childId: 1,
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      childId: childrenStore.currentChild?.id || 1,
       carerId: 2,
       carerName: 'Sarah',
       data: {
@@ -200,172 +294,27 @@
       },
     },
     {
-      id: 4,
+      id: 3,
       type: 'sleep',
-      timestamp: new Date('2025-05-15T08:00:00'),
-      childId: 1,
+      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+      childId: childrenStore.currentChild?.id || 1,
       carerId: 2,
       carerName: 'Sarah',
       data: {
         status: 'Fell asleep',
       },
     },
+    // Sample Health data
     {
-      id: 5,
-      type: 'meal',
-      timestamp: new Date('2025-05-15T07:30:00'),
-      childId: 1,
-      carerId: 2,
-      carerName: 'Sarah',
-      data: {
-        status: 'Had breakfast',
-        details: 'Milk - 150ml, consumed 90%',
-      },
-    },
-    {
-      id: 6,
-      type: 'poop',
-      timestamp: new Date('2025-05-15T06:00:00'),
-      childId: 1,
-      carerId: 2,
-      carerName: 'Sarah',
-      data: {
-        status: 'Diaper change',
-        details: 'Brown, firm - healthy consistency',
-      },
-    },
-    // Sample data for Alex (ID: 2)
-    {
-      id: 7,
-      type: 'meal',
-      timestamp: new Date('2025-05-15T12:00:00'),
-      childId: 2,
-      carerId: 1,
-      carerName: 'Mike',
-      data: {
-        status: 'Had lunch',
-        details: 'Sandwich and fruit, consumed 75%',
-      },
-    },
-    {
-      id: 8,
+      id: 4,
       type: 'health',
-      timestamp: new Date('2025-05-15T14:30:00'),
-      childId: 2,
+      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+      childId: childrenStore.currentChild?.id || 1,
       carerId: 3,
       carerName: 'Nurse Jenny',
       data: {
         status: 'Routine checkup',
         details: 'All vitals normal',
-      },
-    },
-
-    // Week data for testing Weekly view
-    // Monday, May 12, 2025
-    {
-      id: 9,
-      type: 'growth',
-      timestamp: new Date('2025-05-12T09:00:00'),
-      childId: 1,
-      carerId: 1,
-      carerName: 'Dr. Smith',
-      data: {
-        status: 'Weekly growth check',
-        details: 'Weight: 3.2kg, Height: 52cm, Head: 35cm',
-      },
-    },
-    {
-      id: 10,
-      type: 'meal',
-      timestamp: new Date('2025-05-12T08:30:00'),
-      childId: 1,
-      carerId: 2,
-      carerName: 'Sarah',
-      data: {
-        status: 'Had breakfast',
-        details: 'Milk - 120ml, consumed 80%',
-      },
-    },
-
-    // Tuesday, May 13, 2025
-    {
-      id: 11,
-      type: 'poop',
-      timestamp: new Date('2025-05-13T14:20:00'),
-      childId: 1,
-      carerId: 1,
-      carerName: 'Mike',
-      data: {
-        status: 'Diaper change',
-        details: 'Yellow, soft consistency - normal',
-      },
-    },
-    {
-      id: 12,
-      type: 'meal',
-      timestamp: new Date('2025-05-13T12:15:00'),
-      childId: 1,
-      carerId: 1,
-      carerName: 'Mike',
-      data: {
-        status: 'Had lunch',
-        details: 'Baby puree - vegetables, consumed 60%',
-      },
-    },
-
-    // Wednesday, May 14, 2025
-    {
-      id: 13,
-      type: 'meal',
-      timestamp: new Date('2025-05-14T18:45:00'),
-      childId: 1,
-      carerId: 2,
-      carerName: 'Sarah',
-      data: {
-        status: 'Had dinner',
-        details: 'Rice cereal with fruits, consumed 75%',
-      },
-    },
-
-    // Friday, May 16, 2025
-    {
-      id: 14,
-      type: 'meal',
-      timestamp: new Date('2025-05-16T19:30:00'),
-      childId: 1,
-      carerId: 1,
-      carerName: 'Mike',
-      data: {
-        status: 'Had dinner',
-        details: 'Mixed vegetables and meat, consumed 85%',
-      },
-    },
-
-    // Saturday, May 17, 2025
-    {
-      id: 15,
-      type: 'health',
-      timestamp: new Date('2025-05-17T11:00:00'),
-      childId: 1,
-      carerId: 3,
-      carerName: 'Nurse Jenny',
-      data: {
-        status: 'Routine health check',
-        details: 'All vitals normal, no fever, rash improving',
-      },
-    },
-
-    // Sunday, May 18, 2025
-    {
-      id: 16,
-      type: 'meal',
-      timestamp: new Date('2025-05-18T17:15:00'),
-      childId: 1,
-      carerId: 1,
-      carerName: 'Mike',
-      data: {
-        status: 'Had dinner',
-        details: 'New recipe - sweet potato and chicken, consumed 95%',
       },
     },
   ])
@@ -396,17 +345,198 @@
     return `${day} ${month} ${year}`
   })
 
-  // Filter checkins by current child
+  // Get selected date as string for API calls
+  const selectedDateString = computed(() => {
+    const year = selectedDate.value.getFullYear()
+    const month = String(selectedDate.value.getMonth() + 1).padStart(2, '0')
+    const day = String(selectedDate.value.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  })
+
+  // Helper functions to map database IDs to frontend values
+  const mapMealTimeIdToValue = (id: number): string => {
+    const option = mealTimeOptions.value.find(opt => opt.id === id)
+    return option?.value || ''
+  }
+
+  const mapMealCategoryIdToValue = (id: number): string => {
+    const option = mealCategoryOptions.value.find(opt => opt.id === id)
+    return option?.value || ''
+  }
+
+  const mapConsumptionLevelToValue = (level: number): string => {
+    return level.toString()
+  }
+
+  const mapColorIdToValue = (id: number): string => {
+    const option = colorOptions.value.find(opt => opt.id === id)
+    return option?.value || ''
+  }
+
+  const mapTextureIdToValue = (id: number): string => {
+    const option = textureOptions.value.find(opt => opt.id === id)
+    return option?.value || ''
+  }
+
+  // Convert real meal data to original timeline structure
+  const convertMealsToTimeline = (meals: any[]) => {
+    return meals.map(meal => ({
+      id: meal.id,
+      type: 'meal',
+      timestamp: new Date(meal.check_in),
+      childId: meal.child_id,
+      carerId: 2, // Default carer ID for meals
+      carerName: 'Sarah', // Default carer name
+      data: {
+        status: formatMealStatus(meal),
+        details: formatMealDetails(meal)
+      },
+      rawData: meal // Keep raw data for editing
+    }))
+  }
+
+  // Convert real poop data to original timeline structure
+  const convertPoopToTimeline = (poops: any[]) => {
+    return poops.map(poop => ({
+      id: poop.id,
+      type: 'poop',
+      timestamp: new Date(poop.check_in),
+      childId: poop.child_id,
+      carerId: 2, // Default carer ID for poop
+      carerName: 'Sarah', // Default carer name
+      data: {
+        status: 'Diaper change',
+        details: formatPoopDetails(poop)
+      },
+      rawData: poop // Keep raw data for editing
+    }))
+  }
+
+  // Format meal status and details
+  const formatMealStatus = (meal: any) => {
+    console.log('🔍 Formatting meal status for:', meal)
+    
+    // Check if we have the joined time_category name
+    if (meal.time_category) {
+      const timeCategory = meal.time_category.charAt(0).toUpperCase() + meal.time_category.slice(1)
+      return `Had ${timeCategory.toLowerCase()}`
+    }
+    
+    // Fallback: map meal_time_category ID to name
+    const timeCategoryNames = {
+      1: 'breakfast',
+      2: 'lunch', 
+      3: 'dinner',
+      4: 'snack'
+    }
+    
+    if (meal.meal_time_category && timeCategoryNames[meal.meal_time_category]) {
+      const timeName = timeCategoryNames[meal.meal_time_category]
+      return `Had ${timeName}`
+    }
+    
+    return 'Had meal'
+  }
+
+  const formatMealDetails = (meal: any) => {
+    const parts = []
+    
+    console.log('🔍 Formatting meal details for:', meal)
+    
+    // SKIP meal category - only show the specific food from notes
+    // This avoids showing "Rice, ate pizza" and just shows "ate pizza"
+    
+    // Add specific food from notes (this is the main food description)
+    if (meal.note && meal.note.trim()) {
+      parts.push(meal.note)
+    }
+    
+    // Add custom meal from others field if available  
+    if (meal.others && meal.others.trim()) {
+      parts.push(meal.others)
+    }
+    
+    // Add consumption percentage last
+    if (meal.consumption_level !== undefined && meal.consumption_level !== null) {
+      parts.push(`consumed ${meal.consumption_level}%`)
+    }
+    
+    const result = parts.length > 0 ? parts.join(', ') : 'No details available'
+    console.log('📝 Formatted meal details:', result)
+    return result
+  }
+
+  const formatPoopDetails = (poop: any) => {
+    const parts = []
+    
+    if (poop.color_name && poop.texture_name) {
+      parts.push(`${poop.color_name}, ${poop.texture_name}`)
+    } else if (poop.color_name) {
+      parts.push(poop.color_name)
+    } else if (poop.texture_name) {
+      parts.push(poop.texture_name)
+    }
+    
+    // Add default description
+    if (parts.length > 0) {
+      parts.push('consistency')
+    } else {
+      parts.push('normal consistency')
+    }
+    
+    return parts.join(' - ')
+  }
+
+  // Filter mock data by selected date and current child
+  const filteredMockCheckins = computed(() => {
+    if (!childrenStore.currentChild) return []
+    
+    const selectedDateStr = selectedDate.value.toDateString()
+    return mockCheckins.value.filter(checkin => 
+      checkin.childId === childrenStore.currentChild.id &&
+      checkin.timestamp.toDateString() === selectedDateStr
+    )
+  })
+
+  // Store raw data for timeline
+  const rawMealsData = ref([])
+  const rawPoopData = ref([])
+
+  // Get real data from stores and convert to timeline format
+  const realCheckins = computed(() => {
+    const checkins = []
+    
+    // Convert real meals data
+    if (rawMealsData.value.length > 0) {
+      console.log('🍽️ Converting meals to timeline:', rawMealsData.value)
+      checkins.push(...convertMealsToTimeline(rawMealsData.value))
+    }
+
+    // Convert real poop data  
+    if (rawPoopData.value.length > 0) {
+      console.log('💩 Converting poop to timeline:', rawPoopData.value)
+      checkins.push(...convertPoopToTimeline(rawPoopData.value))
+    }
+
+    console.log('📋 Total real checkins:', checkins.length)
+    return checkins
+  })
+
+  // Combine real data (meal/poop) with mock data (others) maintaining original structure
+  const allCheckins = computed(() => {
+    return [...realCheckins.value, ...filteredMockCheckins.value]
+  })
+
+  // Filter checkins by current child (for consistent structure)
   const checkinsByChild = computed(() => {
-    // TODO: Replace with checkinsStore.getCheckinsForChild(childrenStore.currentChild.id)
-    return checkins.value.filter(checkin =>
+    if (!childrenStore.currentChild) return []
+    return allCheckins.value.filter(checkin =>
       checkin.childId === childrenStore.currentChild.id
     )
   })
 
-  // Apply filters for category and date range
+  // Apply filters for category and date range (keeping original logic)
   const filteredCheckins = computed(() => {
-    // TODO: Update to use checkins store methods for better performance
     let filtered = checkinsByChild.value
 
     // Apply category filter
@@ -416,17 +546,7 @@
 
     // Apply date filtering based on view mode
     if (viewMode.value === 'Daily') {
-      // Get the selected date in YYYY-MM-DD format
-      const selectedYear = selectedDate.value.getFullYear()
-      const selectedMonth = selectedDate.value.getMonth()
-      const selectedDay = selectedDate.value.getDate()
-
-      filtered = filtered.filter(checkin => {
-        const checkinDate = new Date(checkin.timestamp)
-        return checkinDate.getFullYear() === selectedYear &&
-          checkinDate.getMonth() === selectedMonth &&
-          checkinDate.getDate() === selectedDay
-      })
+      // Already filtered by selectedDate in computed properties
     } else if (viewMode.value === 'Weekly') {
       // Show data for the week containing the selected date
       const selectedWeekStart = new Date(selectedDate.value)
@@ -454,8 +574,8 @@
     return filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
   })
 
-  // Methods
-  const getCategoryIcon = type => {
+  // Methods (keeping original logic)
+  const getCategoryIcon = (type: string) => {
     const icons = {
       sleep: 'mdi-sleep',
       meal: 'mdi-silverware-fork-knife',
@@ -466,12 +586,11 @@
     return icons[type] || 'mdi-clipboard-text'
   }
 
-  const calculateSleepDuration = checkin => {
+  const calculateSleepDuration = (checkin: any) => {
     if (checkin.type !== 'sleep' || !checkin.data.status.toLowerCase().includes('awake')) {
       return null
     }
 
-    // TODO: Update to use checkinsStore.getCheckinsForChild() when store is implemented
     // Find the most recent "Fell asleep" entry before this awake entry for the same child
     const sleepEntries = checkinsByChild.value
       .filter(entry =>
@@ -498,7 +617,7 @@
     }
   }
 
-  const formatSleepStatus = checkin => {
+  const formatSleepStatus = (checkin: any) => {
     const duration = calculateSleepDuration(checkin)
     if (duration && checkin.data.status.toLowerCase().includes('awake')) {
       return `Awake, slept for ${duration}`
@@ -506,7 +625,7 @@
     return checkin.data.status
   }
 
-  const formatCheckinStatus = checkin => {
+  const formatCheckinStatus = (checkin: any) => {
     // Handle sleep status with duration calculation
     if (checkin.type === 'sleep') {
       return formatSleepStatus(checkin)
@@ -516,7 +635,7 @@
     return checkin.data.status
   }
 
-  const formatTime = timestamp => {
+  const formatTime = (timestamp: Date) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
@@ -524,7 +643,7 @@
     }).toLowerCase()
   }
 
-  const formatDateInfo = timestamp => {
+  const formatDateInfo = (timestamp: Date) => {
     const date = new Date(timestamp)
     return {
       day: date.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -533,56 +652,398 @@
     }
   }
 
-  const deleteCheckin = id => {
-    // TODO: Replace with checkinsStore.deleteCheckin(id) when store is implemented
-    checkins.value = checkins.value.filter(checkin => checkin.id !== id)
-    console.log('Check-in deleted:', id)
+  const handleDateChange = (date: Date) => {
+    selectedDate.value = date
+    datePickerMenu.value = false
+    // Data will automatically refresh due to computed dependencies
   }
 
-  const editCheckin = checkin => {
-    console.log('Edit checkin:', checkin)
-  // TODO: Implement edit functionality with checkins store
-  // This will be implemented when edit functionality is added
-  }
+  const deleteCheckin = async (checkin) => {
+  // Store what we want to delete
+  deleteConfirmDialog.value.itemToDelete = checkin
+  deleteConfirmDialog.value.itemType = checkin.type
+  deleteConfirmDialog.value.show = true
+}
 
-  const addCheckin = newCheckin => {
-    // TODO: Replace with checkinsStore.addCheckin(newCheckin) when store is implemented
-    const checkinWithId = {
-      ...newCheckin,
-      id: Math.max(...checkins.value.map(c => c.id)) + 1,
-      childId: childrenStore.currentChild.id,
-      timestamp: new Date(),
+const confirmDelete = async () => {
+  const checkin = deleteConfirmDialog.value.itemToDelete
+  
+  try {
+    if (checkin.type === 'meal' && checkin.rawData) {
+      // Delete meal from API
+      await fetch(`http://127.0.0.1:8000/meal/${checkin.rawData.id}`, { method: 'DELETE' })
+    } else if (checkin.type === 'poop' && checkin.rawData) {
+      // Delete poop from API  
+      await fetch(`http://127.0.0.1:8000/poop/${checkin.rawData.id}`, { method: 'DELETE' })
+    } else {
+      // Delete mock data
+      const index = mockCheckins.value.findIndex(item => item.id === checkin.id)
+      if (index > -1) mockCheckins.value.splice(index, 1)
     }
-    checkins.value = [checkinWithId, ...checkins.value]
-    console.log('Check-in added:', checkinWithId)
+    
+    // Close dialog and reload data
+    deleteConfirmDialog.value.show = false
+    await loadData()
+    
+  } catch (error) {
+    alert('Failed to delete entry')
+  }
+}
+
+  // EDIT FUNCTIONALITY IMPLEMENTATION
+  const editCheckin = (checkin: any) => {
+    console.log('🖊️ Edit checkin:', checkin)
+    
+    if (checkin.type === 'meal' && checkin.rawData) {
+      openMealEditDialog(checkin)
+    } else if (checkin.type === 'poop' && checkin.rawData) {
+      openPoopEditDialog(checkin)
+    } else {
+      console.log('Edit not implemented for:', checkin.type)
+      // TODO: Implement edit for other types
+    }
+  }
+
+  // Meal Edit Functions
+  const openMealEditDialog = (checkin: any) => {
+    const meal = checkin.rawData
+    console.log('🍽️ Opening meal edit dialog with data:', meal)
+    
+    // Map database values to frontend values
+    mealEditData.value = {
+      mealTime: mapMealTimeIdToValue(meal.meal_time_category),
+      consumptionLevel: mapConsumptionLevelToValue(meal.consumption_level),
+      mealCategory: mapMealCategoryIdToValue(meal.meal_category),
+      subCategory: '', // Handle sub-categories if needed
+      customMeal: meal.others || '',
+      notes: meal.note || ''
+    }
+    
+    mealEditDialog.value.editingId = meal.id
+    mealEditDialog.value.show = true
+  }
+
+  const closeMealEditDialog = () => {
+    mealEditDialog.value.show = false
+    mealEditDialog.value.editingId = null
+    mealEditDialog.value.loading = false
+    
+    // Reset form data
+    mealEditData.value = {
+      mealTime: '',
+      consumptionLevel: '',
+      mealCategory: '',
+      subCategory: '',
+      customMeal: '',
+      notes: ''
+    }
+  }
+
+  const handleMealEditSave = async () => {
+    console.log('💾 Saving meal edit:', mealEditData.value)
+    
+    if (!mealEditDialog.value.editingId) {
+      console.error('No meal ID to edit')
+      return
+    }
+
+    mealEditDialog.value.loading = true
+    
+    try {
+      const mealId = mealEditDialog.value.editingId
+      console.log('🔍 Editing meal ID:', mealId)
+      
+      // Get original meal data to preserve meal time and check_in timestamp
+      const originalMeal = rawMealsData.value.find(meal => meal.id === mealId)
+      if (!originalMeal) {
+        console.error('❌ Original meal data not found for ID:', mealId)
+        console.log('📋 Available meals:', rawMealsData.value.map(m => ({ id: m.id, note: m.note })))
+        throw new Error('Original meal data not found')
+      }
+      
+      console.log('📋 Original meal data:', originalMeal)
+      
+      // Map only the editable fields back to database IDs
+      const mealCategoryId = mealCategoryOptions.value.find(opt => opt.value === mealEditData.value.mealCategory)?.id
+      console.log('🔍 Mapped meal category ID:', mealCategoryId)
+      
+      if (!mealCategoryId) {
+        console.error('❌ Could not find meal category ID for:', mealEditData.value.mealCategory)
+        throw new Error('Invalid meal category selected')
+      }
+      
+      // Prepare the update payload - EXACTLY preserve original data except editable fields
+      const updatePayload = {
+        id: mealId,
+        child_id: originalMeal.child_id,
+        meal_time_category: originalMeal.meal_time_category, // PRESERVE - cannot be changed
+        consumption_level: parseFloat(mealEditData.value.consumptionLevel),
+        meal_category: mealCategoryId, // Only this can be changed
+        others: mealEditData.value.mealCategory === 'others' ? mealEditData.value.customMeal : (originalMeal.others || null),
+        note: mealEditData.value.notes || null, // Only this can be changed
+        check_in: originalMeal.check_in // PRESERVE - cannot be changed
+      }
+      
+      console.log(`🔄 UPDATE (not create) meal ID ${mealId}`)
+      console.log(`🔒 PRESERVING original check_in: ${originalMeal.check_in}`)
+      console.log(`🔒 PRESERVING original meal_time_category: ${originalMeal.meal_time_category}`)
+      console.log(`📝 UPDATE payload:`, updatePayload)
+      
+      // Call the PUT update API (this should UPDATE existing record, not create new)
+      const response = await fetch(`http://127.0.0.1:8000/meal/${mealId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatePayload)
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ API Error Response:', errorText)
+        throw new Error(`Failed to update meal: ${response.status} ${response.statusText} - ${errorText}`)
+      }
+      
+      const updatedMeal = await response.json()
+      console.log('✅ Meal updated successfully:', updatedMeal)
+      console.log('🔍 Updated meal check_in:', updatedMeal.check_in)
+      console.log('🔍 Updated meal meal_time_category:', updatedMeal.meal_time_category)
+      
+      // Clear the cache completely and reload fresh data
+      rawMealsData.value = []
+      rawPoopData.value = []
+      
+      // Wait a moment for database to be consistent
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      await loadData()
+      closeMealEditDialog()
+      
+      console.log('✅ Edit completed - should see only updated record, no duplicates')
+      
+    } catch (error) {
+      console.error('❌ Failed to update meal:', error)
+      alert(`Failed to update meal: ${error.message}`)
+    } finally {
+      mealEditDialog.value.loading = false
+    }
+  }
+
+  // Poop Edit Functions
+  const openPoopEditDialog = (checkin: any) => {
+    const poop = checkin.rawData
+    console.log('💩 Opening poop edit dialog with data:', poop)
+    
+    // Map database values to frontend values
+    poopEditData.value = {
+      color: mapColorIdToValue(poop.color),
+      texture: mapTextureIdToValue(poop.texture),
+      notes: poop.note || ''
+    }
+    
+    poopEditDialog.value.editingId = poop.id
+    poopEditDialog.value.show = true
+  }
+
+  const closePoopEditDialog = () => {
+    poopEditDialog.value.show = false
+    poopEditDialog.value.editingId = null
+    poopEditDialog.value.loading = false
+    
+    // Reset form data
+    poopEditData.value = {
+      color: '',
+      texture: '',
+      notes: ''
+    }
+  }
+
+  const handlePoopEditSave = async () => {
+    console.log('💾 Saving poop edit:', poopEditData.value)
+    
+    if (!poopEditDialog.value.editingId) {
+      console.error('No poop ID to edit')
+      return
+    }
+
+    poopEditDialog.value.loading = true
+    
+    try {
+      const poopId = poopEditDialog.value.editingId
+      
+      // Get the lookup data to map frontend values back to IDs
+      await Promise.all([
+        colorOptions.value.length === 0 ? loadPoopColors() : Promise.resolve(),
+        textureOptions.value.length === 0 ? loadPoopTextures() : Promise.resolve()
+      ])
+      
+      // Map frontend values back to database IDs
+      const colorId = colorOptions.value.find(opt => opt.value === poopEditData.value.color)?.id
+      const textureId = textureOptions.value.find(opt => opt.value === poopEditData.value.texture)?.id
+      
+      // Prepare the update payload matching your backend schema
+      const updatePayload = {
+        id: poopId,
+        child_id: childrenStore.currentChild.id,
+        color: colorId,
+        texture: textureId,
+        note: poopEditData.value.notes,
+        check_in: new Date().toISOString() // Keep original timestamp or use current
+      }
+      
+      console.log(`🔄 Updating poop ID ${poopId} with payload:`, updatePayload)
+      
+      // Call the actual update API
+      const response = await fetch(`http://127.0.0.1:8000/poop/${poopId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatePayload)
+      })
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update poop: ${response.status} ${response.statusText}`)
+      }
+      
+      const updatedPoop = await response.json()
+      console.log('✅ Poop updated successfully:', updatedPoop)
+      
+      // Refresh the timeline data to show the updated record
+      await loadData()
+      closePoopEditDialog()
+      
+    } catch (error) {
+      console.error('❌ Failed to update poop:', error)
+      // You might want to show an error message to the user here
+    } finally {
+      poopEditDialog.value.loading = false
+    }
+  }
+
+  // Load real data when component mounts or date changes
+  const loadData = async () => {
+    if (!childrenStore.currentChild) {
+      console.warn('No current child selected')
+      return
+    }
+
+    isLoading.value = true
+    try {
+      const dateStr = selectedDateString.value
+      console.log(`🔄 Loading timeline data for ${dateStr}`)
+
+      // Clear previous data
+      rawMealsData.value = []
+      rawPoopData.value = []
+
+      // Fetch raw data directly from API instead of using store getters
+      const childId = childrenStore.currentChild.id
+      
+      // Fetch meals directly
+      try {
+        console.log(`🍽️ Fetching meals for child ${childId}`)
+        const response = await fetch(`http://127.0.0.1:8000/meal/child/${childId}?days=60`)
+        const allMeals = await response.json()
+        
+        console.log(`📊 API returned ${allMeals.length} total meals`)
+        console.log(`🔍 Sample meal data:`, allMeals[0]) // Debug first meal structure
+        
+        // Filter meals for target date
+        const mealsForDate = allMeals.filter((meal: any) => {
+          const mealDate = meal.check_in.split('T')[0] // Get YYYY-MM-DD part
+          const matches = mealDate === dateStr
+          
+          if (matches) {
+            console.log(`✅ Meal ${meal.id}: ${meal.check_in} matches ${dateStr}`)
+            console.log(`📝 Meal details:`, {
+              id: meal.id,
+              meal_category: meal.meal_category,
+              meal_category_name: meal.meal_category_name,
+              time_category: meal.time_category,
+              consumption_level: meal.consumption_level,
+              note: meal.note,
+              others: meal.others
+            })
+          }
+          
+          return matches
+        })
+        
+        console.log(`📅 Found ${mealsForDate.length} meals for ${dateStr}`)
+        rawMealsData.value = mealsForDate
+        
+      } catch (error) {
+        console.error('❌ Error fetching meals:', error)
+      }
+
+      // Fetch poop directly
+      try {
+        console.log(`💩 Fetching poop for child ${childId}`)
+        const response = await fetch(`http://127.0.0.1:8000/poop/child/${childId}?days=60`)
+        const allPoop = await response.json()
+        
+        console.log(`📊 API returned ${allPoop.length} total poop records`)
+        
+        // Filter poop for target date
+        const poopForDate = allPoop.filter((poop: any) => {
+          const poopDate = poop.check_in.split('T')[0] // Get YYYY-MM-DD part
+          const matches = poopDate === dateStr
+          
+          if (matches) {
+            console.log(`✅ Poop ${poop.id}: ${poop.check_in} matches ${dateStr}`)
+          }
+          
+          return matches
+        })
+        
+        console.log(`📅 Found ${poopForDate.length} poop records for ${dateStr}`)
+        rawPoopData.value = poopForDate
+        
+      } catch (error) {
+        console.error('❌ Error fetching poop:', error)
+      }
+
+      console.log(`✅ Timeline data loaded for ${dateStr}`)
+    } catch (error) {
+      console.error('❌ Failed to load timeline data:', error)
+    } finally {
+      isLoading.value = false
+    }
   }
 
   // Watch for child changes
-  watch(() => childrenStore.currentChild.id, newChildId => {
-    console.log(`Timeline updated for child: ${childrenStore.currentChild.name} (ID: ${newChildId})`)
-  // TODO: Add data fetching when checkins store is implemented
-  // await checkinsStore.fetchCheckinsForDate(selectedDate.value.toISOString().split('T')[0])
+  watch(() => childrenStore.currentChild?.id, (newChildId) => {
+    if (newChildId) {
+      console.log(`Timeline updated for child: ${childrenStore.currentChild.name} (ID: ${newChildId})`)
+      
+      // Update mock data child IDs
+      mockCheckins.value.forEach(checkin => {
+        checkin.childId = newChildId
+      })
+      
+      loadData()
+    }
   }, { immediate: true })
 
-  // TODO: Add watcher for date changes when checkins store is implemented
-  // watch(selectedDate, async (newDate) => {
-  //   const dateStr = newDate.toISOString().split('T')[0]
-  //   await checkinsStore.fetchCheckinsForDate(dateStr)
-  // }, { immediate: true })
+  // Watch for date changes
+  watch(selectedDateString, () => {
+    loadData()
+  })
 
   // Initialize
   onMounted(() => {
-    console.log(`Timeline initialized for: ${childrenStore.currentChild.name}`)
-  // TODO: Add initial data loading when checkins store is implemented
-  // const dateStr = selectedDate.value.toISOString().split('T')[0]
-  // await checkinsStore.fetchCheckinsForDate(dateStr)
+    if (childrenStore.currentChild) {
+      console.log(`Timeline initialized for: ${childrenStore.currentChild.name}`)
+      loadData()
+    }
   })
 
   // Expose methods for external components
   defineExpose({
-    addCheckin,
-    deleteCheckin,
+    loadData,
     editCheckin,
+    deleteCheckin,
   })
 </script>
 
@@ -1005,4 +1466,5 @@
     font-size: 24px;
   }
 }
+
 </style>
