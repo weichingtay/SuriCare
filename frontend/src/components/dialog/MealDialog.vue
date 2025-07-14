@@ -22,6 +22,8 @@
           <!-- Meal Time -->
           <div class="meal-time-section">
             <label class="section-label">Meal Time</label>
+            
+            <!-- Always show meal time buttons but disable/lock when editing -->
             <div class="meal-time-buttons">
               <div v-if="isMealOptionsLoading" class="d-flex justify-center pa-4">
                 <v-progress-circular indeterminate size="20" />
@@ -31,18 +33,34 @@
                 v-else
                 :key="time.value"
                 class="meal-time-btn"
+                :class="{ 'locked-btn': isEditing && localMealTime !== time.value }"
                 :color="localMealTime === time.value ? 'primary' : 'default'"
-                :disabled="loading"
+                :disabled="loading || (isEditing && localMealTime !== time.value)"
                 size="small"
                 :variant="localMealTime === time.value ? 'flat' : 'outlined'"
                 @click="selectMealTime(time.value)"
               >
                 <v-icon
+                  v-if="isEditing && localMealTime === time.value"
+                  class="mr-1"
+                  color="white"
+                  size="14"
+                >
+                  mdi-lock
+                </v-icon>
+                <v-icon
+                  v-else
                   class="mr-1"
                   :icon="time.icon"
                   size="14"
                 />
                 {{ time.label }}
+                <v-tooltip v-if="isEditing && localMealTime !== time.value" activator="parent" location="top">
+                  Meal time cannot be changed when editing
+                </v-tooltip>
+                <v-tooltip v-if="isEditing && localMealTime === time.value" activator="parent" location="top">
+                  Current meal time (locked)
+                </v-tooltip>
               </v-btn>
             </div>
             <div v-if="errors.mealTime" class="error-message">
@@ -78,9 +96,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Consumption Level -->
-
 
         <!-- Meal Category -->
         <div class="meal-category-section">
@@ -158,10 +173,10 @@
 </template>
 
 <script setup lang="ts">
-   import { useMealOptions } from '@/composables/useMealOptions'
- import { nextTick, ref, watch } from 'vue'
+  import { useMealOptions } from '@/composables/useMealOptions'
+  import { nextTick, ref, watch } from 'vue'
   import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
-  import { useCheckinStore } from '@/stores/checkin' // Add this import
+  import { useCheckinStore } from '@/stores/checkin'
 
   const props = defineProps({
     width: {
@@ -200,6 +215,10 @@
       type: Boolean,
       default: false,
     },
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
   })
 
   const emit = defineEmits([
@@ -215,7 +234,6 @@
   ])
 
   // Use dynamic options from database
-
   const {
     mealTimeOptions,
     mealCategoryOptions,
@@ -224,7 +242,7 @@
     isLoading: isMealOptionsLoading,
   } = useMealOptions()
 
-    const checkinStore = useCheckinStore()
+  const checkinStore = useCheckinStore()
   const localMealTime = ref('')
   const localConsumptionLevel = ref('')
   const localMealCategory = ref('')
@@ -237,6 +255,12 @@
   let categoryTimeout = null
   let subCategoryTimeout = null
   let customMealTimeout = null
+
+  // Get current meal time label for locked display
+  const getCurrentMealTimeLabel = () => {
+    const mealTimeOption = mealTimeOptions.value.find(option => option.value === localMealTime.value)
+    return mealTimeOption ? mealTimeOption.label : localMealTime.value
+  }
 
   watch(() => props.modelValue, newValue => {
     if (newValue) {
@@ -342,6 +366,11 @@
   }
 
   const selectMealTime = time => {
+    if (props.isEditing && localMealTime.value !== time) {
+      // Show alert if trying to change meal time while editing
+      alert('Meal time cannot be changed when editing an existing entry.')
+      return
+    }
     localMealTime.value = time
   }
 
@@ -442,29 +471,36 @@
 
     console.log('🍽️ Meal data to save:', mealData)
     errors.value = {}
+
+    if (props.isEditing) {
+      // 🖊️ EDIT MODE: Just emit to parent timeline, don't call store
+      console.log('📝 Edit mode: emitting save to timeline')
+      emit('save', mealData)
+    } else {
+      // ➕ CREATE MODE: Call store to create new entry (normal check-in)
+      console.log('➕ Create mode: calling checkinStore.saveMeal for new entry')
     
-    try {
-      // Save to store (which handles backend integration)
-      console.log('🍽️ About to call checkinStore.saveMeal...')
-      await checkinStore.saveMeal(mealData)
-      console.log('✅ Meal save completed successfully!')
-      
-      // Emit save event to parent for reload
-      console.log('🍽️ Emitting save event to parent...')
-      emit('save')
-      
-      // Close dialog on success
-      handleDialogUpdate(false)
-    } catch (error) {
-      console.error('❌ Failed to save meal data:', error)
-      // Error is already handled by the store
+      try {
+        // Save to store (which handles backend integration)
+        console.log('🍽️ About to call checkinStore.saveMeal...')
+        await checkinStore.saveMeal(mealData)
+        console.log('✅ Meal save completed successfully!')
+        
+        // Emit save event to parent for reload
+        console.log('🍽️ Emitting save event to parent...')
+        emit('save')
+        
+        // Close dialog on success
+        handleDialogUpdate(false)
+      } catch (error) {
+        console.error('❌ Failed to save meal data:', error)
+        // Error is already handled by the store
+      }
     }
   }
 </script>
 
 <style scoped>
-
-
 .meal-content {
     display: flex;
     flex-direction: column;
@@ -491,6 +527,10 @@
     margin-bottom: 4px;
 }
 
+.locked-text {
+    font-weight: 600;
+}
+
 .meal-time-buttons {
     display: flex;
     gap: 8px;
@@ -507,6 +547,17 @@
     border: 1px solid #e0e0e0 !important;
     border-radius: 4px;
     color: #333 !important;
+}
+
+.meal-time-btn.locked-btn {
+    opacity: 0.5;
+    background-color: #f5f5f5 !important;
+    color: #999 !important;
+    cursor: not-allowed;
+}
+
+.meal-time-btn.locked-btn .v-icon {
+    color: #999 !important;
 }
 
 .meal-time-btn.v-btn--variant-flat,
@@ -533,7 +584,6 @@
     font-size: 14px !important;
 }
 
-/* Updated styles for consumption dropdown */
 .consumption-select :deep(.v-field) {
     min-height: 32px !important;
     border-radius: 4px !important;
@@ -572,7 +622,6 @@
     border-radius: 4px !important;
 }
 
-/* Dropdown menu width and options font size */
 .consumption-select :deep(.v-overlay__content) {
     width: 200px !important;
 }
@@ -593,7 +642,6 @@
 .consumption-select :deep(.v-list-item__content) {
     font-size: 14px !important;
 }
-
 
 .meal-category-section {
     display: flex;
@@ -639,7 +687,6 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 
-/* Make textarea wider for meal dialog */
 :deep(.notes-textarea) {
     width: 800px !important;
     min-width: 600px !important;

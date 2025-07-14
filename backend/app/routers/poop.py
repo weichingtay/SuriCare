@@ -22,9 +22,9 @@ def get_poop(*, session: Session = Depends(get_session), poop_id: int):
         raise HTTPException(status_code=404, detail=f"Poop ID #{poop_id} not found")
     return poop
 
-@router.get('/child/{child_id}', response_model=List[Poop])
-def get_poops_by_child(child_id: int, days: Optional[int] = 30):
-    """Get all poop records for a specific child (last 30 days by default)"""
+@router.get('/child/{child_id}')
+def get_poops_by_child(child_id: int, days: Optional[int] = 90):
+    """Get all poop records for a specific child (last 90 days by default)"""
     with engine.connect() as conn, conn.begin():
         sql_text_poop = f"""
                             SELECT 
@@ -35,18 +35,25 @@ def get_poops_by_child(child_id: int, days: Optional[int] = 30):
                             JOIN poop_color pc ON p.color = pc.id
                             JOIN poop_texture pt ON p.texture = pt.id
                             WHERE p.child_id = {child_id} AND
-                                  p.check_in >= NOW() - INTERVAL '{days} DAY'
+                                p.check_in >= NOW() - INTERVAL '{days} DAY'
                             ORDER BY p.check_in DESC
-                        """
+                                                """
         poops = pd.read_sql_query(sql_text_poop, parse_dates=['check_in'], con=conn)
         
         if poops.empty:
             return []
         
+        # DEBUG: Print the DataFrame columns and first row
+        print("DEBUG - Poop DataFrame columns:", poops.columns.tolist())
+        print("DEBUG - First poop record:", poops.iloc[0].to_dict() if len(poops) > 0 else "No data")
+        
         # Convert to Singapore timezone
         poops['check_in'] = poops['check_in'].dt.tz_convert('Asia/Singapore')
         
     return json.loads(poops.to_json(orient='records'))
+    print("DEBUG - First JSON result:", result[0] if result else "No data")  # ADD THIS
+    return result
+
 
 @router.get('/child/{child_id}/latest', response_model=Optional[Poop])
 def get_latest_poop(*, session: Session = Depends(get_session), child_id: int):
