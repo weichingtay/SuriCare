@@ -1,10 +1,10 @@
 from sqlmodel import SQLModel, Field, Column, DateTime, TEXT, JSON
 from uuid import UUID, uuid4
 from datetime import datetime
-from typing import Optional, Dict, Any  # Add this import
+from typing import Dict, Any  # Add this import
 
 
-class Primary_Care_Giver(SQLModel, table=True):
+class Primary_Care_Giver(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     auth_user_id: str | None = Field(default=None, unique=True)
     username: str
@@ -14,7 +14,7 @@ class Primary_Care_Giver(SQLModel, table=True):
     relationship: str
 
 
-class Child(SQLModel, table=True):
+class Child(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     name: str
     birth_date: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
@@ -22,7 +22,7 @@ class Child(SQLModel, table=True):
     carer_id: int = Field(default=None, foreign_key="primary_care_giver.id")
 
 
-class Growth(SQLModel, table=True):
+class Growth(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     weight: float
@@ -32,7 +32,7 @@ class Growth(SQLModel, table=True):
     child_id: int = Field(default=None, foreign_key="child.id")
 
 
-class Growth_Benchmark(SQLModel, table=True):
+class Growth_Benchmark(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)
     age_month: int
     weight: float
@@ -41,7 +41,7 @@ class Growth_Benchmark(SQLModel, table=True):
     gender: str
 
 
-class Sleep_Time(SQLModel, table=True):
+class Sleep_Time(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     start_time: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
@@ -50,7 +50,7 @@ class Sleep_Time(SQLModel, table=True):
     child_id: int = Field(default=None, foreign_key="child.id")
 
 
-class Meal(SQLModel, table=True):
+class Meal(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     consumption_level: float
@@ -61,18 +61,18 @@ class Meal(SQLModel, table=True):
     child_id: int = Field(default=None, foreign_key="child.id")
 
 
-class Meal_Time_Category(SQLModel, table=True):
+class Meal_Time_Category(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     time_category: str
 
 
-class Meal_Category(SQLModel, table=True):
+class Meal_Category(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     category: str
 
 
 # FIXED: Updated to match your schema changes
-class Poop(SQLModel, table=True):
+class Poop(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     note: str | None  # Fixed: Made nullable to match other models
@@ -81,18 +81,18 @@ class Poop(SQLModel, table=True):
     child_id: int = Field(default=None, foreign_key="child.id")
 
 
-class Poop_Color(SQLModel, table=True):
+class Poop_Color(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     category: str
 
 
-class Poop_Texture(SQLModel, table=True):
+class Poop_Texture(SQLModel, table = True):
     __tablename__ = "poop_texture"
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     category: str
 
 
-class Symptom(SQLModel, table=True):
+class Symptom(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     check_in: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     symptom: str
@@ -101,7 +101,7 @@ class Symptom(SQLModel, table=True):
     child_id: int = Field(default=None, foreign_key="child.id")
 
 
-class ChatbotChat(SQLModel, table=True):
+class ChatbotChat(SQLModel, table = True):
     __tablename__ = "chatbot_chats"
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str | None = None
@@ -111,7 +111,7 @@ class ChatbotChat(SQLModel, table=True):
     updated_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
 
-class ChatMessage(SQLModel, table=True):
+class ChatMessage(SQLModel, table = True):
     __tablename__ = "chat_messages"
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     chat_id: UUID = Field(foreign_key="chatbot_chats.id")
@@ -121,27 +121,27 @@ class ChatMessage(SQLModel, table=True):
 
 
 # Lookup tables
-class Gender_Options(SQLModel, table=True):
+class Gender_Options(SQLModel, table = True):
     __tablename__ = "gender_options"
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     value: str = Field(unique=True)
     label: str
 
 
-class Relationship_Types(SQLModel, table=True):
+class Relationship_Types(SQLModel, table = True):
     __tablename__ = "relationship_types"
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     value: str = Field(unique=True)
     label: str
 
 
-class Access_Levels(SQLModel, table=True):
+class Access_Levels(SQLModel, table = True):
     __tablename__ = "access_levels"
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     value: str = Field(unique=True)
     label: str
 
-class Symptom_Types(SQLModel, table=True):
+class Symptom_Types(SQLModel, table = True):
     __tablename__ = "symptom_types"
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     value: str = Field(unique=True)
@@ -149,14 +149,14 @@ class Symptom_Types(SQLModel, table=True):
     icon: str | None = None  # Optional icon field
 
 
-class Consumption_Levels(SQLModel, table=True):
+class Consumption_Levels(SQLModel, table = True):
     __tablename__ = "consumption_levels"
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     value: str = Field(unique=True)
     label: str
     percentage: int    
 
-class Saved_Articles(SQLModel, table=True):
+class Saved_Articles(SQLModel, table = True):
     __tablename__ = "saved_articles"
     id: int = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="primary_care_giver.id")
