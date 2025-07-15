@@ -57,9 +57,7 @@
 </template>
 
 <script setup lang="ts">
-    // ------DEMO-------
-    import { useHealthAlert } from '@/composables/useHealthAlert'
-    // import { ref, computed } from 'vue'
+  import { useHealthAlert } from '@/composables/useHealthAlert'
 
     const props = defineProps({
       currentChild: {
@@ -78,8 +76,6 @@
     //   symptoms: [],
     //   temperature: null
     // })
-
-    // const hasHealthAlert = computed(() => false) // TODO: Implement actual alert logic
 
     const handleviewmore = () => {
       emit('view-more', healthData.value)
