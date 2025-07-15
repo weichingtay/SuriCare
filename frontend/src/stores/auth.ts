@@ -117,7 +117,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('Fetching user profile for auth ID:', user.value.id)
       clearError()
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
       // Get user profile by auth_user_id
       const response = await fetch(`${baseUrl}/user-profile/by-auth-id/${user.value.id}`)
@@ -169,7 +169,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
       const response = await fetch(`${baseUrl}/user-profile/link-auth`, {
         method: 'POST',

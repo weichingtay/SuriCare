@@ -106,7 +106,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
   }
 
   const getApiUrl = (endpoint: string): string => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
     return `${baseUrl}${endpoint}`
   }
 

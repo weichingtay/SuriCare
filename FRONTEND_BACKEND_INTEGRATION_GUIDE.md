@@ -154,7 +154,7 @@ export const useMedicationsStore = defineStore('medications', () => {
     error.value = null
     
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
       const response = await fetch(`${baseUrl}/medications/${childId}`)
       
       if (!response.ok) {
@@ -180,7 +180,7 @@ export const useMedicationsStore = defineStore('medications', () => {
     error.value = null
     
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
       const authStore = useAuthStore()
       
       const response = await fetch(`${baseUrl}/medications/`, {

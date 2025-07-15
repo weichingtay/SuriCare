@@ -152,7 +152,7 @@
   // Methods
   const handleNewChat = async () => {
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
       const response = await axios.post(`${baseUrl}/chats?owner_id=${ownerId.value}`, {
         title: 'New Chat',
         child_id: selectedChildForChat.value
@@ -178,7 +178,7 @@
   const handleSelectChat = async (chatId: string) => {
     currentChatId.value = chatId;
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
       const response = await axios.get(`${baseUrl}/chats/${chatId}/messages`);
       const messages = response.data.map((msg: any) => ({
         id: msg.id,
@@ -209,7 +209,7 @@
     if (chatToDelete.value === null) return;
 
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
       await axios.delete(`${baseUrl}/chats/${chatToDelete.value}`);
 
       // Remove chat from local state
@@ -261,7 +261,7 @@
     error.value = null;
 
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
       // Build URL with optional child filter
       let url = `${baseUrl}/chats/${ownerId.value}`;
@@ -374,7 +374,7 @@
 
         // Update the title in the backend
         try {
-          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
           await axios.put(`${baseUrl}/chats/${currentChatId.value}`, {
             title: newTitle
           });
@@ -384,7 +384,7 @@
       }
 
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
         // Save user message to backend
         await axios.post(`${baseUrl}/chats/${currentChatId.value}/messages`, {
