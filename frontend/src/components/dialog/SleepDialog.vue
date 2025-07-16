@@ -133,16 +133,44 @@
   import { useCheckinStore } from '@/stores/checkin'
   import { useSleepStore } from '@/stores/sleep'
 
-const sleepStore = useSleepStore()
+  const sleepStore = useSleepStore()
 
   const props = defineProps({
     modelValue: {
       type: Boolean,
       default: false,
     },
+    // NEW: Add props for editing mode
+    bedTime: {
+      type: String,
+      default: '',
+    },
+    awakeTime: {
+      type: String,
+      default: '',
+    },
+    notes: {
+      type: String,
+      default: '',
+    },
+    isEditing: {
+      type: Boolean,
+      default: false,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   })
 
-  const emit = defineEmits(['update:modelValue', 'close', 'saved'])
+  const emit = defineEmits([
+    'update:modelValue', 
+    'update:bedTime',
+    'update:awakeTime', 
+    'update:notes',
+    'close', 
+    'save'
+  ])
 
   // Use the checkin store
   const checkinStore = useCheckinStore()
@@ -191,6 +219,14 @@ const sleepStore = useSleepStore()
     return formatTime(time)
   }
 
+  // Convert string time to Date object for picker
+  const stringToDate = (timeString: string) => {
+    if (!timeString) return null
+    const [hours, minutes] = timeString.split(':')
+    const date = new Date(2000, 0, 1, parseInt(hours), parseInt(minutes))
+    return date
+  }
+
   // Computed sleep duration
   const sleepDuration = computed(() => {
     const bedTimeStr = timeToString(localBedTime.value)
@@ -225,42 +261,70 @@ const sleepStore = useSleepStore()
     }
   })
 
-  // Initialize local state from store when dialog opens
-  const initializeFromStore = () => {
-    const storeData = checkinStore.sleepData
-    
-    // Convert store string times to Date objects for the picker
-    if (storeData.bedTime) {
-      const [hours, minutes] = storeData.bedTime.split(':')
-      localBedTime.value = new Date(2000, 0, 1, parseInt(hours), parseInt(minutes))
+  // Initialize local state from props (for editing) or store (for creating)
+  const initializeFromData = () => {
+    if (props.isEditing) {
+      // EDITING MODE: Use props
+      console.log('😴 Sleep dialog in EDIT mode, using props:', {
+        bedTime: props.bedTime,
+        awakeTime: props.awakeTime,
+        notes: props.notes
+      })
+      
+      localBedTime.value = props.bedTime ? stringToDate(props.bedTime) : null
+      localAwakeTime.value = props.awakeTime ? stringToDate(props.awakeTime) : null
     } else {
-      localBedTime.value = null
-    }
-    
-    if (storeData.awakeTime) {
-      const [hours, minutes] = storeData.awakeTime.split(':')
-      localAwakeTime.value = new Date(2000, 0, 1, parseInt(hours), parseInt(minutes))
-    } else {
-      localAwakeTime.value = null
+      // CREATING MODE: Use store data
+      console.log('😴 Sleep dialog in CREATE mode, using store')
+      const storeData = checkinStore.sleepData
+      
+      if (storeData.bedTime) {
+        localBedTime.value = stringToDate(storeData.bedTime)
+      } else {
+        localBedTime.value = null
+      }
+      
+      if (storeData.awakeTime) {
+        localAwakeTime.value = stringToDate(storeData.awakeTime)
+      } else {
+        localAwakeTime.value = null
+      }
     }
     
     errors.value = {}
   }
 
-  // Watch for dialog open/close
+  // Watch for dialog open/close and prop changes
   watch(() => props.modelValue, (newValue) => {
     if (newValue) {
-      initializeFromStore()
-      checkinStore.clearError()
+      initializeFromData()
+      if (!props.isEditing) {
+        checkinStore.clearError()
+      }
     }
   })
 
-  // Watch for local time changes and sync to store
+  // Watch for prop changes in editing mode
+  watch(() => [props.bedTime, props.awakeTime], () => {
+    if (props.isEditing && props.modelValue) {
+      initializeFromData()
+    }
+  })
+
+  // Watch for local time changes and sync
   watch(localBedTime, (newValue) => {
     if (bedTimeTimeout) clearTimeout(bedTimeTimeout)
     bedTimeTimeout = setTimeout(() => {
-      // Update the store's sleepData directly
-      checkinStore.sleepData.bedTime = timeToString(newValue)
+      const timeString = timeToString(newValue)
+      
+      if (props.isEditing) {
+        // EDITING MODE: Emit to parent
+        emit('update:bedTime', timeString)
+      } else {
+        // CREATING MODE: Update store
+        checkinStore.sleepData.bedTime = timeString
+      }
+      
       if (newValue && errors.value.bedTime) {
         delete errors.value.bedTime
       }
@@ -270,8 +334,16 @@ const sleepStore = useSleepStore()
   watch(localAwakeTime, (newValue) => {
     if (awakeTimeTimeout) clearTimeout(awakeTimeTimeout)
     awakeTimeTimeout = setTimeout(() => {
-      // Update the store's sleepData directly
-      checkinStore.sleepData.awakeTime = timeToString(newValue)
+      const timeString = timeToString(newValue)
+      
+      if (props.isEditing) {
+        // EDITING MODE: Emit to parent
+        emit('update:awakeTime', timeString)
+      } else {
+        // CREATING MODE: Update store
+        checkinStore.sleepData.awakeTime = timeString
+      }
+      
       if (newValue && errors.value.awakeTime) {
         delete errors.value.awakeTime
       }
@@ -279,7 +351,13 @@ const sleepStore = useSleepStore()
   })
 
   const updateNotes = (notes: string) => {
-    checkinStore.sleepData.notes = notes
+    if (props.isEditing) {
+      // EDITING MODE: Emit to parent
+      emit('update:notes', notes)
+    } else {
+      // CREATING MODE: Update store
+      checkinStore.sleepData.notes = notes
+    }
   }
 
   const clearError = (field: string) => {
@@ -323,8 +401,10 @@ const sleepStore = useSleepStore()
         errors.value = {}
         localBedTime.value = null
         localAwakeTime.value = null
-        // Clear the store form
-        checkinStore.clearSleepForm()
+        if (!props.isEditing) {
+          // Only clear store in create mode
+          checkinStore.clearSleepForm()
+        }
       })
     }
   }
@@ -333,42 +413,62 @@ const sleepStore = useSleepStore()
     errors.value = {}
     localBedTime.value = null
     localAwakeTime.value = null
-    checkinStore.clearSleepForm()
-    checkinStore.clearError()
+    if (!props.isEditing) {
+      checkinStore.clearSleepForm()
+      checkinStore.clearError()
+    }
     emit('close')
   }
 
   const handleSave = async () => {
+    console.log('😴 Sleep dialog handleSave clicked!')
+    console.log('🔍 isEditing:', props.isEditing)
+    
     if (!validateForm()) {
+      console.log('❌ Sleep validation failed')
       return
     }
 
-    try {
-      // Save using the store method
-      const savedEntry = await checkinStore.saveSleep({
-        bedTime: timeToString(localBedTime.value),
-        awakeTime: timeToString(localAwakeTime.value),
-        notes: checkinStore.sleepData.notes,
-      })
+    const sleepData = {
+      bedTime: timeToString(localBedTime.value),
+      awakeTime: timeToString(localAwakeTime.value),
+      notes: props.isEditing ? props.notes : checkinStore.sleepData.notes,
+    }
 
-      console.log('Sleep data saved successfully:', savedEntry)
-      
-      // IMPORTANT: Refresh the sleep store for today's date
-    const currentDate = new Date().toISOString().split('T')[0]
-    await sleepStore.refreshSleepForDate(currentDate)
+    console.log('😴 Sleep data to save:', sleepData)
+    errors.value = {}
 
-      // Clear form and close dialog
-      errors.value = {}
-      localBedTime.value = null
-      localAwakeTime.value = null
+    if (props.isEditing) {
+      // 🖊️ EDIT MODE: Just emit to parent timeline, don't call store
+      console.log('📝 Edit mode: emitting save to timeline')
+      emit('save', sleepData)
+    } else {
+      // ➕ CREATE MODE: Call store to create new entry (normal check-in)
+      console.log('➕ Create mode: calling checkinStore.saveSleep for new entry')
       
-      // Emit save event for parent component
-      emit('save')
-      emit('update:modelValue', false)
-      
-    } catch (error) {
-      console.error('Failed to save sleep data:', error)
-      // Error is already handled by the store, just log it here
+      try {
+        // Save using the store method
+        const savedEntry = await checkinStore.saveSleep(sleepData)
+
+        console.log('Sleep data saved successfully:', savedEntry)
+        
+        // IMPORTANT: Refresh the sleep store for today's date
+        const currentDate = new Date().toISOString().split('T')[0]
+        await sleepStore.refreshSleepForDate(currentDate)
+
+        // Clear form and close dialog
+        errors.value = {}
+        localBedTime.value = null
+        localAwakeTime.value = null
+        
+        // Emit save event for parent component
+        emit('save')
+        emit('update:modelValue', false)
+        
+      } catch (error) {
+        console.error('Failed to save sleep data:', error)
+        // Error is already handled by the store, just log it here
+      }
     }
   }
 </script>

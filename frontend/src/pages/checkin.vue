@@ -180,6 +180,62 @@
   @save="handlePoopEditSave"
   @close="closePoopEditDialog"
 />
+
+
+<!-- Sleep Edit Dialog -->
+      <SleepDialog
+        v-model="sleepEditDialog.show"
+        :loading="sleepEditDialog.loading"
+        :bed-time="sleepEditData.bedTime"
+        :awake-time="sleepEditData.awakeTime"
+        :notes="sleepEditData.notes"
+        :is-editing="true"
+        @update:bed-time="sleepEditData.bedTime = $event"
+        @update:awake-time="sleepEditData.awakeTime = $event"
+        @update:notes="sleepEditData.notes = $event"
+        @save="handleSleepEditSave"
+        @close="closeSleepEditDialog"
+      />
+<!--  ////______________NEW-->
+<!--GROWTH EDIT DIALOG-->
+      <GrowthDialog
+        v-model="growthEditDialog.show"
+        :loading="growthEditDialog.loading"
+        :weight="growthEditData.weight"
+        :height="growthEditData.height"
+        :head-circumference="growthEditData.headCircumference"
+        :notes="growthEditData.notes"
+        :is-editing="true"
+        @update:weight="growthEditData.weight = $event"
+        @update:height="growthEditData.height = $event"
+        @update:head-circumference="growthEditData.headCircumference = $event"
+        @update:notes="growthEditData.notes = $event"
+        @save="handleGrowthEditSave"
+        @close="closeGrowthEditDialog"
+      />
+
+<!--  ////______________NEW-->
+<!--HEALTH EDIT DIALOG-->
+      <SymptomDialog
+        v-model="healthEditDialog.show"
+        :loading="healthEditDialog.loading"
+        :symptoms="healthEditData.symptoms"
+        :other-symptom="healthEditData.otherSymptom"
+        :photo="healthEditData.photo"
+        :notes="healthEditData.notes"
+        :is-editing="true"
+        @update:symptoms="healthEditData.symptoms = $event"
+        @update:other-symptom="healthEditData.otherSymptom = $event"
+        @update:photo="healthEditData.photo = $event"
+        @update:notes="healthEditData.notes = $event"
+        @save="handleHealthEditSave"
+        @close="closeHealthEditDialog"
+      />
+
+
+
+
+
       <!-- Delete Confirmation Dialog -->
 <v-dialog v-model="deleteConfirmDialog.show" max-width="400" persistent>
   <v-card>
@@ -207,22 +263,38 @@
   import { useChildrenStore } from '@/stores/children'
   import { useMealsStore } from '@/stores/meals'
   import { usePoopStore } from '@/stores/poop'
+  ////______________NEW
+  import { useSleepStore } from '@/stores/sleep'
+  import { useHealthStore } from '@/stores/health'
   import { useCheckinStore } from '@/stores/checkin'
   import { useMealOptions } from '@/composables/useMealOptions'
   import { usePoopOptions } from '@/composables/usePoopOptions'
+  import { useSymptomOptions } from '@/composables/useSymptomOptions'
   import { timestampToDateString } from '@/utils/dateUtils'
+  import { useGrowthDialog } from '@/composables/useGrowthDialog'
   import MealDialog from '@/components/dialog/MealDialog.vue'
   import PoopDialog from '@/components/dialog/PoopDialog.vue'
+  ////______________NEW
+  import SleepDialog from '@/components/dialog/SleepDialog.vue'
+  import GrowthDialog from '@/components/dialog/GrowthDialog.vue'
+  import SymptomDialog from '@/components/dialog/SymptomDialog.vue'
+
 
   // Store
   const childrenStore = useChildrenStore()
   const mealsStore = useMealsStore()
   const poopStore = usePoopStore()
   const checkinStore = useCheckinStore()
+  ////______________NEW
+  const sleepStore = useSleepStore()
+  const symptomStore = useHealthStore()
 
   // Composables for mapping IDs to values
   const { mealTimeOptions, mealCategoryOptions, consumptionOptions } = useMealOptions()
   const { colorOptions, textureOptions } = usePoopOptions()
+  ////______________NEW
+  const { symptomOptions } = useSymptomOptions()
+
 
   // Local state for UI controls
   const selectedDate = ref(new Date())
@@ -244,6 +316,26 @@
     editingId: null
   })
 
+    //EDIT SLEEP DIALOG STATES
+  const sleepEditDialog = ref({
+    show: false,
+    loading: false,
+    editingId: null
+  })
+
+  const growthEditDialog = ref({
+    show: false,
+    loading: false,
+    editingId: null
+  })
+
+  const healthEditDialog = ref({
+    show: false,
+    loading: false,
+    editingId: null
+  })
+
+
   // Edit form data
   const mealEditData = ref({
     mealTime: '',
@@ -260,64 +352,36 @@
     notes: ''
   })
 
+  //EDIT SLEEP FORM DATA
+   const sleepEditData = ref({
+    bedTime: '',
+    awakeTime: '',
+    notes: ''
+  })
+
+  const growthEditData = ref({
+    weight: '',
+    height: '',
+    headCircumference: '',
+    notes: ''
+  })
+
+  const healthEditData = ref({
+    symptoms: [],
+    otherSymptom: '',
+    photo: null,
+    notes: ''
+  })
+
+
+
 const deleteConfirmDialog = ref({
   show: false,
   itemToDelete: null,
   itemType: null
 })
 
-  // Mock data for Growth, Sleep, Health (keeping original structure)
-  const mockCheckins = ref([
-    // Sample Growth data
-    {
-      id: 1,
-      type: 'growth',
-      timestamp: new Date(),
-      childId: childrenStore.currentChild?.id || 1,
-      carerId: 1,
-      carerName: 'Dr. Smith',
-      data: {
-        status: 'Growth measurement',
-        details: 'Height: 100cm, Weight: 20kg, Head: 45cm',
-      },
-    },
-    // Sample Sleep data
-    {
-      id: 2,
-      type: 'sleep',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      childId: childrenStore.currentChild?.id || 1,
-      carerId: 2,
-      carerName: 'Sarah',
-      data: {
-        status: 'Awake',
-      },
-    },
-    {
-      id: 3,
-      type: 'sleep',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-      childId: childrenStore.currentChild?.id || 1,
-      carerId: 2,
-      carerName: 'Sarah',
-      data: {
-        status: 'Fell asleep',
-      },
-    },
-    // Sample Health data
-    {
-      id: 4,
-      type: 'health',
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-      childId: childrenStore.currentChild?.id || 1,
-      carerId: 3,
-      carerName: 'Nurse Jenny',
-      data: {
-        status: 'Routine checkup',
-        details: 'All vitals normal',
-      },
-    },
-  ])
+  
 
   // Categories
   const categories = ref([
@@ -378,6 +442,10 @@ const deleteConfirmDialog = ref({
     return option?.value || ''
   }
 
+  //-------------NEW----------------------------
+
+
+
   // Convert real meal data to original timeline structure
   const convertMealsToTimeline = (meals: any[]) => {
     return meals.map(meal => ({
@@ -411,6 +479,60 @@ const deleteConfirmDialog = ref({
       rawData: poop // Keep raw data for editing
     }))
   }
+
+  //-----------------------NEW------------------------
+  const convertSleepToTimeline = (sleepEntries: any[]) => {
+    return sleepEntries.map(sleep => ({
+      id: sleep.id,
+      type: 'sleep',
+      timestamp: new Date(sleep.check_in),
+      childId: sleep.child_id,
+      carerId: 2,
+      carerName: 'Sarah',
+      data: {
+        status: formatSleepStatus(sleep),
+        details: formatSleepDetails(sleep)
+      },
+      rawData: sleep
+    }))
+  }
+
+  //---------------------------NEW-----------------------------
+  const convertGrowthToTimeline = (growthEntries: any[]) => {
+    return growthEntries.map(growth => ({
+      id: growth.id,
+      type: 'growth',
+      timestamp: new Date(growth.check_in),
+      childId: growth.child_id,
+      carerId: 1,
+      carerName: 'Dr. Smith',
+      data: {
+        status: 'Growth measurement',
+        details: formatGrowthDetails(growth)
+      },
+      rawData: growth
+    }))
+  }
+
+
+  //------------------------NEW-------------------------
+  const convertHealthToTimeline = (healthEntries: any[]) => {
+    return healthEntries.map(health => ({
+      id: health.id,
+      type: 'health',
+      timestamp: new Date(health.check_in),
+      childId: health.child_id,
+      carerId: 3,
+      carerName: 'Nurse Jenny',
+      data: {
+        status: formatHealthStatus(health),
+        details: formatHealthDetails(health)
+      },
+      rawData: health
+    }))
+  }
+
+
 
   // Format meal status and details
   const formatMealStatus = (meal: any) => {
@@ -487,8 +609,75 @@ const deleteConfirmDialog = ref({
   return result
 }
 
+  //---------------------NEW------------------------
+  const formatSleepStatus = (sleep: any) => {
+    const bedTime = sleep.start_time ? new Date(sleep.start_time).toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: true 
+    }) : 'Unknown'
+    
+    const awakeTime = sleep.end_time ? new Date(sleep.end_time).toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: true 
+    }) : 'Unknown'
+    
+    return `Slept from ${bedTime} to ${awakeTime}`
+  }
+
+  const formatSleepDetails = (sleep: any) => {
+    if (sleep.start_time && sleep.end_time) {
+      const startTime = new Date(sleep.start_time)
+      const endTime = new Date(sleep.end_time)
+      const duration = endTime.getTime() - startTime.getTime()
+      const hours = Math.floor(duration / (1000 * 60 * 60))
+      const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60))
+      
+      if (hours > 0 && minutes > 0) {
+        return `Duration: ${hours}h ${minutes}m`
+      } else if (hours > 0) {
+        return `Duration: ${hours}h`
+      } else if (minutes > 0) {
+        return `Duration: ${minutes}m`
+      }
+    }
+    return 'Duration unknown'
+  }
+
+  const formatGrowthDetails = (growth: any) => {
+    const parts = []
+    
+    if (growth.weight) parts.push(`Weight: ${growth.weight}kg`)
+    if (growth.height) parts.push(`Height: ${growth.height}cm`)
+    if (growth.head_circumference) parts.push(`Head: ${growth.head_circumference}cm`)
+    
+    return parts.length > 0 ? parts.join(', ') : 'No measurements available'
+  }
+
+  const formatHealthStatus = (health: any) => {
+    if (health.symptom && health.symptom.includes(',')) {
+      const symptoms = health.symptom.split(',')
+      return `Has ${symptoms.length} symptoms`
+    } else if (health.symptom) {
+      return `Has ${health.symptom}`
+    }
+    return 'Health check'
+  }
+
+  const formatHealthDetails = (health: any) => {
+    if (health.symptom) {
+      const symptoms = health.symptom.split(',').map(s => s.trim()).filter(s => s)
+      return symptoms.join(', ')
+    }
+    return 'No symptoms recorded'
+  }
+
+
+
+
   // Filter mock data by selected date and current child
-  const filteredMockCheckins = computed(() => {
+  /* const filteredMockCheckins = computed(() => {
     if (!childrenStore.currentChild) return []
     
     const selectedDateStr = selectedDate.value.toDateString()
@@ -497,45 +686,60 @@ const deleteConfirmDialog = ref({
       checkin.timestamp.toDateString() === selectedDateStr
     )
   })
+ */
+
 
   // Store raw data for timeline
   const rawMealsData = ref([])
   const rawPoopData = ref([])
+  //-------------NEW-----------
+   const rawSleepData = ref([])
+  const rawGrowthData = ref([])
+  const rawHealthData = ref([])
 
+
+  //--------------------NEW------------------
   // Get real data from stores and convert to timeline format
   const realCheckins = computed(() => {
     const checkins = []
     
-    // Convert real meals data
     if (rawMealsData.value.length > 0) {
-      console.log('🍽️ Converting meals to timeline:', rawMealsData.value)
       checkins.push(...convertMealsToTimeline(rawMealsData.value))
     }
 
-    // Convert real poop data  
     if (rawPoopData.value.length > 0) {
-      console.log('💩 Converting poop to timeline:', rawPoopData.value)
       checkins.push(...convertPoopToTimeline(rawPoopData.value))
     }
 
-    console.log('📋 Total real checkins:', checkins.length)
+    if (rawSleepData.value.length > 0) {
+      checkins.push(...convertSleepToTimeline(rawSleepData.value))
+    }
+
+    if (rawGrowthData.value.length > 0) {
+      checkins.push(...convertGrowthToTimeline(rawGrowthData.value))
+    }
+
+    if (rawHealthData.value.length > 0) {
+      checkins.push(...convertHealthToTimeline(rawHealthData.value))
+    }
+
     return checkins
   })
 
-  // Combine real data (meal/poop) with mock data (others) maintaining original structure
-  const allCheckins = computed(() => {
-    return [...realCheckins.value, ...filteredMockCheckins.value]
-  })
 
-  // Filter checkins by current child (for consistent structure)
+
+  //--------------------NEW------------------
+  // Filter checkins by current child
   const checkinsByChild = computed(() => {
     if (!childrenStore.currentChild) return []
-    return allCheckins.value.filter(checkin =>
+    return realCheckins.value.filter(checkin =>
       checkin.childId === childrenStore.currentChild.id
     )
   })
 
-  // Apply filters for category and date range (keeping original logic)
+
+    //--------------------NEW------------------
+  // Apply filters for category and date range
   const filteredCheckins = computed(() => {
     let filtered = checkinsByChild.value
 
@@ -546,9 +750,12 @@ const deleteConfirmDialog = ref({
 
     // Apply date filtering based on view mode
     if (viewMode.value === 'Daily') {
-      // Already filtered by selectedDate in computed properties
+      // Filter by selected date
+      const selectedDateStr = selectedDate.value.toDateString()
+      filtered = filtered.filter(checkin => 
+        checkin.timestamp.toDateString() === selectedDateStr
+      )
     } else if (viewMode.value === 'Weekly') {
-      // Show data for the week containing the selected date
       const selectedWeekStart = new Date(selectedDate.value)
       selectedWeekStart.setDate(selectedDate.value.getDate() - selectedDate.value.getDay())
       selectedWeekStart.setHours(0, 0, 0, 0)
@@ -561,7 +768,6 @@ const deleteConfirmDialog = ref({
         checkin.timestamp >= selectedWeekStart && checkin.timestamp <= selectedWeekEnd
       )
     } else if (viewMode.value === 'Monthly') {
-      // Show data for the month containing the selected date
       const selectedMonth = selectedDate.value.getMonth()
       const selectedYear = selectedDate.value.getFullYear()
 
@@ -574,6 +780,11 @@ const deleteConfirmDialog = ref({
     return filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
   })
 
+ 
+
+ 
+  
+  //-------------------NEW---------------
   // Methods (keeping original logic)
   const getCategoryIcon = (type: string) => {
     const icons = {
@@ -586,55 +797,15 @@ const deleteConfirmDialog = ref({
     return icons[type] || 'mdi-clipboard-text'
   }
 
-  const calculateSleepDuration = (checkin: any) => {
-    if (checkin.type !== 'sleep' || !checkin.data.status.toLowerCase().includes('awake')) {
-      return null
-    }
 
-    // Find the most recent "Fell asleep" entry before this awake entry for the same child
-    const sleepEntries = checkinsByChild.value
-      .filter(entry =>
-        entry.type === 'sleep' &&
-        entry.data.status.toLowerCase().includes('fell asleep') &&
-        entry.timestamp < checkin.timestamp
-      )
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-
-    if (sleepEntries.length === 0) {
-      return null
-    }
-
-    const sleepStart = sleepEntries[0].timestamp
-    const sleepEnd = checkin.timestamp
-    const durationMs = new Date(sleepEnd).getTime() - new Date(sleepStart).getTime()
-    const durationHours = Math.floor(durationMs / (1000 * 60 * 60))
-    const durationMinutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60))
-
-    if (durationHours > 0) {
-      return `${durationHours}h ${durationMinutes}m`
-    } else {
-      return `${durationMinutes}m`
-    }
-  }
-
-  const formatSleepStatus = (checkin: any) => {
-    const duration = calculateSleepDuration(checkin)
-    if (duration && checkin.data.status.toLowerCase().includes('awake')) {
-      return `Awake, slept for ${duration}`
-    }
-    return checkin.data.status
-  }
 
   const formatCheckinStatus = (checkin: any) => {
-    // Handle sleep status with duration calculation
-    if (checkin.type === 'sleep') {
-      return formatSleepStatus(checkin)
-    }
-
+    
     // Handle other checkin types
     return checkin.data.status
   }
 
+  
   const formatTime = (timestamp: Date) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -665,32 +836,34 @@ const deleteConfirmDialog = ref({
   deleteConfirmDialog.value.show = true
 }
 
-const confirmDelete = async () => {
-  const checkin = deleteConfirmDialog.value.itemToDelete
-  
-  try {
-    if (checkin.type === 'meal' && checkin.rawData) {
-      // Delete meal from API
-      await fetch(`http://127.0.0.1:8000/meal/${checkin.rawData.id}`, { method: 'DELETE' })
-    } else if (checkin.type === 'poop' && checkin.rawData) {
-      // Delete poop from API  
-      await fetch(`http://127.0.0.1:8000/poop/${checkin.rawData.id}`, { method: 'DELETE' })
-    } else {
-      // Delete mock data
-      const index = mockCheckins.value.findIndex(item => item.id === checkin.id)
-      if (index > -1) mockCheckins.value.splice(index, 1)
-    }
-    
-    // Close dialog and reload data
-    deleteConfirmDialog.value.show = false
-    await loadData()
-    
-  } catch (error) {
-    alert('Failed to delete entry')
-  }
-}
 
-  // EDIT FUNCTIONALITY IMPLEMENTATION
+  //-------------------NEW------------------
+   const confirmDelete = async () => {
+    const checkin = deleteConfirmDialog.value.itemToDelete
+    
+    try {
+      if (checkin.type === 'meal' && checkin.rawData) {
+        await fetch(`http://127.0.0.1:8000/meal/${checkin.rawData.id}`, { method: 'DELETE' })
+      } else if (checkin.type === 'poop' && checkin.rawData) {
+        await fetch(`http://127.0.0.1:8000/poop/${checkin.rawData.id}`, { method: 'DELETE' })
+      } else if (checkin.type === 'sleep' && checkin.rawData) {
+        await fetch(`http://127.0.0.1:8000/sleep/${checkin.rawData.id}`, { method: 'DELETE' })
+      } else if (checkin.type === 'growth' && checkin.rawData) {
+        await fetch(`http://127.0.0.1:8000/growth/${checkin.rawData.id}`, { method: 'DELETE' })
+      } else if (checkin.type === 'health' && checkin.rawData) {
+        await fetch(`http://127.0.0.1:8000/symptom/${checkin.rawData.id}`, { method: 'DELETE' })
+      }
+      
+      deleteConfirmDialog.value.show = false
+      await loadData()
+      
+    } catch (error) {
+      alert('Failed to delete entry')
+    }
+  }
+
+
+  //---------------------NEW EDIT FUNCTIONALITY IMPLEMENTATION
   const editCheckin = (checkin: any) => {
     console.log('🖊️ Edit checkin:', checkin)
     
@@ -698,9 +871,14 @@ const confirmDelete = async () => {
       openMealEditDialog(checkin)
     } else if (checkin.type === 'poop' && checkin.rawData) {
       openPoopEditDialog(checkin)
+    } else if (checkin.type === 'sleep' && checkin.rawData) {
+      openSleepEditDialog(checkin)
+    } else if (checkin.type === 'growth' && checkin.rawData) {
+      openGrowthEditDialog(checkin)
+    } else if (checkin.type === 'health' && checkin.rawData) {
+      openHealthEditDialog(checkin)
     } else {
       console.log('Edit not implemented for:', checkin.type)
-      // TODO: Implement edit for other types
     }
   }
 
@@ -931,8 +1109,337 @@ const confirmDelete = async () => {
   } finally {
     poopEditDialog.value.loading = false
   }
-}
+  }
 
+
+  //----------------------------------------------------------------------
+  //——------------------------SLEEP DIALOG--------------------------------------//
+  //-------------------------------------------------------------------
+  
+  const openSleepEditDialog = (checkin: any) => {
+    const sleep = checkin.rawData
+    console.log('😴 Opening sleep edit dialog with data:', sleep)
+    
+    // Format times for the dialog
+    const formatTimeForDialog = (timeString) => {
+      if (!timeString) return ''
+      const date = new Date(timeString)
+      return date.toTimeString().slice(0, 5) // HH:MM format
+    }
+    
+    sleepEditData.value = {
+      bedTime: formatTimeForDialog(sleep.start_time),
+      awakeTime: formatTimeForDialog(sleep.end_time),
+      notes: sleep.note || ''
+    }
+    
+    sleepEditDialog.value.editingId = sleep.id
+    sleepEditDialog.value.show = true
+  }
+
+  const closeSleepEditDialog = () => {
+    sleepEditDialog.value.show = false
+    sleepEditDialog.value.editingId = null
+    sleepEditDialog.value.loading = false
+    
+    sleepEditData.value = {
+      bedTime: '',
+      awakeTime: '',
+      notes: ''
+    }
+  }
+
+  const handleSleepEditSave = async (sleepData) => {
+    console.log('💾 Saving sleep edit:', sleepData)
+    
+    if (!sleepEditDialog.value.editingId) {
+      console.error('No sleep ID to edit')
+      return
+    }
+
+    sleepEditDialog.value.loading = true
+    
+    try {
+      const sleepId = sleepEditDialog.value.editingId
+      const originalSleep = rawSleepData.value.find(sleep => sleep.id === sleepId)
+      if (!originalSleep) {
+        throw new Error('Original sleep data not found')
+      }
+      
+      // Convert time strings to full datetime
+      const createDateTime = (timeString, baseDate) => {
+        if (!timeString) return null
+        const [hours, minutes] = timeString.split(':')
+        const date = new Date(baseDate)
+        date.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+        return date.toISOString()
+      }
+      
+      const baseDate = new Date(originalSleep.check_in)
+      let startDateTime = createDateTime(sleepData.bedTime, baseDate)
+      let endDateTime = createDateTime(sleepData.awakeTime, baseDate)
+      
+      // Handle overnight sleep
+      if (endDateTime && startDateTime && new Date(endDateTime) < new Date(startDateTime)) {
+        const endDate = new Date(endDateTime)
+        endDate.setDate(endDate.getDate() + 1)
+        endDateTime = endDate.toISOString()
+      }
+      
+      const updatePayload = {
+        id: sleepId,
+        child_id: originalSleep.child_id,
+        start_time: startDateTime,
+        end_time: endDateTime,
+        note: sleepData.notes || null,
+        check_in: originalSleep.check_in
+      }
+      
+      const response = await fetch(`http://127.0.0.1:8000/sleep/${sleepId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatePayload)
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`API error: ${response.status} - ${errorText}`)
+      }
+      
+      await loadData()
+      closeSleepEditDialog()
+      
+    } catch (error) {
+      console.error('❌ Failed to update sleep:', error)
+      alert(`Failed to update sleep: ${error.message}`)
+    } finally {
+      sleepEditDialog.value.loading = false
+    }
+  }
+
+
+  //----------------------------------------------------------------------
+  //——-----------------------GROWTH DIALOG--------------------------------------//
+  //-------------------------------------------------------------------
+  const openGrowthEditDialog = (checkin: any) => {
+    const growth = checkin.rawData
+    console.log('📏 Opening growth edit dialog with data:', growth)
+    
+    growthEditData.value = {
+      weight: growth.weight?.toString() || '',
+      height: growth.height?.toString() || '',
+      headCircumference: growth.head_circumference?.toString() || '',
+      notes: growth.note || ''
+    }
+    
+    growthEditDialog.value.editingId = growth.id
+    growthEditDialog.value.show = true
+  }
+
+  const closeGrowthEditDialog = () => {
+    growthEditDialog.value.show = false
+    growthEditDialog.value.editingId = null
+    growthEditDialog.value.loading = false
+    
+    growthEditData.value = {
+      weight: '',
+      height: '',
+      headCircumference: '',
+      notes: ''
+    }
+  }
+
+  const handleGrowthEditSave = async (growthData) => {
+    console.log('💾 Saving growth edit:', growthData)
+    
+    if (!growthEditDialog.value.editingId) {
+      console.error('No growth ID to edit')
+      return
+    }
+
+    growthEditDialog.value.loading = true
+    
+    try {
+      const growthId = growthEditDialog.value.editingId
+      const originalGrowth = rawGrowthData.value.find(growth => growth.id === growthId)
+      if (!originalGrowth) {
+        throw new Error('Original growth data not found')
+      }
+      
+      const updatePayload = {
+        id: growthId,
+        child_id: originalGrowth.child_id,
+        weight: parseFloat(growthData.weight),
+        height: parseFloat(growthData.height),
+        head_circumference: parseFloat(growthData.headCircumference),
+        note: growthData.notes || null,
+        check_in: originalGrowth.check_in
+      }
+      
+      const response = await fetch(`http://127.0.0.1:8000/growth/${growthId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatePayload)
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`API error: ${response.status} - ${errorText}`)
+      }
+      
+      await loadData()
+      closeGrowthEditDialog()
+      
+    } catch (error) {
+      console.error('❌ Failed to update growth:', error)
+      alert(`Failed to update growth: ${error.message}`)
+    } finally {
+      growthEditDialog.value.loading = false
+    }
+  }
+
+
+
+  //----------------------------------------------------------------------
+  //——-----------------------HEALTH DIALOG--------------------------------------//
+  //-------------------------------------------------------------------
+  const openHealthEditDialog = (checkin: any) => {
+    const health = checkin.rawData
+    console.log('🏥 Opening health edit dialog with data:', health)
+    console.log('🔍 Raw health.symptom:', health.symptom)
+    
+    // Parse symptoms from database string format
+    let symptoms = []
+    let otherSymptom = ''
+    
+    if (health.symptom) {
+      const symptomList = health.symptom.split(',').map(s => s.trim()).filter(s => s)
+      console.log('📝 Parsed symptom list:', symptomList)
+      
+      // Map database symptom names to frontend values
+      const mappedSymptoms = []
+      
+      for (const dbSymptom of symptomList) {
+        // Find matching symptom option by label (case-insensitive)
+        const matchingOption = symptomOptions.value.find(option => 
+          option.label.toLowerCase() === dbSymptom.toLowerCase()
+        )
+        
+        if (matchingOption) {
+          console.log(`✅ Mapped "${dbSymptom}" to "${matchingOption.value}"`)
+          mappedSymptoms.push(matchingOption.value)
+        } else {
+          // If no match found, treat as custom symptom
+          console.log(`❓ No match for "${dbSymptom}", treating as custom`)
+          if (!mappedSymptoms.includes('other')) {
+            mappedSymptoms.push('other')
+          }
+          if (otherSymptom) {
+            otherSymptom += ', ' + dbSymptom
+          } else {
+            otherSymptom = dbSymptom
+          }
+        }
+      }
+      
+      symptoms = mappedSymptoms
+      console.log('🎯 Final mapped symptoms:', symptoms)
+      console.log('📝 Final otherSymptom:', otherSymptom)
+    }
+    
+    healthEditData.value = {
+      symptoms: symptoms,
+      otherSymptom: otherSymptom,
+      photo: null, // Note: We can't easily retrieve the original file
+      notes: health.note || ''
+    }
+    
+    healthEditDialog.value.editingId = health.id
+    healthEditDialog.value.show = true
+  }
+
+  const closeHealthEditDialog = () => {
+    healthEditDialog.value.show = false
+    healthEditDialog.value.editingId = null
+    healthEditDialog.value.loading = false
+    
+    healthEditData.value = {
+      symptoms: [],
+      otherSymptom: '',
+      photo: null,
+      notes: ''
+    }
+  }
+
+  const handleHealthEditSave = async (healthData) => {
+    console.log('💾 Saving health edit:', healthData)
+    
+    if (!healthEditDialog.value.editingId) {
+      console.error('No health ID to edit')
+      return
+    }
+
+    healthEditDialog.value.loading = true
+    
+    try {
+      const healthId = healthEditDialog.value.editingId
+      const originalHealth = rawHealthData.value.find(health => health.id === healthId)
+      if (!originalHealth) {
+        throw new Error('Original health data not found')
+      }
+      
+      // Combine symptoms into a string format for database
+      let symptomString = ''
+      if (healthData.symptoms && healthData.symptoms.length > 0) {
+        const allSymptoms = [...healthData.symptoms]
+        if (healthData.symptoms.includes('other') && healthData.otherSymptom) {
+          // Replace 'other' with the actual custom symptom
+          const otherIndex = allSymptoms.indexOf('other')
+          allSymptoms[otherIndex] = healthData.otherSymptom
+        }
+        symptomString = allSymptoms.join(', ')
+      }
+      
+      // Note: Photo handling would need to be implemented based on your file upload system
+      let photoUrl = originalHealth.photo_url || ''
+      if (healthData.photo) {
+        // TODO: Implement file upload to get new photo URL
+        console.log('Photo upload not implemented in this example')
+      }
+      
+      const updatePayload = {
+        id: healthId,
+        child_id: originalHealth.child_id,
+        symptom: symptomString,
+        photo_url: photoUrl,
+        note: healthData.notes || null,
+        check_in: originalHealth.check_in
+      }
+      
+      const response = await fetch(`http://127.0.0.1:8000/symptom/${healthId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatePayload)
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`API error: ${response.status} - ${errorText}`)
+      }
+      
+      await loadData()
+      closeHealthEditDialog()
+      
+    } catch (error) {
+      console.error('❌ Failed to update health:', error)
+      alert(`Failed to update health: ${error.message}`)
+    } finally {
+      healthEditDialog.value.loading = false
+    }
+  }
+
+
+  //------------------NEW------------------
   // Load real data when component mounts or date changes
   const loadData = async () => {
     if (!childrenStore.currentChild) {
@@ -948,84 +1455,103 @@ const confirmDelete = async () => {
       // Clear previous data
       rawMealsData.value = []
       rawPoopData.value = []
+      rawSleepData.value = []
+      rawGrowthData.value = []
+      rawHealthData.value = []
 
-      // Fetch raw data directly from API instead of using store getters
       const childId = childrenStore.currentChild.id
       
-      // Fetch meals directly
-      try {
-        console.log(`🍽️ Fetching meals for child ${childId}`)
-        const response = await fetch(`http://127.0.0.1:8000/meal/child/${childId}?days=60`)
-        const allMeals = await response.json()
-        
-        console.log(`📊 API returned ${allMeals.length} total meals`)
-        console.log(`🔍 Sample meal data:`, allMeals[0]) // Debug first meal structure
-        
-        // Filter meals for target date
-        const mealsForDate = allMeals.filter((meal: any) => {
-          const mealDate = meal.check_in.split('T')[0] // Get YYYY-MM-DD part
-          const matches = mealDate === dateStr
-          
-          if (matches) {
-            console.log(`✅ Meal ${meal.id}: ${meal.check_in} matches ${dateStr}`)
-            console.log(`📝 Meal details:`, {
-              id: meal.id,
-              meal_category: meal.meal_category,
-              meal_category_name: meal.meal_category_name,
-              time_category: meal.time_category,
-              consumption_level: meal.consumption_level,
-              note: meal.note,
-              others: meal.others
+      // Fetch all data types in parallel
+      const promises = [
+        // Meals
+        fetch(`http://127.0.0.1:8000/meal/child/${childId}?days=60`)
+          .then(res => res.json())
+          .then(allMeals => {
+            const mealsForDate = allMeals.filter((meal: any) => {
+              const mealDate = meal.check_in.split('T')[0]
+              return mealDate === dateStr
             })
-          }
-          
-          return matches
-        })
-        
-        console.log(`📅 Found ${mealsForDate.length} meals for ${dateStr}`)
-        rawMealsData.value = mealsForDate
-        
-      } catch (error) {
-        console.error('❌ Error fetching meals:', error)
-      }
+            console.log(`📅 Found ${mealsForDate.length} meals for ${dateStr}`)
+            rawMealsData.value = mealsForDate
+          })
+          .catch(error => console.error('❌ Error fetching meals:', error)),
 
-      // Fetch poop directly
-      try {
-        console.log(`💩 Fetching poop for child ${childId}`)
-        const response = await fetch(`http://127.0.0.1:8000/poop/child/${childId}?days=60`)
-        const allPoop = await response.json()
-        
-        console.log(`📊 API returned ${allPoop.length} total poop records`)
-        
-        // Filter poop for target date
-        // Filter poop for target date
-const poopForDate = allPoop.filter((poop: any) => {
-  // Handle both string and Date objects
-  let poopDate
-  if (typeof poop.check_in === 'string') {
-    poopDate = poop.check_in.split('T')[0] // Get YYYY-MM-DD part
-  } else {
-    // If it's already a Date object, convert to string
-    poopDate = new Date(poop.check_in).toISOString().split('T')[0]
-  }
-  
-  const matches = poopDate === dateStr
-  
-  if (matches) {
-    console.log(`✅ Poop ${poop.id}: ${poop.check_in} matches ${dateStr}`)
-  }
-  
-  return matches
-})
-        
-        console.log(`📅 Found ${poopForDate.length} poop records for ${dateStr}`)
-        rawPoopData.value = poopForDate
-        
-      } catch (error) {
-        console.error('❌ Error fetching poop:', error)
-      }
+        // Poop
+        fetch(`http://127.0.0.1:8000/poop/child/${childId}?days=60`)
+          .then(res => res.json())
+          .then(allPoop => {
+            const poopForDate = allPoop.filter((poop: any) => {
+              let poopDate
+              if (typeof poop.check_in === 'string') {
+                poopDate = poop.check_in.split('T')[0]
+              } else {
+                poopDate = new Date(poop.check_in).toISOString().split('T')[0]
+              }
+              return poopDate === dateStr
+            })
+            console.log(`📅 Found ${poopForDate.length} poop records for ${dateStr}`)
+            rawPoopData.value = poopForDate
+          })
+          .catch(error => console.error('❌ Error fetching poop:', error)),
 
+        // Sleep
+        fetch(`http://127.0.0.1:8000/sleep/child/${childId}?days=60`)
+          .then(res => res.json())
+          .then(allSleep => {
+            const sleepForDate = allSleep.filter((sleep: any) => {
+              let sleepDate
+              if (typeof sleep.check_in === 'string') {
+                sleepDate = sleep.check_in.split('T')[0]
+              } else {
+                sleepDate = new Date(sleep.check_in).toISOString().split('T')[0]
+              }
+              return sleepDate === dateStr
+            })
+            console.log(`📅 Found ${sleepForDate.length} sleep records for ${dateStr}`)
+            rawSleepData.value = sleepForDate
+          })
+          .catch(error => console.error('❌ Error fetching sleep:', error)),
+
+        // Growth
+        fetch(`http://127.0.0.1:8000/growth/child/${childId}?days=60`)
+          .then(res => res.json())
+          .then(allGrowth => {
+            const growthForDate = allGrowth.filter((growth: any) => {
+              let growthDate
+              if (typeof growth.check_in === 'string') {
+                growthDate = growth.check_in.split('T')[0]
+              } else {
+                growthDate = new Date(growth.check_in).toISOString().split('T')[0]
+              }
+              return growthDate === dateStr
+            })
+            console.log(`📅 Found ${growthForDate.length} growth records for ${dateStr}`)
+            rawGrowthData.value = growthForDate
+          })
+          .catch(error => console.error('❌ Error fetching growth:', error)),
+
+        // Health/Symptoms
+        fetch(`http://127.0.0.1:8000/symptom/child/${childId}?days=60`)
+          .then(res => res.json())
+          .then(allHealth => {
+            const healthForDate = allHealth.filter((health: any) => {
+              let healthDate
+              if (typeof health.check_in === 'string') {
+                healthDate = health.check_in.split('T')[0]
+              } else {
+                healthDate = new Date(health.check_in).toISOString().split('T')[0]
+              }
+              return healthDate === dateStr
+            })
+            console.log(`📅 Found ${healthForDate.length} health records for ${dateStr}`)
+            rawHealthData.value = healthForDate
+          })
+          .catch(error => console.error('❌ Error fetching health:', error))
+      ]
+
+      await Promise.all(promises)
       console.log(`✅ Timeline data loaded for ${dateStr}`)
+      
     } catch (error) {
       console.error('❌ Failed to load timeline data:', error)
     } finally {
@@ -1037,12 +1563,6 @@ const poopForDate = allPoop.filter((poop: any) => {
   watch(() => childrenStore.currentChild?.id, (newChildId) => {
     if (newChildId) {
       console.log(`Timeline updated for child: ${childrenStore.currentChild.name} (ID: ${newChildId})`)
-      
-      // Update mock data child IDs
-      mockCheckins.value.forEach(checkin => {
-        checkin.childId = newChildId
-      })
-      
       loadData()
     }
   }, { immediate: true })
@@ -1066,6 +1586,9 @@ const poopForDate = allPoop.filter((poop: any) => {
     editCheckin,
     deleteCheckin,
   })
+
+
+  
 </script>
 
 <style lang="scss" scoped>

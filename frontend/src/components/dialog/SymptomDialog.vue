@@ -5,13 +5,13 @@
     :loading="loading"
     max-width="800px"
     :model-value="modelValue"
-    :notes="notes"
+    :notes="localNotes"
     subtitle="Does Pui Sim have any symptoms?"
     title="Health"
     @close="handleClose"
     @save="handleSave"
     @update:model-value="handleDialogUpdate"
-    @update:notes="$emit('update:notes', $event)"
+    @update:notes="updateNotes"
   >
     <template #custom-content>
       <div class="symptoms-content">
@@ -123,12 +123,11 @@
 <script setup lang="ts">
   import BaseCheckInDialog from './BaseCheckInDialog.vue'
   import { useCheckinStore } from '@/stores/checkin' 
-   import { nextTick, ref, watch, computed } from 'vue'
+  import { nextTick, ref, watch, computed } from 'vue'
   import { useSymptomOptions } from '@/composables/useSymptomOptions'
   import type { SymptomsData } from '@/stores/checkin'
 
   const checkinStore = useCheckinStore()
-
 
   const props = defineProps({
     modelValue: {
@@ -159,6 +158,11 @@
       type: String,
       default: '',
     },
+    // NEW: Add editing mode support
+    isEditing: {
+      type: Boolean,
+      default: false,
+    },
   })
 
   const emit = defineEmits([
@@ -171,8 +175,6 @@
     'close',
   ])
 
-
-
   const {
     symptomOptions,
     isLoading: isSymptomOptionsLoading,
@@ -183,19 +185,27 @@
   const selectedFile = ref(null)
   const fileInput = ref(null)
   const errors = ref({})
-
   const localOtherSymptom = ref('')
+  const localNotes = ref('')
   const imagePreview = ref(null)
-
 
   let symptomsTimeout = null
   let otherSymptomTimeout = null
 
   watch(() => props.modelValue, newValue => {
     if (newValue) {
+      console.log('🏥 Health dialog opened, isEditing:', props.isEditing)
+      console.log('🏥 Props:', {
+        symptoms: props.symptoms,
+        otherSymptom: props.otherSymptom,
+        notes: props.notes,
+        photo: props.photo
+      })
+      
       localSymptoms.value = [...(props.symptoms || [])]
       selectedFile.value = props.photo || null
       localOtherSymptom.value = props.otherSymptom || ''
+      localNotes.value = props.notes || ''
       imagePreview.value = null
 
       if (props.photo) {
@@ -229,10 +239,18 @@
     }
   })
 
+  watch(() => props.notes, newValue => {
+    if (props.modelValue) {
+      localNotes.value = newValue || ''
+    }
+  })
+
   watch(localSymptoms, newValue => {
     if (symptomsTimeout) clearTimeout(symptomsTimeout)
     symptomsTimeout = setTimeout(() => {
-      emit('update:symptoms', newValue)
+      if (props.isEditing) {
+        emit('update:symptoms', newValue)
+      }
       if (newValue && newValue.length > 0 && errors.value.symptoms) {
         delete errors.value.symptoms
       }
@@ -242,7 +260,9 @@
   watch(localOtherSymptom, newValue => {
     if (otherSymptomTimeout) clearTimeout(otherSymptomTimeout)
     otherSymptomTimeout = setTimeout(() => {
-      emit('update:otherSymptom', newValue)
+      if (props.isEditing) {
+        emit('update:otherSymptom', newValue)
+      }
       if (newValue && errors.value.otherSymptom) {
         delete errors.value.otherSymptom
       }
@@ -250,13 +270,22 @@
   })
 
   watch(selectedFile, newValue => {
-    emit('update:photo', newValue)
+    if (props.isEditing) {
+      emit('update:photo', newValue)
+    }
     if (newValue) {
       createImagePreview(newValue)
     } else {
       imagePreview.value = null
     }
   })
+
+  const updateNotes = (notes: string) => {
+    localNotes.value = notes
+    if (props.isEditing) {
+      emit('update:notes', notes)
+    }
+  }
 
   // Methods
   const toggleSymptom = symptom => {
@@ -315,7 +344,6 @@
     }
   }
 
-
   const clearError = field => {
     if (errors.value[field]) {
       delete errors.value[field]
@@ -359,6 +387,7 @@
         localSymptoms.value = []
         selectedFile.value = null
         localOtherSymptom.value = ''
+        localNotes.value = ''
         imagePreview.value = null
       })
     }
@@ -369,6 +398,7 @@
     localSymptoms.value = []
     selectedFile.value = null
     localOtherSymptom.value = ''
+    localNotes.value = ''
     imagePreview.value = null
     emit('close')
   }
@@ -378,49 +408,62 @@
     localSymptoms.value = []
     selectedFile.value = null
     localOtherSymptom.value = ''
+    localNotes.value = ''
     imagePreview.value = null
   }
 
-
-
   // Handle save
   const handleSave = async () => {
+    console.log('🏥 Health dialog handleSave clicked!')
+    console.log('🔍 isEditing:', props.isEditing)
+    
     if (!validateForm()) {
+      console.log('❌ Health validation failed')
       return
     }
 
-    try {
-      const symptomsData: SymptomsData = {
-        symptoms: localSymptoms.value,
-        photo: selectedFile.value,
-        otherSymptom: localOtherSymptom.value,
-        notes: props.notes,
+    const symptomsData: SymptomsData = {
+      symptoms: localSymptoms.value,
+      photo: selectedFile.value,
+      otherSymptom: localOtherSymptom.value,
+      notes: localNotes.value,
+    }
+
+    console.log('🏥 Health data to save:', symptomsData)
+    errors.value = {}
+
+    if (props.isEditing) {
+      // 🖊️ EDIT MODE: Just emit to parent timeline, don't call store
+      console.log('📝 Edit mode: emitting save to timeline')
+      emit('save', symptomsData)
+    } else {
+      // ➕ CREATE MODE: Call store to create new entry (normal check-in)
+      console.log('➕ Create mode: calling checkinStore.saveSymptoms for new entry')
+      
+      try {
+        console.log('💾 Saving symptoms directly:', symptomsData)
+
+        // Save using the checkin store
+        await checkinStore.saveSymptoms(symptomsData)
+
+        console.log('✅ Symptoms saved successfully')
+
+        // Emit save event for parent component
+        emit('save')
+        // Close dialog and reset form
+        resetFormData()
+        emit('update:modelValue', false)
+
+      } catch (error) {
+        console.error('❌ Failed to save symptoms:', error)
+        // Dialog stays open so user can retry
+        // Error is already handled by the store and displayed via checkinStore.error
       }
-
-      console.log('💾 Saving symptoms directly:', symptomsData)
-
-      // Save using the checkin store
-      await checkinStore.saveSymptoms(symptomsData)
-
-      console.log('✅ Symptoms saved successfully')
-
-      // Emit save event for parent component
-      emit('save')
-      // Close dialog and reset form
-      resetFormData()
-      emit('update:modelValue', false)
-
-    } catch (error) {
-      console.error('❌ Failed to save symptoms:', error)
-      // Dialog stays open so user can retry
-      // Error is already handled by the store and displayed via checkinStore.error
     }
   }
 </script>
 
 <style scoped>
-
-
 .symptoms-content {
     display: flex;
     flex-direction: column;

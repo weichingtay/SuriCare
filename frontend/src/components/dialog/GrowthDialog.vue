@@ -5,13 +5,13 @@
     :loading="loading"
     max-width="841px"
     :model-value="modelValue"
-    :notes="notes"
+    :notes="localNotes"
     subtitle="How is Jennie growing?"
     title="Growth"
     @close="handleClose"
     @save="handleSave"
     @update:model-value="handleDialogUpdate"
-    @update:notes="$emit('update:notes', $event)"
+    @update:notes="updateNotes"
   >
     <template #custom-content>
       <div class="growth-content">
@@ -103,6 +103,7 @@
 <script setup lang="ts">
   import { nextTick, ref, watch } from 'vue'
   import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
+  import { useCheckinStore } from '@/stores/checkin'
 
   const props = defineProps({
     // Dialog Control
@@ -136,6 +137,12 @@
       type: Boolean,
       default: false,
     },
+
+    // NEW: Add editing mode support
+    isEditing: {
+      type: Boolean,
+      default: false,
+    },
   })
 
   const emit = defineEmits([
@@ -148,40 +155,59 @@
     'close',
   ])
 
+  const checkinStore = useCheckinStore()
+
   // Local reactive variables for measurements
   const localWeight = ref('')
   const localHeight = ref('')
   const localHeadCircumference = ref('')
+  const localNotes = ref('')
   const errors = ref({})
 
   // Initialize local values when dialog opens
   watch(() => props.modelValue, newValue => {
     if (newValue) {
+      console.log('📏 Growth dialog opened, isEditing:', props.isEditing)
+      console.log('📏 Props:', {
+        weight: props.weight,
+        height: props.height,
+        headCircumference: props.headCircumference,
+        notes: props.notes
+      })
+      
       // Reset form when opening dialog
-      localWeight.value = props.weight || ''
-      localHeight.value = props.height || ''
-      localHeadCircumference.value = props.headCircumference || ''
+      localWeight.value = props.weight?.toString() || ''
+      localHeight.value = props.height?.toString() || ''
+      localHeadCircumference.value = props.headCircumference?.toString() || ''
+      localNotes.value = props.notes || ''
+      
       // Clear all errors when opening
       errors.value = {}
     }
   }, { immediate: true })
 
-  // Watch for prop changes and update local values
+  // Watch for prop changes and update local values (for editing mode)
   watch(() => props.weight, newValue => {
     if (props.modelValue) {
-      localWeight.value = newValue || ''
+      localWeight.value = newValue?.toString() || ''
     }
   })
 
   watch(() => props.height, newValue => {
     if (props.modelValue) {
-      localHeight.value = newValue || ''
+      localHeight.value = newValue?.toString() || ''
     }
   })
 
   watch(() => props.headCircumference, newValue => {
     if (props.modelValue) {
-      localHeadCircumference.value = newValue || ''
+      localHeadCircumference.value = newValue?.toString() || ''
+    }
+  })
+
+  watch(() => props.notes, newValue => {
+    if (props.modelValue) {
+      localNotes.value = newValue || ''
     }
   })
 
@@ -193,23 +219,36 @@
   watch(localWeight, newValue => {
     if (weightTimeout) clearTimeout(weightTimeout)
     weightTimeout = setTimeout(() => {
-      emit('update:weight', newValue)
+      if (props.isEditing) {
+        emit('update:weight', newValue)
+      }
     }, 100)
   })
 
   watch(localHeight, newValue => {
     if (heightTimeout) clearTimeout(heightTimeout)
     heightTimeout = setTimeout(() => {
-      emit('update:height', newValue)
+      if (props.isEditing) {
+        emit('update:height', newValue)
+      }
     }, 100)
   })
 
   watch(localHeadCircumference, newValue => {
     if (headTimeout) clearTimeout(headTimeout)
     headTimeout = setTimeout(() => {
-      emit('update:headCircumference', newValue)
+      if (props.isEditing) {
+        emit('update:headCircumference', newValue)
+      }
     }, 100)
   })
+
+  const updateNotes = (notes: string) => {
+    localNotes.value = notes
+    if (props.isEditing) {
+      emit('update:notes', notes)
+    }
+  }
 
   // Clear specific error when user starts typing
   const clearError = field => {
@@ -288,6 +327,7 @@
         localWeight.value = ''
         localHeight.value = ''
         localHeadCircumference.value = ''
+        localNotes.value = ''
       })
     }
   }
@@ -298,39 +338,50 @@
     localWeight.value = ''
     localHeight.value = ''
     localHeadCircumference.value = ''
+    localNotes.value = ''
     emit('close')
   }
 
   // Handle save action
- import { useCheckinStore } from '@/stores/checkin'
+  const handleSave = async () => {
+    console.log('📏 Growth dialog handleSave clicked!')
+    console.log('🔍 isEditing:', props.isEditing)
+    
+    if (!validateForm()) {
+      console.log('❌ Growth validation failed')
+      return
+    }
 
-const checkinStore = useCheckinStore()
+    const growthData = {
+      weight: localWeight.value,
+      height: localHeight.value,
+      headCircumference: localHeadCircumference.value,
+      notes: localNotes.value,
+    }
 
-const handleSave = async () => {
-  if (!validateForm()) {
-    return
+    console.log('📏 Growth data to save:', growthData)
+    errors.value = {}
+
+    if (props.isEditing) {
+      // 🖊️ EDIT MODE: Just emit to parent timeline, don't call store
+      console.log('📝 Edit mode: emitting save to timeline')
+      emit('save', growthData)
+    } else {
+      // ➕ CREATE MODE: Call store to create new entry (normal check-in)
+      console.log('➕ Create mode: calling checkinStore.saveGrowth for new entry')
+      
+      try {
+        await checkinStore.saveGrowth(growthData)
+        console.log('✅ Growth save completed successfully!')
+        
+        // Dialog will close automatically on success
+        emit('close')
+      } catch (error) {
+        // Error is handled by the store, just show it if needed
+        console.error('Failed to save growth data:', error)
+      }
+    }
   }
-
-  const growthData = {
-    weight: localWeight.value,
-    height: localHeight.value,
-    headCircumference: localHeadCircumference.value,
-    notes: props.notes,
-  }
-
-  errors.value = {}
-
-   // Save directly to store (which handles backend integration)
-  try {
-    await checkinStore.saveGrowth(growthData)
-    // Dialog will close automatically on success
-    emit('close')
-  } catch (error) {
-    // Error is handled by the store, just show it if needed
-    console.error('Failed to save growth data:', error)
-  }
-}
-
 </script>
 
 <style scoped>
@@ -375,6 +426,4 @@ const handleSave = async () => {
     font-size: 12px;
     margin-top: 8px;
 }
-
-
 </style>
