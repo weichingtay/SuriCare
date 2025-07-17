@@ -100,11 +100,35 @@ def update_symptom(*, session: Session = Depends(get_session), symptom_id: int, 
         if not symptom:
             raise HTTPException(status_code=404, detail=f"Symptom ID #{symptom_id} not found")
         
-        # Update fields
-        symptom.check_in = symptom_update.check_in
+        print(f"🔄 Updating symptom {symptom_id}")
+        print(f"📝 Original check_in: {symptom.check_in} (type: {type(symptom.check_in)})")
+        print(f"📝 Update check_in: {symptom_update.check_in} (type: {type(symptom_update.check_in)})")
+        
+        # FIXED: Handle check_in conversion properly
+        if symptom_update.check_in is not None:
+            if isinstance(symptom_update.check_in, (int, float)):
+                # Convert milliseconds timestamp to datetime
+                if symptom_update.check_in > 1_000_000_000_000:  # If it's in milliseconds
+                    symptom.check_in = datetime.fromtimestamp(symptom_update.check_in / 1000)
+                else:  # If it's in seconds
+                    symptom.check_in = datetime.fromtimestamp(symptom_update.check_in)
+            elif isinstance(symptom_update.check_in, str):
+                # Convert string to datetime
+                symptom.check_in = datetime.fromisoformat(symptom_update.check_in.replace('Z', '+00:00'))
+            elif isinstance(symptom_update.check_in, datetime):
+                # Already datetime
+                symptom.check_in = symptom_update.check_in
+            else:
+                # Keep original if we can't convert
+                print(f"⚠️ Unknown check_in type: {type(symptom_update.check_in)}, keeping original")
+        
+        # Update other fields
         symptom.symptom = symptom_update.symptom
         symptom.photo_url = symptom_update.photo_url
         symptom.note = symptom_update.note
+        symptom.child_id = symptom_update.child_id
+        
+        print(f"✅ Final check_in: {symptom.check_in} (type: {type(symptom.check_in)})")
         
         session.add(symptom)
         session.commit()
@@ -114,6 +138,7 @@ def update_symptom(*, session: Session = Depends(get_session), symptom_id: int, 
     except HTTPException:
         raise
     except Exception as e:
+        print(f"❌ Error updating symptom: {str(e)}")
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to update symptom: {str(e)}")
 

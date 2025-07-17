@@ -1442,122 +1442,76 @@ const deleteConfirmDialog = ref({
   //------------------NEW------------------
   // Load real data when component mounts or date changes
   const loadData = async () => {
-    if (!childrenStore.currentChild) {
-      console.warn('No current child selected')
-      return
-    }
-
-    isLoading.value = true
-    try {
-      const dateStr = selectedDateString.value
-      console.log(`🔄 Loading timeline data for ${dateStr}`)
-
-      // Clear previous data
-      rawMealsData.value = []
-      rawPoopData.value = []
-      rawSleepData.value = []
-      rawGrowthData.value = []
-      rawHealthData.value = []
-
-      const childId = childrenStore.currentChild.id
-      
-      // Fetch all data types in parallel
-      const promises = [
-        // Meals
-        fetch(`http://127.0.0.1:8000/meal/child/${childId}?days=60`)
-          .then(res => res.json())
-          .then(allMeals => {
-            const mealsForDate = allMeals.filter((meal: any) => {
-              const mealDate = meal.check_in.split('T')[0]
-              return mealDate === dateStr
-            })
-            console.log(`📅 Found ${mealsForDate.length} meals for ${dateStr}`)
-            rawMealsData.value = mealsForDate
-          })
-          .catch(error => console.error('❌ Error fetching meals:', error)),
-
-        // Poop
-        fetch(`http://127.0.0.1:8000/poop/child/${childId}?days=60`)
-          .then(res => res.json())
-          .then(allPoop => {
-            const poopForDate = allPoop.filter((poop: any) => {
-              let poopDate
-              if (typeof poop.check_in === 'string') {
-                poopDate = poop.check_in.split('T')[0]
-              } else {
-                poopDate = new Date(poop.check_in).toISOString().split('T')[0]
-              }
-              return poopDate === dateStr
-            })
-            console.log(`📅 Found ${poopForDate.length} poop records for ${dateStr}`)
-            rawPoopData.value = poopForDate
-          })
-          .catch(error => console.error('❌ Error fetching poop:', error)),
-
-        // Sleep
-        fetch(`http://127.0.0.1:8000/sleep/child/${childId}?days=60`)
-          .then(res => res.json())
-          .then(allSleep => {
-            const sleepForDate = allSleep.filter((sleep: any) => {
-              let sleepDate
-              if (typeof sleep.check_in === 'string') {
-                sleepDate = sleep.check_in.split('T')[0]
-              } else {
-                sleepDate = new Date(sleep.check_in).toISOString().split('T')[0]
-              }
-              return sleepDate === dateStr
-            })
-            console.log(`📅 Found ${sleepForDate.length} sleep records for ${dateStr}`)
-            rawSleepData.value = sleepForDate
-          })
-          .catch(error => console.error('❌ Error fetching sleep:', error)),
-
-        // Growth
-        fetch(`http://127.0.0.1:8000/growth/child/${childId}?days=60`)
-          .then(res => res.json())
-          .then(allGrowth => {
-            const growthForDate = allGrowth.filter((growth: any) => {
-              let growthDate
-              if (typeof growth.check_in === 'string') {
-                growthDate = growth.check_in.split('T')[0]
-              } else {
-                growthDate = new Date(growth.check_in).toISOString().split('T')[0]
-              }
-              return growthDate === dateStr
-            })
-            console.log(`📅 Found ${growthForDate.length} growth records for ${dateStr}`)
-            rawGrowthData.value = growthForDate
-          })
-          .catch(error => console.error('❌ Error fetching growth:', error)),
-
-        // Health/Symptoms
-        fetch(`http://127.0.0.1:8000/symptom/child/${childId}?days=60`)
-          .then(res => res.json())
-          .then(allHealth => {
-            const healthForDate = allHealth.filter((health: any) => {
-              let healthDate
-              if (typeof health.check_in === 'string') {
-                healthDate = health.check_in.split('T')[0]
-              } else {
-                healthDate = new Date(health.check_in).toISOString().split('T')[0]
-              }
-              return healthDate === dateStr
-            })
-            console.log(`📅 Found ${healthForDate.length} health records for ${dateStr}`)
-            rawHealthData.value = healthForDate
-          })
-          .catch(error => console.error('❌ Error fetching health:', error))
-      ]
-
-      await Promise.all(promises)
-      console.log(`✅ Timeline data loaded for ${dateStr}`)
-      
-    } catch (error) {
-      console.error('❌ Failed to load timeline data:', error)
-    } finally {
-      isLoading.value = false
-    }
+  if (!childrenStore.currentChild) {
+    console.warn('No current child selected')
+    return
   }
+
+  isLoading.value = true
+  try {
+    console.log(`🔄 Loading timeline data for ${viewMode.value} view`)
+
+    // Clear previous data
+    rawMealsData.value = []
+    rawPoopData.value = []
+    rawSleepData.value = []
+    rawGrowthData.value = []
+    rawHealthData.value = []
+
+    const childId = childrenStore.currentChild.id
+    
+    // Fetch all data types in parallel (get more days for weekly/monthly)
+    const promises = [
+      // Meals - get 60 days and filter in frontend
+      fetch(`http://127.0.0.1:8000/meal/child/${childId}?days=60`)
+        .then(res => res.json())
+        .then(allMeals => {
+          console.log(`📊 Got ${allMeals.length} total meals`)
+          rawMealsData.value = allMeals  // ← STORE ALL MEALS, DON'T FILTER HERE
+        }),
+
+      // Poop - get 60 days  
+      fetch(`http://127.0.0.1:8000/poop/child/${childId}?days=60`)
+        .then(res => res.json())
+        .then(allPoop => {
+          console.log(`📊 Got ${allPoop.length} total poop records`)
+          rawPoopData.value = allPoop  // ← STORE ALL, DON'T FILTER HERE
+        }),
+
+      // Sleep - get 60 days
+      fetch(`http://127.0.0.1:8000/sleep/child/${childId}?days=60`)
+        .then(res => res.json())
+        .then(allSleep => {
+          console.log(`📊 Got ${allSleep.length} total sleep records`)
+          rawSleepData.value = allSleep  // ← STORE ALL, DON'T FILTER HERE
+        }),
+
+      // Growth - get 60 days
+      fetch(`http://127.0.0.1:8000/growth/child/${childId}?days=60`)
+        .then(res => res.json())
+        .then(allGrowth => {
+          console.log(`📊 Got ${allGrowth.length} total growth records`)
+          rawGrowthData.value = allGrowth  // ← STORE ALL, DON'T FILTER HERE
+        }),
+
+      // Health - get 60 days
+      fetch(`http://127.0.0.1:8000/symptom/child/${childId}?days=60`)
+        .then(res => res.json())
+        .then(allHealth => {
+          console.log(`📊 Got ${allHealth.length} total health records`)
+          rawHealthData.value = allHealth  // ← STORE ALL, DON'T FILTER HERE
+        })
+    ]
+
+    await Promise.all(promises)
+    console.log(`✅ All data loaded - let filteredCheckins do the filtering!`)
+    
+  } catch (error) {
+    console.error('❌ Failed to load timeline data:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
 
   // Watch for child changes
   watch(() => childrenStore.currentChild?.id, (newChildId) => {
@@ -1571,6 +1525,13 @@ const deleteConfirmDialog = ref({
   watch(selectedDateString, () => {
     loadData()
   })
+
+  // Add this new watcher after your existing watchers
+  watch(viewMode, () => {
+    console.log(`📍 View mode changed to: ${viewMode.value}`)
+    loadData() // Reload data when view mode changes
+  })
+
 
   // Initialize
   onMounted(() => {
