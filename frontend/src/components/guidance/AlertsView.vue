@@ -34,13 +34,12 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue'
   import AlertCard from './AlertCard.vue'
+  import { useGuidanceAlert } from '@/composables/useGuidanceAlert'
 
-  // TODO: Replace with actual alerts from store
-  const alerts = ref([])
+  const { alerts, removeAlert } = useGuidanceAlert()
 
   const handleReadAlert = (id: number) => {
-    alerts.value = alerts.value.filter(alert => alert.id !== id)
+    removeAlert(id)
   }
 </script>

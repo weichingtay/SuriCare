@@ -1,5 +1,4 @@
 <!-- TODO: USE AI HERE INSTEAD OF HEALTH!! -->
-
 <template>
     <div
         v-if="hasHealthAlert"
@@ -8,7 +7,6 @@
         <h2 class="text-body-1 font-weight-medium mb-3">
             {{ currentChild.name }}'s Smart Alert
         </h2>
-
         <v-alert
             class="health-alert"
             color="#FFF2F0"
@@ -47,7 +45,7 @@
                     color="#FF5252"
                     size="small"
                     variant="flat"
-                    @click="handleViewMore"
+                    @click="navigateToAlerts"
                 >
                     View More
                 </v-btn>
@@ -57,31 +55,26 @@
 </template>
 
 <script setup lang="ts">
-    // ------DEMO-------
-    import { useHealthAlert } from '@/composables/useHealthAlert'
-    // import { ref, computed } from 'vue'
+  import { useRouter } from 'vue-router'
+  import { useHealthAlert } from '@/composables/useHealthAlert'
 
-    const props = defineProps({
-      currentChild: {
-        type: Object,
-        required: true,
-      },
-    })
+  const props = defineProps({
+    currentChild: {
+      type: Object,
+      required: true,
+    },
+  })
 
-     const emit = defineEmits(['view-more'])
+  const emit = defineEmits(['view-more'])
+  const router = useRouter()
 
-    const { healthData, hasHealthAlert } = useHealthAlert()
-    // TODO: Replace with actual health alert data from store
-    // const healthData = ref({
-    //   status: 'No alerts',
-    //   message: 'Everything looks normal',
-    //   symptoms: [],
-    //   temperature: null
-    // })
+  const { healthData, hasHealthAlert } = useHealthAlert()
 
-    // const hasHealthAlert = computed(() => false) // TODO: Implement actual alert logic
-
-    const handleviewmore = () => {
-      emit('view-more', healthData.value)
-     }
+  const navigateToAlerts = () => {
+    // Navigate to guidance page with alert tab active
+    router.push('/guidance?tab=alert')
+    
+    // Also emit the event for any parent component that might need it
+    emit('view-more', healthData.value)
+  }
 </script>

@@ -47,9 +47,9 @@
 <script setup lang="ts">
   import { onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { useGuidanceAlert } from '@/composables/useGuidanceAlert'
 
-  // TODO: Replace with actual alert count from store
-  const alertsCount = ref(0)
+  const { alertsCount } = useGuidanceAlert()
   const route = useRoute()
   const router = useRouter()
 
@@ -81,7 +81,7 @@
   watch(
     () => route.query.tab,
     (newTab) => {
-      if (newTab && ['guidance', 'alert', 'saved'].includes(newTab)) {
+      if (newTab && ['guidance', 'alert', 'saved'].includes(tabFromQuery)) {
         activeTab.value = newTab
         emit('tab-changed', newTab)
       }
