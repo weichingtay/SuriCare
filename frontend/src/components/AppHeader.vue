@@ -256,11 +256,23 @@
   import { useShareChild } from '@/composables/useShareChild'
   import { useGrowthDialog } from '@/composables/useGrowthDialog'
   import GrowthDialog from '../components/dialog/GrowthDialog.vue'
+  
+  // ADD THESE STORE IMPORTS
+  import { useMealsStore } from '@/stores/meals'
+  import { useSleepStore } from '@/stores/sleep'
+  import { usePoopStore } from '@/stores/poop'
+  import { useHealthStore } from '@/stores/health'
 
   import type { Child } from '@/stores/children'
 
   // Router
   const router = useRouter()
+
+  // ADD THESE STORE INSTANCES
+  const mealsStore = useMealsStore()
+  const sleepStore = useSleepStore()
+  const poopStore = usePoopStore()
+  const healthStore = useHealthStore()
 
   // Props
   const props = defineProps<{
@@ -269,18 +281,47 @@
   }>()
 
   // Emits
-const emit = defineEmits<{
-  'child-selected': [child: Child]
-}>()
+  const emit = defineEmits<{
+    'child-selected': [child: Child]
+  }>()
 
-  // Methods
-  const selectChild = (child: Child) => {
+  // FIXED selectChild function with cache clearing
+  const selectChild = async (child: Child) => {
+    console.log('🔄 Child changed to:', child.name)
+    
+    // Clear all store caches when child changes
+    console.log('🗑️ Clearing all store caches for child switch...')
+    
+    // Clear all caches
+    if (mealsStore.invalidateCache) {
+      mealsStore.invalidateCache()
+      console.log('✅ Cleared meals cache')
+    }
+    
+    if (sleepStore.invalidateCache) {
+      sleepStore.invalidateCache()
+      console.log('✅ Cleared sleep cache')
+    }
+    
+    if (poopStore.invalidateCache) {
+      poopStore.invalidateCache()
+      console.log('✅ Cleared poop cache')
+    }
+    
+    if (healthStore.invalidateCache) {
+      healthStore.invalidateCache()
+      console.log('✅ Cleared health cache')
+    }
+    
+    console.log('✅ All store caches cleared for child switch')
+    
+    // Then emit child change
     emit('child-selected', child)
   }
 
- const addNewChild = () => {
-  router.push('/addchild')
-}
+  const addNewChild = () => {
+    router.push('/addchild')
+  }
 
   // Growth dialog logic
   const {
