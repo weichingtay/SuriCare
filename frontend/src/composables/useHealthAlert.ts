@@ -1,7 +1,9 @@
-// src/composables/useHealthAlert.ts - Based on Working Meal Code + Sleep
+// src/composables/useHealthAlert.ts - Enhanced with Meals, Sleep, Poop, and Health Analysis
 import { ref, computed } from 'vue'
 import { useMealsStore } from '@/stores/meals'
 import { useSleepStore } from '@/stores/sleep'
+import { usePoopStore } from '@/stores/poop'
+import { useHealthStore } from '@/stores/health'
 import { useChildrenStore } from '@/stores/children'
 
 interface SimpleAlert {
@@ -21,6 +23,8 @@ export function useHealthAlert() {
   const childrenStore = useChildrenStore()
   const mealsStore = useMealsStore()
   const sleepStore = useSleepStore()
+  const poopStore = usePoopStore()
+  const healthStore = useHealthStore()
 
   // STABLE: Single source of truth for alerts
   const alerts = ref<SimpleAlert[]>([])
@@ -39,7 +43,7 @@ export function useHealthAlert() {
     }).reverse()
   }
 
-  // FIXED: Use the same data source as the summary card
+  // WORKING: Use the same data source as the summary card (FROM YOUR REFERENCE)
   const getMealsDataForDate = async (dateString: string) => {
     console.log(`📡 Getting meals data for ${dateString} via store`)
     
@@ -54,22 +58,40 @@ export function useHealthAlert() {
     return mealsData
   }
 
-  // ADDED: Get sleep data using store (same pattern as meals)
+  // ADDED: Get sleep data (same pattern as working meals)
   const getSleepDataForDate = async (dateString: string) => {
     console.log(`💤 Getting sleep data for ${dateString} via store`)
     
-    // Ensure data is fetched
     await sleepStore.fetchSleepForDate(dateString)
-    
-    // Get processed data from store (same as summary card)
     const sleepData = sleepStore.getSleepForDate(dateString)
     
     console.log(`📊 Sleep store returned data for ${dateString}:`, sleepData)
-    
     return sleepData
   }
 
-  // FIXED: Calculate average consumption using store data
+  // ADDED: Get poop data (same pattern as working meals)
+  const getPoopDataForDate = async (dateString: string) => {
+    console.log(`💩 Getting poop data for ${dateString} via store`)
+    
+    await poopStore.fetchPoopForDate(dateString)
+    const poopData = poopStore.getPoopForDate(dateString)
+    
+    console.log(`📊 Poop store returned data for ${dateString}:`, poopData)
+    return poopData
+  }
+
+  // ADDED: Get health data (same pattern as working meals)
+  const getHealthDataForDate = async (dateString: string) => {
+    console.log(`🏥 Getting health data for ${dateString} via store`)
+    
+    await healthStore.fetchHealthForDate(dateString)
+    const healthData = healthStore.getHealthForDate(dateString)
+    
+    console.log(`📊 Health store returned data for ${dateString}:`, healthData)
+    return healthData
+  }
+
+  // WORKING: Calculate average consumption using store data (FROM YOUR REFERENCE)
   const calculateAverageConsumption = (mealsData: any): number => {
     if (!mealsData.statistics || Object.keys(mealsData.statistics).length === 0) {
       console.log('  - No meal statistics available')
@@ -95,191 +117,7 @@ export function useHealthAlert() {
     return overallAverage
   }
 
-  // ADDED: Create combined alert when multiple issues detected
-  const createCombinedAlert = (mealAlert: SimpleAlert, sleepAlert: SimpleAlert): SimpleAlert => {
-    console.log('🔗 Creating combined alert from:', {
-      meal: mealAlert.title,
-      sleep: sleepAlert.title
-    })
-
-    // Determine combined severity (error takes priority over warning)
-    const combinedType = (mealAlert.type === 'error' || sleepAlert.type === 'error') ? 'error' : 'warning'
-    
-    // Create smart combined title based on severity levels
-    let combinedTitle = ''
-    if (combinedType === 'error') {
-      combinedTitle = 'Multiple Health Concerns Detected'
-    } else {
-      combinedTitle = 'Multiple Pattern Changes Detected'
-    }
-
-    // Create combined description
-    const mealIssue = mealAlert.title.includes('Significant') ? 'poor appetite' : 'reduced appetite'
-    const sleepIssue = sleepAlert.title.includes('Persistent') ? 'sleep disruption' : 'sleep concerns'
-    
-    const combinedDescription = `${currentChild.value?.name || 'Your child'} is showing both ${mealIssue} and ${sleepIssue} patterns that may be related`
-
-    // Combine suggestions from both alerts
-    const combinedSuggestions = [
-      {
-        id: 1,
-        title: 'Monitor for Illness Signs',
-        content: 'Both appetite and sleep changes can indicate illness, teething, or developmental changes. Watch for fever, congestion, or unusual fussiness.'
-      },
-      {
-        id: 2,
-        title: 'Maintain Comfort & Routine',
-        content: 'Focus on comforting foods your child enjoys and maintain consistent sleep routines to help during this challenging period.'
-      },
-      {
-        id: 3,
-        title: combinedType === 'error' ? 'Consider Medical Consultation' : 'Continue Close Monitoring',
-        content: combinedType === 'error' 
-          ? 'Multiple persistent changes may indicate a health issue that warrants professional assessment.'
-          : 'Keep tracking patterns closely as combined changes often resolve together once the underlying cause is addressed.'
-      }
-    ]
-
-    const combinedAlert: SimpleAlert = {
-      id: 'combined-health-concerns',
-      title: combinedTitle,
-      description: combinedDescription,
-      type: combinedType,
-      suggestions: combinedSuggestions
-    }
-
-    console.log('🔗 Combined alert created:', combinedAlert.title)
-    return combinedAlert
-  }
-
-  // ADDED: Check sleep patterns (following exact same pattern as meals)
-  const checkSleepPatterns = async (contextDate: string): Promise<SimpleAlert | null> => {
-    console.log('💤 Checking sleep patterns for:', contextDate)
-    
-    if (!currentChild.value?.id) {
-      console.log('❌ No current child available')
-      return null
-    }
-
-    const last7Days = getLast7Days(contextDate)
-    console.log('📅 Analyzing sleep dates:', last7Days)
-    
-    let concerningSleepDays = 0  // 6-9 hours total sleep
-    let poorSleepDays = 0        // <6 hours total sleep
-    let restlessDays = 0         // 3+ wake-ups
-    let totalDaysWithData = 0
-
-    // Use Promise.all to ensure all data is fetched (same as meals)
-    const dailySleepDataPromises = last7Days.map(date => getSleepDataForDate(date))
-    const dailySleepResults = await Promise.all(dailySleepDataPromises)
-
-    last7Days.forEach((date, index) => {
-      const sleepData = dailySleepResults[index]
-      
-      console.log(`💤 Checking sleep for ${date}:`)
-      
-      // Check if we have sleep data (same pattern as meals - check if real data exists)
-      const hasSleepData = sleepData.totalHours > 0 || sleepData.sleepSessions > 0
-      
-      if (hasSleepData) {
-        const totalHours = sleepData.totalHours || 0
-        const wakeCount = sleepData.wakeCount || 0
-        totalDaysWithData++
-        
-        console.log(`  - Sleep data: ${totalHours}h total, ${wakeCount} wake-ups`)
-        
-        if (totalHours < 6) {
-          poorSleepDays++
-          console.log(`  - 🚨 Poor sleep day detected (${totalHours}h < 6h)`)
-        } else if (totalHours < 9) {
-          concerningSleepDays++
-          console.log(`  - ⚠️ Concerning sleep day (${totalHours}h = 6-9h)`)
-        } else {
-          console.log(`  - ✅ Good sleep day (${totalHours}h >= 9h)`)
-        }
-        
-        if (wakeCount >= 3) {
-          restlessDays++
-          console.log(`  - 😰 Restless sleep detected (${wakeCount} wake-ups >= 3)`)
-        }
-      } else {
-        console.log(`  - No sleep data for ${date}`)
-      }
-    })
-
-    console.log(`📈 Sleep Summary: ${poorSleepDays} poor days, ${concerningSleepDays} concerning days, ${restlessDays} restless days, ${totalDaysWithData} total days with data`)
-
-    // ADDED: Sleep alert conditions (following same pattern as meals)
-    
-    // Severe sleep alert: 2+ days with <6 hours OR 2+ very restless days
-    if ((poorSleepDays >= 2 || restlessDays >= 2) && totalDaysWithData >= 3) {
-      const isRestlessnessPrimary = restlessDays >= poorSleepDays
-      
-      const alert: SimpleAlert = {
-        id: 'sleep-severe-disruption',
-        title: isRestlessnessPrimary ? 'Persistent Sleep Disruption Detected' : 'Severe Sleep Deprivation Detected',
-        description: isRestlessnessPrimary 
-          ? `${currentChild.value?.name || 'Your child'} has experienced restless sleep with frequent wake-ups for ${restlessDays} days over the past ${totalDaysWithData} days`
-          : `${currentChild.value?.name || 'Your child'} has had severely insufficient sleep (<6 hours) for ${poorSleepDays} days over the past ${totalDaysWithData} days`,
-        type: 'error',
-        suggestions: [
-          {
-            id: 1,
-            title: 'Consider Medical Consultation',
-            content: 'Persistent severe sleep issues may indicate illness or discomfort. Monitor for fever, signs of infection, or other symptoms.'
-          },
-          {
-            id: 2,
-            title: 'Review Sleep Environment',
-            content: 'Ensure optimal sleep conditions - appropriate temperature, darkness, minimal noise, and comfortable bedding.'
-          },
-          {
-            id: 3,
-            title: 'Monitor for Health Issues',
-            content: 'Severe sleep disruption can indicate teething, illness, or developmental changes. Watch for other concerning symptoms.'
-          }
-        ]
-      }
-      
-      console.log('🚨 SEVERE SLEEP ALERT GENERATED:', alert.title)
-      return alert
-    }
-    
-    // Moderate sleep alert: 3+ concerning days (6-9h) OR 1 poor + 2 concerning
-    if ((concerningSleepDays >= 3 || (poorSleepDays >= 1 && concerningSleepDays >= 2)) && totalDaysWithData >= 4) {
-      const alert: SimpleAlert = {
-        id: 'sleep-concerning-pattern',
-        title: 'Sleep Quality Concerns Detected',
-        description: `${currentChild.value?.name || 'Your child'} has shown declining sleep patterns over recent days`,
-        type: 'warning',
-        suggestions: [
-          {
-            id: 1,
-            title: 'Monitor Sleep Patterns',
-            content: 'Keep track of bedtime routines and any factors that might be affecting sleep quality.'
-          },
-          {
-            id: 2,
-            title: 'Check for Growth Spurts',
-            content: 'Sleep disruptions can be normal during growth spurts or developmental milestones.'
-          },
-          {
-            id: 3,
-            title: 'Maintain Consistent Routine',
-            content: 'Try to maintain consistent bedtime and wake-up times to help regulate sleep patterns.'
-          }
-        ]
-      }
-      
-      console.log('⚠️ MODERATE SLEEP ALERT GENERATED:', alert.title)
-      return alert
-    }
-
-    console.log('✅ No sleep alerts generated - sleep patterns are normal')
-    return null
-  }
-
-  // ENHANCED: Check meal patterns with two-tier sensitivity (YOUR WORKING CODE)
+  // WORKING: Check meal patterns with two-tier sensitivity (FROM YOUR REFERENCE - UNCHANGED)
   const checkMealPatterns = async (contextDate: string): Promise<SimpleAlert | null> => {
     console.log('🔥 Checking meal patterns for:', contextDate)
     
@@ -395,7 +233,408 @@ export function useHealthAlert() {
     return null
   }
 
-  // ENHANCED: Main analysis function (updated to handle combined alerts)
+  // ADDED: Check sleep patterns (following exact same structure as working meals)
+  const checkSleepPatterns = async (contextDate: string): Promise<SimpleAlert | null> => {
+    console.log('💤 Checking sleep patterns for:', contextDate)
+    
+    if (!currentChild.value?.id) {
+      console.log('❌ No current child available')
+      return null
+    }
+
+    const last7Days = getLast7Days(contextDate)
+    console.log('📅 Analyzing sleep dates:', last7Days)
+    
+    let concerningSleepDays = 0  // 6-8 hours total sleep
+    let poorSleepDays = 0        // <6 hours total sleep
+    let totalDaysWithData = 0
+
+    const dailyDataPromises = last7Days.map(date => getSleepDataForDate(date))
+    const dailyDataResults = await Promise.all(dailyDataPromises)
+
+    last7Days.forEach((date, index) => {
+      const sleepData = dailyDataResults[index]
+      
+      console.log(`💤 Checking ${date}:`)
+      
+      // Check if we have sleep data (same logic as meals)
+      const hasSleepData = sleepData.totalHours > 0 || sleepData.sleepSessions > 0
+      
+      if (hasSleepData) {
+        const totalHours = sleepData.totalHours || 0
+        totalDaysWithData++
+        
+        console.log(`  - Day has sleep data, total: ${totalHours}h`)
+        
+        if (totalHours < 6) {
+          poorSleepDays++
+          console.log(`  - 🚨 Poor sleep day detected (${totalHours}h < 6h)`)
+        } else if (totalHours < 9) {
+          concerningSleepDays++
+          console.log(`  - ⚠️ Concerning sleep day (${totalHours}h = 6-9h)`)
+        } else {
+          console.log(`  - ✅ Good sleep day (${totalHours}h >= 9h)`)
+        }
+      } else {
+        console.log(`  - No sleep data for ${date}`)
+      }
+    })
+
+    console.log(`📈 Sleep Summary: ${poorSleepDays} poor days, ${concerningSleepDays} concerning days, ${totalDaysWithData} total days with data`)
+
+    // Severe alert: 2+ days with <6 hours
+    if (poorSleepDays >= 2 && totalDaysWithData >= 3) {
+      const alert: SimpleAlert = {
+        id: 'sleep-severe-deprivation',
+        title: 'Severe Sleep Deprivation Detected',
+        description: `${currentChild.value?.name || 'Your child'} has had severely insufficient sleep (<6 hours) for ${poorSleepDays} days over the past ${totalDaysWithData} days`,
+        type: 'error',
+        suggestions: [
+          {
+            id: 1,
+            title: 'Consider Medical Consultation',
+            content: 'Persistent severe sleep issues may indicate illness or discomfort. Monitor for fever, signs of infection, or other symptoms.'
+          },
+          {
+            id: 2,
+            title: 'Review Sleep Environment',
+            content: 'Ensure optimal sleep conditions - appropriate temperature, darkness, minimal noise, and comfortable bedding.'
+          },
+          {
+            id: 3,
+            title: 'Monitor for Health Issues',
+            content: 'Severe sleep disruption can indicate teething, illness, or developmental changes. Watch for other concerning symptoms.'
+          }
+        ]
+      }
+      
+      console.log('🚨 SEVERE SLEEP ALERT GENERATED:', alert.title)
+      return alert
+    }
+    
+    // Moderate alert: 3+ concerning days OR 1 poor + 2 concerning
+    if ((concerningSleepDays >= 3 || (poorSleepDays >= 1 && concerningSleepDays >= 2)) && totalDaysWithData >= 4) {
+      const alert: SimpleAlert = {
+        id: 'sleep-concerning-pattern',
+        title: 'Sleep Quality Concerns Detected',
+        description: `${currentChild.value?.name || 'Your child'} has shown declining sleep patterns over recent days`,
+        type: 'warning',
+        suggestions: [
+          {
+            id: 1,
+            title: 'Monitor Sleep Patterns',
+            content: 'Keep track of bedtime routines and any factors that might be affecting sleep quality.'
+          },
+          {
+            id: 2,
+            title: 'Check for Growth Spurts',
+            content: 'Sleep disruptions can be normal during growth spurts or developmental milestones.'
+          },
+          {
+            id: 3,
+            title: 'Maintain Consistent Routine',
+            content: 'Try to maintain consistent bedtime and wake-up times to help regulate sleep patterns.'
+          }
+        ]
+      }
+      
+      console.log('⚠️ MODERATE SLEEP ALERT GENERATED:', alert.title)
+      return alert
+    }
+
+    console.log('✅ No sleep alerts generated - sleep patterns are normal')
+    return null
+  }
+
+  // ADDED: Check poop patterns (following exact same structure as working meals)
+  const checkPoopPatterns = async (contextDate: string): Promise<SimpleAlert | null> => {
+    console.log('💩 Checking poop patterns for:', contextDate)
+    
+    if (!currentChild.value?.id) {
+      console.log('❌ No current child available')
+      return null
+    }
+
+    const last7Days = getLast7Days(contextDate)
+    console.log('📅 Analyzing poop dates:', last7Days)
+    
+    let concerningDays = 0    // any unusual characteristics
+    let constipationDays = 0  // 0 bowel movements
+    let totalDaysWithData = 0
+
+    const dailyDataPromises = last7Days.map(date => getPoopDataForDate(date))
+    const dailyDataResults = await Promise.all(dailyDataPromises)
+
+    last7Days.forEach((date, index) => {
+      const poopData = dailyDataResults[index]
+      
+      console.log(`💩 Checking ${date}:`)
+      
+      // Check if we have poop data (same logic as meals)
+      const hasPoopData = poopData.lastUpdated && poopData.lastUpdated !== ''
+      
+      if (hasPoopData) {
+        const count = poopData.count || 0
+        const unusual = poopData.unusual || 0
+        totalDaysWithData++
+        
+        console.log(`  - Day has poop data, count: ${count}, unusual: ${unusual}`)
+        
+        if (count === 0) {
+          constipationDays++
+          console.log(`  - 🚨 Constipation day detected (0 movements)`)
+        } else if (unusual > 0) {
+          concerningDays++
+          console.log(`  - ⚠️ Concerning poop day (${unusual}/${count} unusual movements)`)
+        } else {
+          console.log(`  - ✅ Normal poop day (${count} normal movements)`)
+        }
+      } else {
+        console.log(`  - No poop data for ${date}`)
+      }
+    })
+
+    console.log(`📈 Poop Summary: ${constipationDays} constipation days, ${concerningDays} concerning days, ${totalDaysWithData} total days with data`)
+
+    // Severe alert: 2+ days with constipation OR severe unusual patterns
+    if (constipationDays >= 2 && totalDaysWithData >= 3) {
+      const alert: SimpleAlert = {
+        id: 'poop-severe-constipation',
+        title: 'Severe Constipation Pattern Detected',
+        description: `${currentChild.value?.name || 'Your child'} has had no bowel movements for ${constipationDays} days over the past ${totalDaysWithData} days`,
+        type: 'error',
+        suggestions: [
+          {
+            id: 1,
+            title: 'Consider Medical Consultation',
+            content: 'Prolonged constipation can be serious in children. Consult your pediatrician for proper evaluation and treatment.'
+          },
+          {
+            id: 2,
+            title: 'Focus on Hydration & Fiber',
+            content: 'Increase fluid intake and offer fiber-rich foods appropriate for your child\'s age. Gentle movement can also help.'
+          },
+          {
+            id: 3,
+            title: 'Track Additional Symptoms',
+            content: 'Monitor for signs of discomfort, fever, vomiting, or changes in appetite that may accompany digestive issues.'
+          }
+        ]
+      }
+      
+      console.log('🚨 SEVERE POOP ALERT GENERATED:', alert.title)
+      return alert
+    }
+    
+    // Moderate alert: 3+ concerning days OR 1 constipation + 2 concerning
+    if ((concerningDays >= 3 || (constipationDays >= 1 && concerningDays >= 2)) && totalDaysWithData >= 4) {
+      const alert: SimpleAlert = {
+        id: 'poop-concerning-pattern',
+        title: 'Digestive Pattern Changes Detected',
+        description: `${currentChild.value?.name || 'Your child'} has shown changes in bowel movement patterns over recent days`,
+        type: 'warning',
+        suggestions: [
+          {
+            id: 1,
+            title: 'Monitor Bowel Patterns',
+            content: 'Keep track of frequency, color, and consistency of bowel movements to identify any worsening trends.'
+          },
+          {
+            id: 2,
+            title: 'Review Recent Changes',
+            content: 'Consider if dietary changes, new foods, medications, or stress might be affecting digestive patterns.'
+          },
+          {
+            id: 3,
+            title: 'Maintain Healthy Habits',
+            content: 'Ensure adequate fluid intake and age-appropriate fiber sources to support healthy digestion.'
+          }
+        ]
+      }
+      
+      console.log('⚠️ MODERATE POOP ALERT GENERATED:', alert.title)
+      return alert
+    }
+
+    console.log('✅ No poop alerts generated - digestive patterns are normal')
+    return null
+  }
+
+  // ADDED: Check health patterns (following exact same structure as working meals)
+  const checkHealthPatterns = async (contextDate: string): Promise<SimpleAlert | null> => {
+    console.log('🏥 Checking health patterns for:', contextDate)
+    
+    if (!currentChild.value?.id) {
+      console.log('❌ No current child available')
+      return null
+    }
+
+    const last7Days = getLast7Days(contextDate)
+    console.log('📅 Analyzing health dates:', last7Days)
+    
+    let feverDays = 0        // High or Low fever days
+    let symptomDays = 0      // Days with any symptoms
+    let totalDaysWithData = 0
+
+    const dailyDataPromises = last7Days.map(date => getHealthDataForDate(date))
+    const dailyDataResults = await Promise.all(dailyDataPromises)
+
+    last7Days.forEach((date, index) => {
+      const healthData = dailyDataResults[index]
+      
+      console.log(`🏥 Checking ${date}:`)
+      
+      // Check if we have health data (same logic as meals)
+      const hasHealthData = healthData.lastUpdated && healthData.lastUpdated !== ''
+      
+      if (hasHealthData) {
+        const status = healthData.status || 'Healthy'
+        const symptomsCount = healthData.symptoms?.length || 0
+        totalDaysWithData++
+        
+        console.log(`  - Day has health data, status: ${status}, symptoms: ${symptomsCount}`)
+        
+        if (status.includes('High Fever')) {
+          feverDays++
+          symptomDays++
+          console.log(`  - 🚨 High fever day detected (${status})`)
+        } else if (status.includes('Low Fever')) {
+          feverDays++
+          symptomDays++
+          console.log(`  - ⚠️ Low fever day detected (${status})`)
+        } else if (symptomsCount > 0 && status !== 'Healthy') {
+          symptomDays++
+          console.log(`  - ⚠️ Symptom day detected (${symptomsCount} symptoms, ${status})`)
+        } else {
+          console.log(`  - ✅ Healthy day (${status})`)
+        }
+      } else {
+        console.log(`  - No health data for ${date}`)
+      }
+    })
+
+    console.log(`📈 Health Summary: ${feverDays} fever days, ${symptomDays} symptom days, ${totalDaysWithData} total days with data`)
+
+    // Severe health alert: 2+ days with fever
+    if (feverDays >= 2 && totalDaysWithData >= 3) {
+      const alert: SimpleAlert = {
+        id: 'health-severe-fever',
+        title: 'Persistent Fever Pattern Detected',
+        description: `${currentChild.value?.name || 'Your child'} has had fever for ${feverDays} days over the past ${totalDaysWithData} days`,
+        type: 'error',
+        suggestions: [
+          {
+            id: 1,
+            title: 'Seek Medical Attention',
+            content: 'Persistent fever in children can indicate serious infection and requires immediate medical evaluation.'
+          },
+          {
+            id: 2,
+            title: 'Monitor Temperature Closely',
+            content: 'Check temperature regularly and keep detailed records. Watch for signs of dehydration or worsening symptoms.'
+          },
+          {
+            id: 3,
+            title: 'Maintain Hydration & Rest',
+            content: 'Ensure adequate fluid intake and rest. Contact emergency services if temperature exceeds 40°C (104°F) or child shows signs of distress.'
+          }
+        ]
+      }
+      
+      console.log('🚨 SEVERE HEALTH ALERT GENERATED:', alert.title)
+      return alert
+    }
+    
+    // Moderate health alert: 3+ symptom days OR 1 fever + 2 symptom days
+    if ((symptomDays >= 3 || (feverDays >= 1 && symptomDays >= 2)) && totalDaysWithData >= 4) {
+      const alert: SimpleAlert = {
+        id: 'health-concerning-symptoms',
+        title: 'Health Symptoms Pattern Detected',
+        description: `${currentChild.value?.name || 'Your child'} has shown health symptoms over recent days`,
+        type: 'warning',
+        suggestions: [
+          {
+            id: 1,
+            title: 'Monitor Symptom Progression',
+            content: 'Keep track of symptoms and their severity. Watch for worsening patterns or new concerning signs.'
+          },
+          {
+            id: 2,
+            title: 'Consider Medical Consultation',
+            content: 'If symptoms persist or worsen, consult your pediatrician for proper evaluation and treatment guidance.'
+          },
+          {
+            id: 3,
+            title: 'Supportive Care',
+            content: 'Provide comfort measures, ensure adequate rest and hydration, and maintain a calm environment for recovery.'
+          }
+        ]
+      }
+      
+      console.log('⚠️ MODERATE HEALTH ALERT GENERATED:', alert.title)
+      return alert
+    }
+
+    console.log('✅ No health alerts generated - health patterns are normal')
+    return null
+  }
+
+  // ENHANCED: Smart alert combination logic
+  const createCombinedAlert = (individualAlerts: SimpleAlert[]): SimpleAlert => {
+    console.log('🔗 Creating combined alert from:', individualAlerts.map(a => a.title))
+
+    const hasError = individualAlerts.some(alert => alert.type === 'error')
+    const combinedType = hasError ? 'error' : 'warning'
+    
+    const combinedTitle = combinedType === 'error' 
+      ? 'Multiple Health Concerns Detected' 
+      : 'Multiple Pattern Changes Detected'
+
+    const issueDescriptions = individualAlerts.map(alert => {
+      if (alert.id.includes('meal')) {
+        return alert.title.includes('Significant') ? 'poor appetite' : 'reduced appetite'
+      } else if (alert.id.includes('sleep')) {
+        return alert.title.includes('Severe') ? 'sleep deprivation' : 'sleep concerns'
+      } else if (alert.id.includes('poop')) {
+        return alert.title.includes('Severe') ? 'bowel problems' : 'digestive concerns'
+      } else if (alert.id.includes('health')) {
+        return alert.title.includes('Persistent') ? 'fever symptoms' : 'health symptoms'
+      }
+      return 'health concerns'
+    })
+    
+    const combinedDescription = `${currentChild.value?.name || 'Your child'} is showing ${issueDescriptions.join(', ')} patterns that may be related`
+
+    const combinedSuggestions = [
+      {
+        id: 1,
+        title: 'Monitor for Illness Signs',
+        content: 'Multiple health pattern changes often indicate illness, infection, or systemic health issues. Watch for fever, signs of discomfort, or worsening symptoms.'
+      },
+      {
+        id: 2,
+        title: 'Maintain Basic Care & Comfort',
+        content: 'Focus on hydration, comfort foods, consistent routines, and extra comfort during this challenging period.'
+      },
+      {
+        id: 3,
+        title: combinedType === 'error' ? 'Consider Medical Consultation' : 'Continue Close Monitoring',
+        content: combinedType === 'error' 
+          ? 'Multiple persistent issues may indicate a health problem that warrants professional medical assessment.'
+          : 'Keep tracking all patterns closely as related changes often resolve together once the underlying cause is addressed.'
+      }
+    ]
+
+    return {
+      id: 'combined-health-concerns',
+      title: combinedTitle,
+      description: combinedDescription,
+      type: combinedType,
+      suggestions: combinedSuggestions
+    }
+  }
+
+  // WORKING: Main analysis function (FROM YOUR REFERENCE - ENHANCED)
   const analyzeForDate = async (dateString: string): Promise<void> => {
     if (!currentChild.value?.id) {
       console.log('❌ No current child selected')
@@ -408,23 +647,28 @@ export function useHealthAlert() {
     alerts.value = []
     
     try {
-      // ENHANCED: Check both meal and sleep patterns
+      // ENHANCED: Check all four patterns
       const mealAlert = await checkMealPatterns(dateString)
       const sleepAlert = await checkSleepPatterns(dateString)
+      const poopAlert = await checkPoopPatterns(dateString)
+      const healthAlert = await checkHealthPatterns(dateString)
       
-      // ENHANCED: Smart alert combination logic
+      // ENHANCED: Smart alert combination logic for all check-ins
+      const individualAlerts: SimpleAlert[] = []
+      if (mealAlert) individualAlerts.push(mealAlert)
+      if (sleepAlert) individualAlerts.push(sleepAlert)
+      if (poopAlert) individualAlerts.push(poopAlert)
+      if (healthAlert) individualAlerts.push(healthAlert)
+      
       const newAlerts: SimpleAlert[] = []
       
-      if (mealAlert && sleepAlert) {
-        // BOTH issues detected - create combined alert
-        const combinedAlert = createCombinedAlert(mealAlert, sleepAlert)
+      if (individualAlerts.length >= 2) {
+        // Multiple issues - create combined alert
+        const combinedAlert = createCombinedAlert(individualAlerts)
         newAlerts.push(combinedAlert)
-      } else if (mealAlert) {
-        // ONLY meal issue - show individual meal alert
-        newAlerts.push(mealAlert)
-      } else if (sleepAlert) {
-        // ONLY sleep issue - show individual sleep alert
-        newAlerts.push(sleepAlert)
+      } else if (individualAlerts.length === 1) {
+        // Single issue - show individual alert
+        newAlerts.push(individualAlerts[0])
       }
       
       // STABLE: Sort by priority
