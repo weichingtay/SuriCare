@@ -78,7 +78,7 @@ export function useHealthAlert() {
     return overallAverage
   }
 
-  // FIXED: Check meal patterns using store data (same as summary card)
+  // ENHANCED: Check meal patterns with two-tier sensitivity
   const checkMealPatterns = async (contextDate: string): Promise<SimpleAlert | null> => {
     console.log('🔥 Checking meal patterns for:', contextDate)
     
@@ -90,7 +90,8 @@ export function useHealthAlert() {
     const last7Days = getLast7Days(contextDate)
     console.log('📅 Analyzing dates:', last7Days)
     
-    let poorAppetiteDays = 0
+    let concerningDays = 0  // 70-84% consumption
+    let poorAppetiteDays = 0  // <70% consumption
     let totalDaysWithData = 0
 
     // Use Promise.all to ensure all data is fetched
@@ -111,25 +112,60 @@ export function useHealthAlert() {
         
         console.log(`  - Day has meal data, average: ${averageConsumption.toFixed(1)}%`)
         
-        if (averageConsumption < 80) {
+        if (averageConsumption < 70) {
           poorAppetiteDays++
-          console.log(`  - 🚨 Poor appetite day detected (${averageConsumption.toFixed(1)}% < 80%)`)
+          console.log(`  - 🚨 Poor appetite day detected (${averageConsumption.toFixed(1)}% < 70%)`)
+        } else if (averageConsumption < 85) {
+          concerningDays++
+          console.log(`  - ⚠️ Concerning appetite day (${averageConsumption.toFixed(1)}% = 70-84%)`)
         } else {
-          console.log(`  - ✅ Normal appetite day (${averageConsumption.toFixed(1)}% >= 80%)`)
+          console.log(`  - ✅ Normal appetite day (${averageConsumption.toFixed(1)}% >= 85%)`)
         }
       } else {
         console.log(`  - No meal data for ${date}`)
       }
     })
 
-    console.log(`📈 Summary: ${poorAppetiteDays}/${totalDaysWithData} poor appetite days`)
+    console.log(`📈 Summary: ${poorAppetiteDays} poor days, ${concerningDays} concerning days, ${totalDaysWithData} total days with data`)
 
-    // STABLE: Generate alert if threshold met
+    // ENHANCED: Multiple alert conditions
+    
+    // Severe alert: 2+ days with <70% consumption
     if (poorAppetiteDays >= 2 && totalDaysWithData >= 3) {
+      const alert: SimpleAlert = {
+        id: 'meal-poor-appetite',
+        title: 'Significant Appetite Decline Detected',
+        description: `${currentChild.value?.name || 'Your child'} has shown poor appetite (<70%) for ${poorAppetiteDays} days over the past ${totalDaysWithData} days`,
+        type: 'error',
+        suggestions: [
+          {
+            id: 1,
+            title: 'Consider Medical Consultation',
+            content: 'Persistent poor appetite may indicate illness. Monitor for fever, signs of infection, or other symptoms.'
+          },
+          {
+            id: 2,
+            title: 'Offer High-Calorie Foods',
+            content: 'Focus on nutrient-dense, high-calorie foods that your child enjoys to maintain nutrition during low appetite periods.'
+          },
+          {
+            id: 3,
+            title: 'Monitor Hydration',
+            content: 'Ensure adequate fluid intake, especially if solid food consumption is very low.'
+          }
+        ]
+      }
+      
+      console.log('🚨 SEVERE MEAL ALERT GENERATED:', alert.title)
+      return alert
+    }
+    
+    // Moderate alert: 3+ concerning days (70-84%) OR 1 poor + 2 concerning
+    if ((concerningDays >= 3 || (poorAppetiteDays >= 1 && concerningDays >= 2)) && totalDaysWithData >= 4) {
       const alert: SimpleAlert = {
         id: 'meal-reduced-appetite',
         title: 'Reduced Appetite Pattern Detected',
-        description: `${currentChild.value?.name || 'Your child'} has shown reduced appetite for ${poorAppetiteDays} days over the past ${totalDaysWithData} days with data`,
+        description: `${currentChild.value?.name || 'Your child'} has shown declining appetite patterns over recent days`,
         type: 'warning',
         suggestions: [
           {
@@ -150,7 +186,7 @@ export function useHealthAlert() {
         ]
       }
       
-      console.log('🚨 MEAL ALERT GENERATED:', alert.title)
+      console.log('⚠️ MODERATE MEAL ALERT GENERATED:', alert.title)
       return alert
     }
 
