@@ -1,6 +1,7 @@
-// src/composables/useHealthAlert.ts - Fixed Version
+// src/composables/useHealthAlert.ts - Based on Working Meal Code + Sleep
 import { ref, computed } from 'vue'
 import { useMealsStore } from '@/stores/meals'
+import { useSleepStore } from '@/stores/sleep'
 import { useChildrenStore } from '@/stores/children'
 
 interface SimpleAlert {
@@ -19,6 +20,7 @@ export function useHealthAlert() {
   // Stores
   const childrenStore = useChildrenStore()
   const mealsStore = useMealsStore()
+  const sleepStore = useSleepStore()
 
   // STABLE: Single source of truth for alerts
   const alerts = ref<SimpleAlert[]>([])
@@ -52,6 +54,21 @@ export function useHealthAlert() {
     return mealsData
   }
 
+  // ADDED: Get sleep data using store (same pattern as meals)
+  const getSleepDataForDate = async (dateString: string) => {
+    console.log(`💤 Getting sleep data for ${dateString} via store`)
+    
+    // Ensure data is fetched
+    await sleepStore.fetchSleepForDate(dateString)
+    
+    // Get processed data from store (same as summary card)
+    const sleepData = sleepStore.getSleepForDate(dateString)
+    
+    console.log(`📊 Sleep store returned data for ${dateString}:`, sleepData)
+    
+    return sleepData
+  }
+
   // FIXED: Calculate average consumption using store data
   const calculateAverageConsumption = (mealsData: any): number => {
     if (!mealsData.statistics || Object.keys(mealsData.statistics).length === 0) {
@@ -78,7 +95,191 @@ export function useHealthAlert() {
     return overallAverage
   }
 
-  // ENHANCED: Check meal patterns with two-tier sensitivity
+  // ADDED: Create combined alert when multiple issues detected
+  const createCombinedAlert = (mealAlert: SimpleAlert, sleepAlert: SimpleAlert): SimpleAlert => {
+    console.log('🔗 Creating combined alert from:', {
+      meal: mealAlert.title,
+      sleep: sleepAlert.title
+    })
+
+    // Determine combined severity (error takes priority over warning)
+    const combinedType = (mealAlert.type === 'error' || sleepAlert.type === 'error') ? 'error' : 'warning'
+    
+    // Create smart combined title based on severity levels
+    let combinedTitle = ''
+    if (combinedType === 'error') {
+      combinedTitle = 'Multiple Health Concerns Detected'
+    } else {
+      combinedTitle = 'Multiple Pattern Changes Detected'
+    }
+
+    // Create combined description
+    const mealIssue = mealAlert.title.includes('Significant') ? 'poor appetite' : 'reduced appetite'
+    const sleepIssue = sleepAlert.title.includes('Persistent') ? 'sleep disruption' : 'sleep concerns'
+    
+    const combinedDescription = `${currentChild.value?.name || 'Your child'} is showing both ${mealIssue} and ${sleepIssue} patterns that may be related`
+
+    // Combine suggestions from both alerts
+    const combinedSuggestions = [
+      {
+        id: 1,
+        title: 'Monitor for Illness Signs',
+        content: 'Both appetite and sleep changes can indicate illness, teething, or developmental changes. Watch for fever, congestion, or unusual fussiness.'
+      },
+      {
+        id: 2,
+        title: 'Maintain Comfort & Routine',
+        content: 'Focus on comforting foods your child enjoys and maintain consistent sleep routines to help during this challenging period.'
+      },
+      {
+        id: 3,
+        title: combinedType === 'error' ? 'Consider Medical Consultation' : 'Continue Close Monitoring',
+        content: combinedType === 'error' 
+          ? 'Multiple persistent changes may indicate a health issue that warrants professional assessment.'
+          : 'Keep tracking patterns closely as combined changes often resolve together once the underlying cause is addressed.'
+      }
+    ]
+
+    const combinedAlert: SimpleAlert = {
+      id: 'combined-health-concerns',
+      title: combinedTitle,
+      description: combinedDescription,
+      type: combinedType,
+      suggestions: combinedSuggestions
+    }
+
+    console.log('🔗 Combined alert created:', combinedAlert.title)
+    return combinedAlert
+  }
+
+  // ADDED: Check sleep patterns (following exact same pattern as meals)
+  const checkSleepPatterns = async (contextDate: string): Promise<SimpleAlert | null> => {
+    console.log('💤 Checking sleep patterns for:', contextDate)
+    
+    if (!currentChild.value?.id) {
+      console.log('❌ No current child available')
+      return null
+    }
+
+    const last7Days = getLast7Days(contextDate)
+    console.log('📅 Analyzing sleep dates:', last7Days)
+    
+    let concerningSleepDays = 0  // 6-9 hours total sleep
+    let poorSleepDays = 0        // <6 hours total sleep
+    let restlessDays = 0         // 3+ wake-ups
+    let totalDaysWithData = 0
+
+    // Use Promise.all to ensure all data is fetched (same as meals)
+    const dailySleepDataPromises = last7Days.map(date => getSleepDataForDate(date))
+    const dailySleepResults = await Promise.all(dailySleepDataPromises)
+
+    last7Days.forEach((date, index) => {
+      const sleepData = dailySleepResults[index]
+      
+      console.log(`💤 Checking sleep for ${date}:`)
+      
+      // Check if we have sleep data (same pattern as meals - check if real data exists)
+      const hasSleepData = sleepData.totalHours > 0 || sleepData.sleepSessions > 0
+      
+      if (hasSleepData) {
+        const totalHours = sleepData.totalHours || 0
+        const wakeCount = sleepData.wakeCount || 0
+        totalDaysWithData++
+        
+        console.log(`  - Sleep data: ${totalHours}h total, ${wakeCount} wake-ups`)
+        
+        if (totalHours < 6) {
+          poorSleepDays++
+          console.log(`  - 🚨 Poor sleep day detected (${totalHours}h < 6h)`)
+        } else if (totalHours < 9) {
+          concerningSleepDays++
+          console.log(`  - ⚠️ Concerning sleep day (${totalHours}h = 6-9h)`)
+        } else {
+          console.log(`  - ✅ Good sleep day (${totalHours}h >= 9h)`)
+        }
+        
+        if (wakeCount >= 3) {
+          restlessDays++
+          console.log(`  - 😰 Restless sleep detected (${wakeCount} wake-ups >= 3)`)
+        }
+      } else {
+        console.log(`  - No sleep data for ${date}`)
+      }
+    })
+
+    console.log(`📈 Sleep Summary: ${poorSleepDays} poor days, ${concerningSleepDays} concerning days, ${restlessDays} restless days, ${totalDaysWithData} total days with data`)
+
+    // ADDED: Sleep alert conditions (following same pattern as meals)
+    
+    // Severe sleep alert: 2+ days with <6 hours OR 2+ very restless days
+    if ((poorSleepDays >= 2 || restlessDays >= 2) && totalDaysWithData >= 3) {
+      const isRestlessnessPrimary = restlessDays >= poorSleepDays
+      
+      const alert: SimpleAlert = {
+        id: 'sleep-severe-disruption',
+        title: isRestlessnessPrimary ? 'Persistent Sleep Disruption Detected' : 'Severe Sleep Deprivation Detected',
+        description: isRestlessnessPrimary 
+          ? `${currentChild.value?.name || 'Your child'} has experienced restless sleep with frequent wake-ups for ${restlessDays} days over the past ${totalDaysWithData} days`
+          : `${currentChild.value?.name || 'Your child'} has had severely insufficient sleep (<6 hours) for ${poorSleepDays} days over the past ${totalDaysWithData} days`,
+        type: 'error',
+        suggestions: [
+          {
+            id: 1,
+            title: 'Consider Medical Consultation',
+            content: 'Persistent severe sleep issues may indicate illness or discomfort. Monitor for fever, signs of infection, or other symptoms.'
+          },
+          {
+            id: 2,
+            title: 'Review Sleep Environment',
+            content: 'Ensure optimal sleep conditions - appropriate temperature, darkness, minimal noise, and comfortable bedding.'
+          },
+          {
+            id: 3,
+            title: 'Monitor for Health Issues',
+            content: 'Severe sleep disruption can indicate teething, illness, or developmental changes. Watch for other concerning symptoms.'
+          }
+        ]
+      }
+      
+      console.log('🚨 SEVERE SLEEP ALERT GENERATED:', alert.title)
+      return alert
+    }
+    
+    // Moderate sleep alert: 3+ concerning days (6-9h) OR 1 poor + 2 concerning
+    if ((concerningSleepDays >= 3 || (poorSleepDays >= 1 && concerningSleepDays >= 2)) && totalDaysWithData >= 4) {
+      const alert: SimpleAlert = {
+        id: 'sleep-concerning-pattern',
+        title: 'Sleep Quality Concerns Detected',
+        description: `${currentChild.value?.name || 'Your child'} has shown declining sleep patterns over recent days`,
+        type: 'warning',
+        suggestions: [
+          {
+            id: 1,
+            title: 'Monitor Sleep Patterns',
+            content: 'Keep track of bedtime routines and any factors that might be affecting sleep quality.'
+          },
+          {
+            id: 2,
+            title: 'Check for Growth Spurts',
+            content: 'Sleep disruptions can be normal during growth spurts or developmental milestones.'
+          },
+          {
+            id: 3,
+            title: 'Maintain Consistent Routine',
+            content: 'Try to maintain consistent bedtime and wake-up times to help regulate sleep patterns.'
+          }
+        ]
+      }
+      
+      console.log('⚠️ MODERATE SLEEP ALERT GENERATED:', alert.title)
+      return alert
+    }
+
+    console.log('✅ No sleep alerts generated - sleep patterns are normal')
+    return null
+  }
+
+  // ENHANCED: Check meal patterns with two-tier sensitivity (YOUR WORKING CODE)
   const checkMealPatterns = async (contextDate: string): Promise<SimpleAlert | null> => {
     console.log('🔥 Checking meal patterns for:', contextDate)
     
@@ -194,7 +395,7 @@ export function useHealthAlert() {
     return null
   }
 
-  // STABLE: Main analysis function
+  // ENHANCED: Main analysis function (updated to handle combined alerts)
   const analyzeForDate = async (dateString: string): Promise<void> => {
     if (!currentChild.value?.id) {
       console.log('❌ No current child selected')
@@ -207,12 +408,24 @@ export function useHealthAlert() {
     alerts.value = []
     
     try {
-      // FIXED: Check patterns using store data
+      // ENHANCED: Check both meal and sleep patterns
       const mealAlert = await checkMealPatterns(dateString)
+      const sleepAlert = await checkSleepPatterns(dateString)
       
-      // STABLE: Add any alerts found
+      // ENHANCED: Smart alert combination logic
       const newAlerts: SimpleAlert[] = []
-      if (mealAlert) newAlerts.push(mealAlert)
+      
+      if (mealAlert && sleepAlert) {
+        // BOTH issues detected - create combined alert
+        const combinedAlert = createCombinedAlert(mealAlert, sleepAlert)
+        newAlerts.push(combinedAlert)
+      } else if (mealAlert) {
+        // ONLY meal issue - show individual meal alert
+        newAlerts.push(mealAlert)
+      } else if (sleepAlert) {
+        // ONLY sleep issue - show individual sleep alert
+        newAlerts.push(sleepAlert)
+      }
       
       // STABLE: Sort by priority
       newAlerts.sort((a, b) => {
