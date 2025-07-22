@@ -9,21 +9,33 @@
       <p><strong>DEBUG:</strong> isLoading={{ isLoading }}, hasAlert={{ hasAlert }}, alerts.length={{ alerts.length }}</p>
       <p><strong>Current Date:</strong> {{ currentDateString }}</p>
       <p><strong>Alert Title:</strong> {{ topAlert?.title || 'NULL' }}</p>
+      <p><strong>Alert Type:</strong> {{ topAlert?.type || 'NULL' }}</p>
       <v-btn size="small" @click="triggerAnalysis" class="mr-2">Force Analysis</v-btn>
     </div>
     
     <!-- Case 1: Has Alert -->
     <div v-if="hasAlert && topAlert">
-      <v-alert class="health-alert" color="#FFF8E1" variant="tonal" style="border: 2px solid orange !important;">
+      <v-alert 
+        class="health-alert" 
+        :color="alertBackgroundColor" 
+        variant="tonal" 
+        :style="`border: 2px solid ${alertBorderColor} !important;`"
+      >
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
-            <v-icon class="mr-3" color="#FF9800">mdi-alert</v-icon>
+            <v-icon class="mr-3" :color="alertIconColor">{{ alertIcon }}</v-icon>
             <div>
               <div class="text-body-1 font-weight-medium mb-1">{{ topAlert.title }}</div>
               <div class="text-body-2 text-grey-darken-1">{{ topAlert.description }}</div>
             </div>
           </div>
-          <v-btn class="text-white" color="#FF9800" size="small" variant="flat" @click="navigateToAlerts">
+          <v-btn 
+            class="text-white" 
+            :color="alertButtonColor" 
+            size="small" 
+            variant="flat" 
+            @click="navigateToAlerts"
+          >
             View More
           </v-btn>
         </div>
@@ -100,6 +112,82 @@ const { alerts, analyzeForDate } = useHealthAlert()
 // STABLE: Simple computed properties
 const hasAlert = computed(() => alerts.value && alerts.value.length > 0)
 const topAlert = computed(() => hasAlert.value ? alerts.value[0] : null)
+
+// NEW: Dynamic alert styling using your design system colors
+const alertBackgroundColor = computed(() => {
+  if (!topAlert.value) return 'rgba(255, 152, 0, 0.08)' // Light orange using your opacity pattern
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return 'rgba(244, 67, 54, 0.08)' // Light red background using your app's opacity style
+    case 'warning':
+      return 'rgba(255, 152, 0, 0.08)' // Light orange background
+    case 'info':
+      return 'rgba(216, 113, 121, 0.08)' // Light pink using your $app-primary
+    default:
+      return 'rgba(255, 152, 0, 0.08)'
+  }
+})
+
+const alertBorderColor = computed(() => {
+  if (!topAlert.value) return '#ff9800' // Your $status-warning
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return '#f44336' // Your $status-negative
+    case 'warning':
+      return '#ff9800' // Your $status-warning
+    case 'info':
+      return '#d87179' // Your $app-primary
+    default:
+      return '#ff9800'
+  }
+})
+
+const alertIconColor = computed(() => {
+  if (!topAlert.value) return '#ff9800'
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return '#f44336' // Your $status-negative
+    case 'warning':
+      return '#ff9800' // Your $status-warning
+    case 'info':
+      return '#d87179' // Your $app-primary
+    default:
+      return '#ff9800'
+  }
+})
+
+const alertIcon = computed(() => {
+  if (!topAlert.value) return 'mdi-alert'
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return 'mdi-alert-circle' // More severe icon for errors
+    case 'warning':
+      return 'mdi-alert' // Standard warning icon
+    case 'info':
+      return 'mdi-information' // Info icon
+    default:
+      return 'mdi-alert'
+  }
+})
+
+const alertButtonColor = computed(() => {
+  if (!topAlert.value) return '#ff9800'
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return '#f44336' // Your $status-negative
+    case 'warning':
+      return '#ff9800' // Your $status-warning
+    case 'info':
+      return '#d87179' // Your $app-primary
+    default:
+      return '#ff9800'
+  }
+})
 
 // STABLE: Manual analysis trigger
 const triggerAnalysis = async () => {
