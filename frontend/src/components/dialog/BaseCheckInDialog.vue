@@ -45,6 +45,7 @@
       >
         {{ subtitle }}
       </div>
+      
 
       <!-- Dialog Content -->
       <!-- Custom Content Slot -->

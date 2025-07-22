@@ -104,7 +104,8 @@
 <script setup lang="ts">
   import { nextTick, ref, watch } from 'vue'
   import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
-  import { useCheckinStore } from '@/stores/checkin' // Add this import
+  import { useCheckinStore } from '@/stores/checkin'
+  import { usePoopOptions } from '@/composables/usePoopOptions'
 
   const props = defineProps({
     modelValue: {
@@ -127,6 +128,10 @@
       type: Boolean,
       default: false,
     },
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
   })
 
   const emit = defineEmits([
@@ -139,15 +144,13 @@
   ])
 
   // Use dynamic options from database
-  import { usePoopOptions } from '@/composables/usePoopOptions'
-
   const {
     colorOptions,
     textureOptions,
     isLoading: isPoopOptionsLoading,
   } = usePoopOptions()
 
-  const checkinStore = useCheckinStore() // Add this
+  const checkinStore = useCheckinStore()
   const localColor = ref('')
   const localTexture = ref('')
   const errors = ref({})
@@ -258,10 +261,17 @@
   }
 
   const handleSave = async () => {
+<<<<<<< HEAD
     console.log('🐾 PoopDialog handleSave clicked!')
 
     if (!validateForm()) {
       console.log('❌ Validation failed:', errors.value)
+=======
+    console.log('💩 PoopDialog handleSave clicked!')
+    
+    if (!validateForm()) {
+      console.log('❌ Poop validation failed:', errors.value)
+>>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
       return
     }
 
@@ -271,6 +281,7 @@
       notes: props.notes,
     }
 
+<<<<<<< HEAD
     console.log('📦 Poop data to save:', poopData)
     errors.value = {}
 
@@ -287,6 +298,33 @@
       handleDialogUpdate(false)
     } catch (error) {
       console.error('❌ Failed to save poop data:', error)
+=======
+    console.log('💩 Poop data to save:', poopData)
+    errors.value = {}
+
+    if (props.isEditing) {
+      // 🖊️ EDIT MODE: Just emit to parent timeline, don't call store
+      console.log('📝 Edit mode: emitting save to timeline')
+      emit('save', poopData)
+    } else {
+      // ➕ CREATE MODE: Call store to create new entry (normal check-in)
+      console.log('➕ Create mode: calling checkinStore.savePoop for new entry')
+      
+      try {
+        console.log('💩 About to call checkinStore.savePoop...')
+        
+        // Save to store (which handles backend integration)
+        await checkinStore.savePoop(poopData)
+        console.log('✅ Poop save completed successfully!')
+        
+        // Emit save event for parent component
+        emit('save')
+        // Close dialog on success
+        handleDialogUpdate(false)
+      } catch (error) {
+        console.error('❌ Failed to save poop data:', error)
+      }
+>>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     }
   }
 </script>
@@ -379,8 +417,12 @@
     transform: scale(1.05);
   }
 
+<<<<<<< HEAD
   .texture-image {
     /* margin-bottom: 4px; */
+=======
+.texture-image{
+>>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     width: 40px;
     height: 40px;
     border-radius: 100%;
@@ -399,17 +441,27 @@
     transform: scale(1.05);
   }
 
+<<<<<<< HEAD
   /* .color-option.selected {
     transform: scale(1.05);
 } */
 
   .error-message {
     color: #d87179;
+=======
+.error-message {
+    color: #D87179;
+>>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     font-size: 12px;
     margin-top: 8px;
   }
 
   .color-options {
     min-height: 70px;
+<<<<<<< HEAD
   }
 </style>
+=======
+}
+</style>
+>>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04

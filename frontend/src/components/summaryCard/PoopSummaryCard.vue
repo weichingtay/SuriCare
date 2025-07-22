@@ -83,67 +83,72 @@ const poopData = computed(() => poopStore.getPoopForDate(dateString.value))
   return data.count || 0
 })
 
-  // Enhanced status logic based on actual poop data structure
+  // Simple status logic - use common everyday language
   const statusNote = computed(() => {
     const data = poopData.value
 
-    if (!data || !data.lastUpdated) {
-    return 'No stool data for this date'
-  }
+    console.log(`🔍 Raw poop data:`, data)
+
+    // Check if data is still loading or no data exists
+    if (!data || !data.lastUpdated || data.lastUpdated === '') {
+      console.log(`⏳ No data or empty lastUpdated`)
+      return 'Loading stool data...'
+    }
 
     const count = data.count || 0
     const unusual = data.unusual || 0
+    const normal = data.normal || 0
 
-    // No bowel movements
+    console.log(`📊 Status calculation: count=${count}, unusual=${unusual}, normal=${normal}`)
+    console.log(`📊 Data structure:`, JSON.stringify(data, null, 2))
+
+    // No bowel movements - this is constipation
     if (count === 0) {
-      return 'Possible constipation'
+      console.log(`💤 No movements detected`)
+      return 'No bowel movements - possible constipation'
     }
 
-    // Has bowel movements - check for health concerns
+    // Focus ONLY on stool quality using everyday terms
     if (unusual > 0) {
-      if (count >= 4 && unusual > 0) {
-        return 'Possible diarrhea - monitor hydration'
-      } else if (unusual === count) {
-        return 'Abnormal stool patterns detected'
+      console.log(`⚠️ Unusual movements detected: ${unusual}`)
+      if (unusual === count) {
+        if (count >= 4) {
+          return 'All stools unusual - possible diarrhea'
+        } else {
+          return count === 1 
+            ? 'Unusual stool - monitor color and texture'
+            : 'All stools unusual - abnormal characteristics'
+        }
       } else {
-        return 'Some concerning stool consistency'
+        return `${unusual} of ${count} stools unusual - mixed patterns`
       }
     }
 
-    // Normal patterns - focus on health indicators
-    if (count >= 5) {
-      return 'Very frequent - possible stomach upset'
-    } else if (count === 4) {
-      return 'Frequent movements - monitor for discomfort'
-    } else if (count >= 1 && count <= 3) {
-      return 'Normal digestive health'
-    }
-
-    return 'Healthy patterns'
+    // All movements are normal
+    console.log(`✅ All movements normal`)
+    return 'Normal healthy stools'
   })
 
-  // Status class based on unusual count and frequency
+  // Status class - only color/texture matters
   const statusClass = computed(() => {
     const data = poopData.value
 
-    if (!data) {
+    // Still loading or no data
+    if (!data || !data.lastUpdated || data.lastUpdated === '') {
       return 'status-neutral'
     }
 
     const count = data.count || 0
     const unusual = data.unusual || 0
 
-    // Red: No movements, all unusual, or very high frequency
-    if (count === 0 || unusual === count || count >= 5) {
+    console.log(`🎨 Status class calculation: count=${count}, unusual=${unusual}`)
+
+    // Red: No movements or any concerning characteristics
+    if (count === 0 || unusual > 0) {
       return 'status-negative'
     }
 
-    // Yellow: Some unusual or high frequency
-    if (unusual > 0 || count === 4) {
-      return 'status-warning'
-    }
-
-    // Green: Normal frequency with no unusual patterns
+    // Green: All movements have normal characteristics
     return 'status-positive'
   })
 

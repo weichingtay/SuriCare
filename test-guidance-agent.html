@@ -1,0 +1,1762 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <title>Comprehensive Agent Test</title>
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f7fa;
+            }
+            .container {
+                background: white;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                color: #2c3e50;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .test-section {
+                margin-bottom: 30px;
+                padding: 20px;
+                border: 1px solid #e1e8ed;
+                border-radius: 8px;
+                background: #fafbfc;
+            }
+            .test-section h3 {
+                color: #34495e;
+                margin-top: 0;
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 10px;
+            }
+            .config {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 30px;
+            }
+            .config h3 {
+                margin-top: 0;
+                color: white;
+            }
+            .config-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin-top: 15px;
+            }
+            .config-item {
+                display: flex;
+                flex-direction: column;
+            }
+            .config-item label {
+                margin-bottom: 5px;
+                font-weight: 500;
+            }
+            .config-item input {
+                padding: 8px 12px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 4px;
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }
+            .config-item input::placeholder {
+                color: rgba(255, 255, 255, 0.7);
+            }
+            button {
+                background: linear-gradient(135deg, #3498db, #2980b9);
+                color: white;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 500;
+                margin: 5px;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 10px rgba(52, 152, 219, 0.3);
+            }
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+            }
+            button:disabled {
+                background: #bdc3c7;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+            .result {
+                margin-top: 15px;
+                padding: 15px;
+                border-radius: 6px;
+                white-space: pre-wrap;
+                font-family: "Consolas", "Monaco", monospace;
+                font-size: 12px;
+                max-height: 400px;
+                overflow-y: auto;
+                border: 1px solid #ddd;
+            }
+            .success {
+                background: linear-gradient(135deg, #2ecc71, #27ae60);
+                color: white;
+                border-color: #27ae60;
+            }
+            .error {
+                background: linear-gradient(135deg, #e74c3c, #c0392b);
+                color: white;
+                border-color: #c0392b;
+            }
+            .loading {
+                background: linear-gradient(135deg, #f39c12, #e67e22);
+                color: white;
+                border-color: #e67e22;
+            }
+            .warning {
+                background: linear-gradient(135deg, #f1c40f, #f39c12);
+                color: #2c3e50;
+                border-color: #f39c12;
+            }
+            .button-group {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-top: 15px;
+            }
+            .json-viewer {
+                background: #2c3e50;
+                color: #ecf0f1;
+                padding: 15px;
+                border-radius: 6px;
+                font-family: "Consolas", "Monaco", monospace;
+                font-size: 12px;
+                overflow-x: auto;
+                margin-top: 10px;
+            }
+            .status-badge {
+                display: inline-block;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: bold;
+                margin-left: 10px;
+            }
+            .status-success {
+                background: #2ecc71;
+                color: white;
+            }
+            .status-error {
+                background: #e74c3c;
+                color: white;
+            }
+            .status-warning {
+                background: #f39c12;
+                color: white;
+            }
+            .endpoint-info {
+                background: #ecf0f1;
+                padding: 10px;
+                border-radius: 4px;
+                margin-bottom: 15px;
+                font-family: monospace;
+                font-size: 13px;
+            }
+            .test-results-summary {
+                background: #34495e;
+                color: white;
+                padding: 20px;
+                border-radius: 8px;
+                margin-top: 30px;
+            }
+            .test-results-summary h3 {
+                margin-top: 0;
+                color: #ecf0f1;
+            }
+            .metric {
+                display: inline-block;
+                margin-right: 20px;
+                padding: 5px 10px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🧪 Agent Comprehensive Test Suite</h1>
+
+            <div class="config">
+                <h3>⚙️ Configuration</h3>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label>API Base URL:</label>
+                        <input
+                            type="text"
+                            id="apiBaseUrl"
+                            value="http://127.0.0.1:8000/api/guidance"
+                            placeholder="Backend API URL"
+                        />
+                    </div>
+                    <div class="config-item">
+                        <label>Child ID:</label>
+                        <input
+                            type="number"
+                            id="childId"
+                            value="1"
+                            min="1"
+                            placeholder="Child ID"
+                        />
+                    </div>
+                    <div class="config-item">
+                        <label>User ID:</label>
+                        <input
+                            type="number"
+                            id="userId"
+                            value="1"
+                            min="1"
+                            placeholder="User ID"
+                        />
+                    </div>
+                    <div class="config-item">
+                        <label>Timeout (ms):</label>
+                        <input
+                            type="number"
+                            id="timeout"
+                            value="60000"
+                            min="1000"
+                            placeholder="Request timeout"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <h3>🏥 API Health & Connectivity</h3>
+                <div class="endpoint-info">
+                    <strong>Tests:</strong> Basic connectivity, CORS, API
+                    availability
+                </div>
+                <div class="button-group">
+                    <button onclick="testApiHealth()">Test API Health</button>
+                    <button onclick="testCORS()">Test CORS</button>
+                    <button onclick="testConnectivity()">
+                        Test Connectivity
+                    </button>
+                </div>
+                <div
+                    id="health-result"
+                    class="result"
+                ></div>
+            </div>
+
+            <div class="test-section">
+                <h3>📚 Get Articles Endpoint</h3>
+                <div class="endpoint-info">
+                    <strong>Endpoint:</strong> GET
+                    /articles/{child_id}?user_id={user_id}<br />
+                    <strong>Tests:</strong> Valid request, invalid child,
+                    invalid user, response structure
+                </div>
+                <div class="button-group">
+                    <button onclick="testGetArticles()">
+                        Test Valid Request
+                    </button>
+                    <button onclick="testGetArticlesInvalidChild()">
+                        Test Invalid Child
+                    </button>
+                    <button onclick="testGetArticlesInvalidUser()">
+                        Test Invalid User
+                    </button>
+                    <button onclick="testGetArticlesResponseStructure()">
+                        Test Response Structure
+                    </button>
+                </div>
+                <div
+                    id="get-articles-result"
+                    class="result"
+                ></div>
+            </div>
+
+            <div class="test-section">
+                <h3>🔄 Refresh Articles Endpoint</h3>
+                <div class="endpoint-info">
+                    <strong>Endpoint:</strong> POST
+                    /articles/{child_id}/refresh?user_id={user_id}<br />
+                    <strong>Tests:</strong> Valid refresh, invalid child,
+                    invalid user, response structure
+                </div>
+                <div class="button-group">
+                    <button onclick="testRefreshArticles()">
+                        Test Valid Refresh
+                    </button>
+                    <button onclick="testRefreshArticlesInvalidChild()">
+                        Test Invalid Child
+                    </button>
+                    <button onclick="testRefreshArticlesInvalidUser()">
+                        Test Invalid User
+                    </button>
+                    <button onclick="testRefreshArticlesResponseStructure()">
+                        Test Response Structure
+                    </button>
+                </div>
+                <div
+                    id="refresh-articles-result"
+                    class="result"
+                ></div>
+            </div>
+
+            <div class="test-section">
+                <h3>📊 Summary Endpoint</h3>
+                <div class="endpoint-info">
+                    <strong>Endpoint:</strong> GET
+                    /articles/{child_id}/summary?user_id={user_id}<br />
+                    <strong>Tests:</strong> Valid request, invalid child,
+                    invalid user, response structure
+                </div>
+                <div class="button-group">
+                    <button onclick="testGetSummary()">
+                        Test Valid Request
+                    </button>
+                    <button onclick="testGetSummaryInvalidChild()">
+                        Test Invalid Child
+                    </button>
+                    <button onclick="testGetSummaryInvalidUser()">
+                        Test Invalid User
+                    </button>
+                    <button onclick="testGetSummaryResponseStructure()">
+                        Test Response Structure
+                    </button>
+                </div>
+                <div
+                    id="summary-result"
+                    class="result"
+                ></div>
+            </div>
+
+            <div class="test-section">
+                <h3>🔍 AI Agent JSON Validation</h3>
+                <div class="endpoint-info">
+                    <strong>Tests:</strong> JSON structure validation, required
+                    fields, data types
+                </div>
+                <div class="button-group">
+                    <button onclick="testJSONValidation()">
+                        Test JSON Structure
+                    </button>
+                    <button onclick="testArticleSchema()">
+                        Test Article Schema
+                    </button>
+                    <button onclick="testDataTypes()">Test Data Types</button>
+                </div>
+                <div
+                    id="json-validation-result"
+                    class="result"
+                ></div>
+            </div>
+
+            <div class="test-section">
+                <h3>⚡ Performance & Load Testing</h3>
+                <div class="endpoint-info">
+                    <strong>Tests:</strong> Response time, concurrent requests,
+                    timeout handling
+                </div>
+                <div class="button-group">
+                    <button onclick="testResponseTime()">
+                        Test Response Time
+                    </button>
+                    <button onclick="testConcurrentRequests()">
+                        Test Concurrent Requests
+                    </button>
+                    <button onclick="testTimeoutHandling()">
+                        Test Timeout Handling
+                    </button>
+                </div>
+                <div
+                    id="performance-result"
+                    class="result"
+                ></div>
+            </div>
+
+            <div class="test-section">
+                <h3>🎯 All Tests Runner</h3>
+                <div class="endpoint-info">
+                    <strong>Action:</strong> Run all tests sequentially and
+                    generate comprehensive report
+                </div>
+                <div class="button-group">
+                    <button
+                        onclick="runAllTests()"
+                        style="
+                            background: linear-gradient(
+                                135deg,
+                                #8e44ad,
+                                #9b59b6
+                            );
+                            font-size: 16px;
+                            padding: 15px 30px;
+                        "
+                    >
+                        🚀 Run All Tests
+                    </button>
+                    <button onclick="clearAllResults()">
+                        🗑️ Clear Results
+                    </button>
+                </div>
+                <div
+                    id="all-tests-result"
+                    class="result"
+                ></div>
+            </div>
+
+            <div
+                class="test-results-summary"
+                id="test-summary"
+                style="display: none"
+            >
+                <h3>📋 Test Results Summary</h3>
+                <div id="summary-metrics"></div>
+                <div id="summary-details"></div>
+            </div>
+        </div>
+
+        <script>
+            // Global state for test results
+            let testResults = {};
+            let testStartTime = null;
+
+            function getConfig() {
+                return {
+                    apiBaseUrl: document.getElementById("apiBaseUrl").value,
+                    childId: parseInt(document.getElementById("childId").value),
+                    userId: parseInt(document.getElementById("userId").value),
+                    timeout: parseInt(document.getElementById("timeout").value),
+                };
+            }
+
+            function showResult(
+                elementId,
+                message,
+                type = "success",
+                statusCode = null,
+            ) {
+                const element = document.getElementById(elementId);
+                const timestamp = new Date().toLocaleTimeString();
+                const statusBadge = statusCode
+                    ? `<span class="status-badge status-${type}">${statusCode}</span>`
+                    : "";
+
+                element.innerHTML = `<div><strong>[${timestamp}]</strong>${statusBadge}</div>${message}`;
+                element.className = `result ${type}`;
+
+                // Scroll to bottom of result
+                element.scrollTop = element.scrollHeight;
+            }
+
+            function showLoading(elementId, message = "Loading...") {
+                showResult(elementId, message, "loading");
+            }
+
+            function formatJSON(obj) {
+                return JSON.stringify(obj, null, 2);
+            }
+
+            function validateResponseStructure(data, expectedFields) {
+                const missing = [];
+                const present = [];
+
+                expectedFields.forEach((field) => {
+                    if (data.hasOwnProperty(field)) {
+                        present.push(field);
+                    } else {
+                        missing.push(field);
+                    }
+                });
+
+                return { missing, present };
+            }
+
+            async function makeRequest(url, options = {}) {
+                const config = getConfig();
+                const controller = new AbortController();
+
+                const timeoutId = setTimeout(
+                    () => controller.abort(),
+                    config.timeout,
+                );
+
+                try {
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: controller.signal,
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...options.headers,
+                        },
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    let data;
+                    const contentType = response.headers.get("content-type");
+
+                    if (
+                        contentType &&
+                        contentType.includes("application/json")
+                    ) {
+                        data = await response.json();
+                    } else {
+                        data = { text: await response.text() };
+                    }
+
+                    return { response, data };
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    throw error;
+                }
+            }
+
+            // Health Tests
+            async function testApiHealth() {
+                const config = getConfig();
+                showLoading("health-result");
+
+                try {
+                    const start = performance.now();
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/health`,
+                    );
+                    const duration = Math.round(performance.now() - start);
+
+                    const result = `✅ API Health Check
+Status: ${response.status}
+Response Time: ${duration}ms
+Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "health-result",
+                        result,
+                        response.ok ? "success" : "error",
+                        response.status,
+                    );
+                    testResults.health = {
+                        success: response.ok,
+                        duration,
+                        status: response.status,
+                    };
+                } catch (error) {
+                    const result = `❌ API Health Check Failed
+Error: ${error.message}
+This likely means the backend server is not running at ${config.apiBaseUrl}`;
+                    showResult("health-result", result, "error");
+                    testResults.health = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testCORS() {
+                const config = getConfig();
+                showLoading("health-result");
+
+                try {
+                    const { response } = await makeRequest(
+                        `${config.apiBaseUrl}/health`,
+                        {
+                            method: "OPTIONS",
+                        },
+                    );
+
+                    const corsHeaders = {
+                        "Access-Control-Allow-Origin": response.headers.get(
+                            "Access-Control-Allow-Origin",
+                        ),
+                        "Access-Control-Allow-Methods": response.headers.get(
+                            "Access-Control-Allow-Methods",
+                        ),
+                        "Access-Control-Allow-Headers": response.headers.get(
+                            "Access-Control-Allow-Headers",
+                        ),
+                    };
+
+                    const result = `✅ CORS Test
+Status: ${response.status}
+CORS Headers: ${formatJSON(corsHeaders)}`;
+
+                    showResult(
+                        "health-result",
+                        result,
+                        response.ok ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.cors = { success: response.ok, corsHeaders };
+                } catch (error) {
+                    showResult(
+                        "health-result",
+                        `❌ CORS Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.cors = { success: false, error: error.message };
+                }
+            }
+
+            async function testConnectivity() {
+                const config = getConfig();
+                showLoading("health-result");
+
+                const endpoints = ["/health", "/docs", "/openapi.json"];
+                const results = [];
+
+                for (const endpoint of endpoints) {
+                    try {
+                        const start = performance.now();
+                        const { response } = await makeRequest(
+                            `${config.apiBaseUrl}${endpoint}`,
+                        );
+                        const duration = Math.round(performance.now() - start);
+
+                        results.push({
+                            endpoint,
+                            status: response.status,
+                            duration,
+                            success: response.ok,
+                        });
+                    } catch (error) {
+                        results.push({
+                            endpoint,
+                            error: error.message,
+                            success: false,
+                        });
+                    }
+                }
+
+                const result = `📡 Connectivity Test
+${results.map((r) => `${r.endpoint}: ${r.success ? "✅" : "❌"} ${r.status || "ERROR"} ${r.duration ? `(${r.duration}ms)` : ""}`).join("\n")}
+
+Details: ${formatJSON(results)}`;
+
+                showResult("health-result", result, "success");
+                testResults.connectivity = { results };
+            }
+
+            // Get Articles Tests
+            async function testGetArticles() {
+                const config = getConfig();
+                showLoading("get-articles-result");
+
+                try {
+                    const start = performance.now();
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}?user_id=${config.userId}`,
+                    );
+                    const duration = Math.round(performance.now() - start);
+
+                    const result = `📚 Get Articles Test
+                    Status: ${response.status}
+                    Response Time: ${duration}ms
+                    Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "get-articles-result",
+                        result,
+                        response.ok ? "success" : "error",
+                        response.status,
+                    );
+                    testResults.getArticles = {
+                        success: response.ok,
+                        duration,
+                        status: response.status,
+                        data,
+                    };
+                } catch (error) {
+                    showResult(
+                        "get-articles-result",
+                        `❌ Get Articles Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.getArticles = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testGetArticlesInvalidChild() {
+                const config = getConfig();
+                showLoading("get-articles-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/99999?user_id=${config.userId}`,
+                    );
+
+                    const result = `🔍 Get Articles Invalid Child Test
+Status: ${response.status}
+Expected: 404 (Child not found)
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "get-articles-result",
+                        result,
+                        response.status === 404 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.getArticlesInvalidChild = {
+                        success: response.status === 404,
+                        status: response.status,
+                    };
+                } catch (error) {
+                    showResult(
+                        "get-articles-result",
+                        `❌ Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.getArticlesInvalidChild = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testGetArticlesInvalidUser() {
+                const config = getConfig();
+                showLoading("get-articles-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}?user_id=99999`,
+                    );
+
+                    const result = `🔍 Get Articles Invalid User Test
+Status: ${response.status}
+Expected: 404 (Child not found for user)
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "get-articles-result",
+                        result,
+                        response.status === 404 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.getArticlesInvalidUser = {
+                        success: response.status === 404,
+                        status: response.status,
+                    };
+                } catch (error) {
+                    showResult(
+                        "get-articles-result",
+                        `❌ Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.getArticlesInvalidUser = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testGetArticlesResponseStructure() {
+                const config = getConfig();
+                showLoading("get-articles-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}?user_id=${config.userId}`,
+                    );
+
+                    const expectedFields = [
+                        "success",
+                        "child_id",
+                        "child_name",
+                        "articles",
+                        "total_articles",
+                    ];
+                    const validation = validateResponseStructure(
+                        data,
+                        expectedFields,
+                    );
+
+                    const result = `🔍 Response Structure Test
+Status: ${response.status}
+Expected Fields: ${expectedFields.join(", ")}
+Present Fields: ${validation.present.join(", ")}
+Missing Fields: ${validation.missing.join(", ") || "None"}
+
+${validation.missing.length === 0 ? "✅ All required fields present" : "❌ Missing required fields"}
+
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "get-articles-result",
+                        result,
+                        validation.missing.length === 0 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.getArticlesStructure = {
+                        success: validation.missing.length === 0,
+                        validation,
+                    };
+                } catch (error) {
+                    showResult(
+                        "get-articles-result",
+                        `❌ Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.getArticlesStructure = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            // Refresh Articles Tests
+            async function testRefreshArticles() {
+                const config = getConfig();
+                showLoading("refresh-articles-result");
+
+                try {
+                    const start = performance.now();
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}/refresh?user_id=${config.userId}`,
+                        {
+                            method: "POST",
+                        },
+                    );
+                    const duration = Math.round(performance.now() - start);
+
+                    const result = `🔄 Refresh Articles Test
+Status: ${response.status}
+Response Time: ${duration}ms
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "refresh-articles-result",
+                        result,
+                        response.ok ? "success" : "error",
+                        response.status,
+                    );
+                    testResults.refreshArticles = {
+                        success: response.ok,
+                        duration,
+                        status: response.status,
+                        data,
+                    };
+                } catch (error) {
+                    showResult(
+                        "refresh-articles-result",
+                        `❌ Refresh Articles Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.refreshArticles = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testRefreshArticlesInvalidChild() {
+                const config = getConfig();
+                showLoading("refresh-articles-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/99999/refresh?user_id=${config.userId}`,
+                        {
+                            method: "POST",
+                        },
+                    );
+
+                    const result = `🔍 Refresh Articles Invalid Child Test
+Status: ${response.status}
+Expected: 404 (Child not found)
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "refresh-articles-result",
+                        result,
+                        response.status === 404 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.refreshArticlesInvalidChild = {
+                        success: response.status === 404,
+                        status: response.status,
+                    };
+                } catch (error) {
+                    showResult(
+                        "refresh-articles-result",
+                        `❌ Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.refreshArticlesInvalidChild = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testRefreshArticlesInvalidUser() {
+                const config = getConfig();
+                showLoading("refresh-articles-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}/refresh?user_id=99999`,
+                        {
+                            method: "POST",
+                        },
+                    );
+
+                    const result = `🔍 Refresh Articles Invalid User Test
+Status: ${response.status}
+Expected: 404 (Child not found for user)
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "refresh-articles-result",
+                        result,
+                        response.status === 404 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.refreshArticlesInvalidUser = {
+                        success: response.status === 404,
+                        status: response.status,
+                    };
+                } catch (error) {
+                    showResult(
+                        "refresh-articles-result",
+                        `❌ Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.refreshArticlesInvalidUser = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testRefreshArticlesResponseStructure() {
+                const config = getConfig();
+                showLoading("refresh-articles-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}/refresh?user_id=${config.userId}`,
+                        {
+                            method: "POST",
+                        },
+                    );
+
+                    const expectedFields = [
+                        "success",
+                        "child_id",
+                        "child_name",
+                        "articles",
+                        "total_articles",
+                        "refreshed_at",
+                    ];
+                    const validation = validateResponseStructure(
+                        data,
+                        expectedFields,
+                    );
+
+                    const result = `🔍 Refresh Response Structure Test
+Status: ${response.status}
+Expected Fields: ${expectedFields.join(", ")}
+Present Fields: ${validation.present.join(", ")}
+Missing Fields: ${validation.missing.join(", ") || "None"}
+
+${validation.missing.length === 0 ? "✅ All required fields present" : "❌ Missing required fields"}
+
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "refresh-articles-result",
+                        result,
+                        validation.missing.length === 0 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.refreshArticlesStructure = {
+                        success: validation.missing.length === 0,
+                        validation,
+                    };
+                } catch (error) {
+                    showResult(
+                        "refresh-articles-result",
+                        `❌ Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.refreshArticlesStructure = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            // Summary Tests
+            async function testGetSummary() {
+                const config = getConfig();
+                showLoading("summary-result");
+
+                try {
+                    const start = performance.now();
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}/summary?user_id=${config.userId}`,
+                    );
+                    const duration = Math.round(performance.now() - start);
+
+                    const result = `📊 Get Summary Test
+Status: ${response.status}
+Response Time: ${duration}ms
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "summary-result",
+                        result,
+                        response.ok ? "success" : "error",
+                        response.status,
+                    );
+                    testResults.getSummary = {
+                        success: response.ok,
+                        duration,
+                        status: response.status,
+                        data,
+                    };
+                } catch (error) {
+                    showResult(
+                        "summary-result",
+                        `❌ Get Summary Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.getSummary = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testGetSummaryInvalidChild() {
+                const config = getConfig();
+                showLoading("summary-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/99999/summary?user_id=${config.userId}`,
+                    );
+
+                    const result = `🔍 Get Summary Invalid Child Test
+Status: ${response.status}
+Expected: 404 (Child not found)
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "summary-result",
+                        result,
+                        response.status === 404 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.getSummaryInvalidChild = {
+                        success: response.status === 404,
+                        status: response.status,
+                    };
+                } catch (error) {
+                    showResult(
+                        "summary-result",
+                        `❌ Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.getSummaryInvalidChild = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testGetSummaryInvalidUser() {
+                const config = getConfig();
+                showLoading("summary-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}/summary?user_id=99999`,
+                    );
+
+                    const result = `🔍 Get Summary Invalid User Test
+Status: ${response.status}
+Expected: 404 (Child not found for user)
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "summary-result",
+                        result,
+                        response.status === 404 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.getSummaryInvalidUser = {
+                        success: response.status === 404,
+                        status: response.status,
+                    };
+                } catch (error) {
+                    showResult(
+                        "summary-result",
+                        `❌ Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.getSummaryInvalidUser = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testGetSummaryResponseStructure() {
+                const config = getConfig();
+                showLoading("summary-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}/summary?user_id=${config.userId}`,
+                    );
+
+                    const expectedFields = [
+                        "success",
+                        "child_id",
+                        "child_name",
+                        "total_articles",
+                        "top_topics",
+                        "avg_relevance_score",
+                    ];
+                    const validation = validateResponseStructure(
+                        data,
+                        expectedFields,
+                    );
+
+                    const result = `🔍 Summary Response Structure Test
+Status: ${response.status}
+Expected Fields: ${expectedFields.join(", ")}
+Present Fields: ${validation.present.join(", ")}
+Missing Fields: ${validation.missing.join(", ") || "None"}
+
+${validation.missing.length === 0 ? "✅ All required fields present" : "❌ Missing required fields"}
+
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "summary-result",
+                        result,
+                        validation.missing.length === 0 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.getSummaryStructure = {
+                        success: validation.missing.length === 0,
+                        validation,
+                    };
+                } catch (error) {
+                    showResult(
+                        "summary-result",
+                        `❌ Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.getSummaryStructure = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            // JSON Validation Tests
+            async function testJSONValidation() {
+                const config = getConfig();
+                showLoading("json-validation-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}?user_id=${config.userId}`,
+                    );
+
+                    const isValidJSON =
+                        typeof data === "object" && data !== null;
+                    const hasArticles = Array.isArray(data.articles);
+                    const articlesValid =
+                        hasArticles &&
+                        data.articles.every(
+                            (article) =>
+                                typeof article === "object" &&
+                                article !== null &&
+                                typeof article.id === "string" &&
+                                typeof article.title === "string",
+                        );
+
+                    const result = `🔍 JSON Validation Test
+Status: ${response.status}
+Valid JSON: ${isValidJSON ? "✅" : "❌"}
+Has Articles Array: ${hasArticles ? "✅" : "❌"}
+Articles Valid: ${articlesValid ? "✅" : "❌"}
+
+Article Count: ${hasArticles ? data.articles.length : "N/A"}
+Sample Article: ${hasArticles && data.articles.length > 0 ? formatJSON(data.articles[0]) : "None"}`;
+
+                    showResult(
+                        "json-validation-result",
+                        result,
+                        isValidJSON && hasArticles && articlesValid
+                            ? "success"
+                            : "error",
+                        response.status,
+                    );
+                    testResults.jsonValidation = {
+                        success: isValidJSON && hasArticles && articlesValid,
+                        isValidJSON,
+                        hasArticles,
+                        articlesValid,
+                    };
+                } catch (error) {
+                    showResult(
+                        "json-validation-result",
+                        `❌ JSON Validation Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.jsonValidation = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testArticleSchema() {
+                const config = getConfig();
+                showLoading("json-validation-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}?user_id=${config.userId}`,
+                    );
+
+                    if (
+                        !Array.isArray(data.articles) ||
+                        data.articles.length === 0
+                    ) {
+                        showResult(
+                            "json-validation-result",
+                            "❌ No articles found to validate schema",
+                            "error",
+                        );
+                        return;
+                    }
+
+                    const requiredFields = [
+                        "id",
+                        "title",
+                        "description",
+                        "tags",
+                    ];
+                    const optionalFields = [
+                        "url",
+                        "source",
+                        "publishedDate",
+                        "domain",
+                        "ai_summary",
+                        "relevance_score",
+                        "key_topics",
+                        "age_appropriate",
+                        "content_snippet",
+                    ];
+
+                    const article = data.articles[0];
+                    const validation = validateResponseStructure(
+                        article,
+                        requiredFields,
+                    );
+
+                    const result = `🔍 Article Schema Test
+Status: ${response.status}
+Required Fields: ${requiredFields.join(", ")}
+Present Required: ${validation.present.join(", ")}
+Missing Required: ${validation.missing.join(", ") || "None"}
+
+Optional Fields Present: ${optionalFields.filter((f) => article.hasOwnProperty(f)).join(", ")}
+
+Sample Article: ${formatJSON(article)}`;
+
+                    showResult(
+                        "json-validation-result",
+                        result,
+                        validation.missing.length === 0 ? "success" : "warning",
+                        response.status,
+                    );
+                    testResults.articleSchema = {
+                        success: validation.missing.length === 0,
+                        validation,
+                        article,
+                    };
+                } catch (error) {
+                    showResult(
+                        "json-validation-result",
+                        `❌ Article Schema Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.articleSchema = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            async function testDataTypes() {
+                const config = getConfig();
+                showLoading("json-validation-result");
+
+                try {
+                    const { response, data } = await makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}?user_id=${config.userId}`,
+                    );
+
+                    const typeValidation = {
+                        success: typeof data.success === "boolean",
+                        child_id: typeof data.child_id === "number",
+                        child_name: typeof data.child_name === "string",
+                        articles: Array.isArray(data.articles),
+                        total_articles: typeof data.total_articles === "number",
+                    };
+
+                    const allValid = Object.values(typeValidation).every(
+                        (v) => v,
+                    );
+
+                    const result = `🔍 Data Types Test
+Status: ${response.status}
+Type Validation: ${formatJSON(typeValidation)}
+All Types Valid: ${allValid ? "✅" : "❌"}
+
+Response: ${formatJSON(data)}`;
+
+                    showResult(
+                        "json-validation-result",
+                        result,
+                        allValid ? "success" : "error",
+                        response.status,
+                    );
+                    testResults.dataTypes = {
+                        success: allValid,
+                        typeValidation,
+                    };
+                } catch (error) {
+                    showResult(
+                        "json-validation-result",
+                        `❌ Data Types Test Failed: ${error.message}`,
+                        "error",
+                    );
+                    testResults.dataTypes = {
+                        success: false,
+                        error: error.message,
+                    };
+                }
+            }
+
+            // Performance Tests
+            async function testResponseTime() {
+                const config = getConfig();
+                showLoading("performance-result");
+
+                const tests = [];
+                const iterations = 5;
+
+                for (let i = 0; i < iterations; i++) {
+                    try {
+                        const start = performance.now();
+                        const { response } = await makeRequest(
+                            `${config.apiBaseUrl}/articles/${config.childId}?user_id=${config.userId}`,
+                        );
+                        const duration = Math.round(performance.now() - start);
+
+                        tests.push({
+                            iteration: i + 1,
+                            duration,
+                            status: response.status,
+                            success: response.ok,
+                        });
+                    } catch (error) {
+                        tests.push({
+                            iteration: i + 1,
+                            error: error.message,
+                            success: false,
+                        });
+                    }
+                }
+
+                const successful = tests.filter((t) => t.success);
+                const avgTime =
+                    successful.length > 0
+                        ? Math.round(
+                              successful.reduce(
+                                  (sum, t) => sum + t.duration,
+                                  0,
+                              ) / successful.length,
+                          )
+                        : 0;
+                const minTime =
+                    successful.length > 0
+                        ? Math.min(...successful.map((t) => t.duration))
+                        : 0;
+                const maxTime =
+                    successful.length > 0
+                        ? Math.max(...successful.map((t) => t.duration))
+                        : 0;
+
+                const result = `⚡ Response Time Test
+Iterations: ${iterations}
+Successful: ${successful.length}
+Average Time: ${avgTime}ms
+Min Time: ${minTime}ms
+Max Time: ${maxTime}ms
+
+Details: ${formatJSON(tests)}`;
+
+                showResult(
+                    "performance-result",
+                    result,
+                    successful.length > 0 ? "success" : "error",
+                );
+                testResults.responseTime = {
+                    avgTime,
+                    minTime,
+                    maxTime,
+                    successful: successful.length,
+                    total: iterations,
+                };
+            }
+
+            async function testConcurrentRequests() {
+                const config = getConfig();
+                showLoading("performance-result");
+
+                const concurrency = 3;
+                const promises = [];
+
+                for (let i = 0; i < concurrency; i++) {
+                    const promise = makeRequest(
+                        `${config.apiBaseUrl}/articles/${config.childId}?user_id=${config.userId}`,
+                    )
+                        .then(({ response }) => ({
+                            success: response.ok,
+                            status: response.status,
+                            index: i,
+                        }))
+                        .catch((error) => ({
+                            success: false,
+                            error: error.message,
+                            index: i,
+                        }));
+                    promises.push(promise);
+                }
+
+                const start = performance.now();
+                const results = await Promise.all(promises);
+                const duration = Math.round(performance.now() - start);
+
+                const successful = results.filter((r) => r.success);
+
+                const result = `🔄 Concurrent Requests Test
+Concurrent Requests: ${concurrency}
+Total Time: ${duration}ms
+Successful: ${successful.length}
+Failed: ${results.length - successful.length}
+
+Results: ${formatJSON(results)}`;
+
+                showResult(
+                    "performance-result",
+                    result,
+                    successful.length > 0 ? "success" : "error",
+                );
+                testResults.concurrentRequests = {
+                    successful: successful.length,
+                    total: concurrency,
+                    duration,
+                };
+            }
+
+            async function testTimeoutHandling() {
+                const config = getConfig();
+                showLoading("performance-result");
+
+                // Test with very short timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 1); // 1ms timeout
+
+                try {
+                    const { response } = await fetch(
+                        `${config.apiBaseUrl}/articles/${config.childId}?user_id=${config.userId}`,
+                        {
+                            signal: controller.signal,
+                        },
+                    );
+
+                    const result = `⏱️ Timeout Handling Test
+Unexpected Success: Request completed faster than 1ms
+Status: ${response.status}
+This indicates very fast response or local caching.`;
+
+                    showResult("performance-result", result, "warning");
+                    testResults.timeoutHandling = {
+                        success: false,
+                        reason: "Request too fast",
+                    };
+                } catch (error) {
+                    if (error.name === "AbortError") {
+                        const result = `⏱️ Timeout Handling Test
+✅ Timeout properly handled
+Error: ${error.message}
+This confirms the timeout mechanism works correctly.`;
+
+                        showResult("performance-result", result, "success");
+                        testResults.timeoutHandling = {
+                            success: true,
+                            properly_aborted: true,
+                        };
+                    } else {
+                        const result = `⏱️ Timeout Handling Test
+❌ Unexpected error: ${error.message}`;
+
+                        showResult("performance-result", result, "error");
+                        testResults.timeoutHandling = {
+                            success: false,
+                            error: error.message,
+                        };
+                    }
+                }
+            }
+
+            // Comprehensive test runner
+            async function runAllTests() {
+                testResults = {};
+                testStartTime = Date.now();
+
+                showLoading(
+                    "all-tests-result",
+                    "🚀 Running comprehensive test suite...",
+                );
+
+                const testFunctions = [
+                    { name: "API Health", fn: testApiHealth },
+                    { name: "CORS", fn: testCORS },
+                    { name: "Connectivity", fn: testConnectivity },
+                    { name: "Get Articles", fn: testGetArticles },
+                    {
+                        name: "Get Articles Invalid Child",
+                        fn: testGetArticlesInvalidChild,
+                    },
+                    {
+                        name: "Get Articles Invalid User",
+                        fn: testGetArticlesInvalidUser,
+                    },
+                    {
+                        name: "Get Articles Response Structure",
+                        fn: testGetArticlesResponseStructure,
+                    },
+                    { name: "Refresh Articles", fn: testRefreshArticles },
+                    {
+                        name: "Refresh Articles Invalid Child",
+                        fn: testRefreshArticlesInvalidChild,
+                    },
+                    {
+                        name: "Refresh Articles Invalid User",
+                        fn: testRefreshArticlesInvalidUser,
+                    },
+                    {
+                        name: "Refresh Articles Response Structure",
+                        fn: testRefreshArticlesResponseStructure,
+                    },
+                    { name: "Get Summary", fn: testGetSummary },
+                    {
+                        name: "Get Summary Invalid Child",
+                        fn: testGetSummaryInvalidChild,
+                    },
+                    {
+                        name: "Get Summary Invalid User",
+                        fn: testGetSummaryInvalidUser,
+                    },
+                    {
+                        name: "Get Summary Response Structure",
+                        fn: testGetSummaryResponseStructure,
+                    },
+                    { name: "JSON Validation", fn: testJSONValidation },
+                    { name: "Article Schema", fn: testArticleSchema },
+                    { name: "Data Types", fn: testDataTypes },
+                    { name: "Response Time", fn: testResponseTime },
+                    { name: "Concurrent Requests", fn: testConcurrentRequests },
+                    { name: "Timeout Handling", fn: testTimeoutHandling },
+                ];
+
+                const results = [];
+                let current = 0;
+
+                for (const test of testFunctions) {
+                    current++;
+                    showLoading(
+                        "all-tests-result",
+                        `🔄 Running ${test.name}... (${current}/${testFunctions.length})`,
+                    );
+
+                    try {
+                        await test.fn();
+                        results.push({ name: test.name, success: true });
+                    } catch (error) {
+                        results.push({
+                            name: test.name,
+                            success: false,
+                            error: error.message,
+                        });
+                    }
+
+                    // Small delay between tests
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+
+                const totalDuration = Date.now() - testStartTime;
+                const successful = results.filter((r) => r.success).length;
+                const failed = results.length - successful;
+
+                const summary = `🎯 All Tests Complete
+Duration: ${Math.round(totalDuration / 1000)}s
+Total Tests: ${results.length}
+Successful: ${successful}
+Failed: ${failed}
+Success Rate: ${Math.round((successful / results.length) * 100)}%
+
+Test Results:
+${results.map((r) => `${r.success ? "✅" : "❌"} ${r.name}`).join("\n")}`;
+
+                showResult(
+                    "all-tests-result",
+                    summary,
+                    failed === 0 ? "success" : "warning",
+                );
+
+                // Show detailed summary
+                displayTestSummary(results, totalDuration);
+            }
+
+            function displayTestSummary(results, totalDuration) {
+                const summaryElement = document.getElementById("test-summary");
+                const metricsElement =
+                    document.getElementById("summary-metrics");
+                const detailsElement =
+                    document.getElementById("summary-details");
+
+                const successful = results.filter((r) => r.success).length;
+                const failed = results.length - successful;
+                const successRate = Math.round(
+                    (successful / results.length) * 100,
+                );
+
+                metricsElement.innerHTML = `
+                <div class="metric">Tests: ${results.length}</div>
+                <div class="metric">Success: ${successful}</div>
+                <div class="metric">Failed: ${failed}</div>
+                <div class="metric">Success Rate: ${successRate}%</div>
+                <div class="metric">Duration: ${Math.round(totalDuration / 1000)}s</div>
+            `;
+
+                const categories = {
+                    "Health & Connectivity": [
+                        "API Health",
+                        "CORS",
+                        "Connectivity",
+                    ],
+                    "Get Articles": [
+                        "Get Articles",
+                        "Get Articles Invalid Child",
+                        "Get Articles Invalid User",
+                        "Get Articles Response Structure",
+                    ],
+                    "Refresh Articles": [
+                        "Refresh Articles",
+                        "Refresh Articles Invalid Child",
+                        "Refresh Articles Invalid User",
+                        "Refresh Articles Response Structure",
+                    ],
+                    Summary: [
+                        "Get Summary",
+                        "Get Summary Invalid Child",
+                        "Get Summary Invalid User",
+                        "Get Summary Response Structure",
+                    ],
+                    "JSON Validation": [
+                        "JSON Validation",
+                        "Article Schema",
+                        "Data Types",
+                    ],
+                    Performance: [
+                        "Response Time",
+                        "Concurrent Requests",
+                        "Timeout Handling",
+                    ],
+                };
+
+                let categoryHTML = "";
+                for (const [category, tests] of Object.entries(categories)) {
+                    const categoryResults = results.filter((r) =>
+                        tests.includes(r.name),
+                    );
+                    const categorySuccess = categoryResults.filter(
+                        (r) => r.success,
+                    ).length;
+                    const categoryTotal = categoryResults.length;
+                    const categoryRate = Math.round(
+                        (categorySuccess / categoryTotal) * 100,
+                    );
+
+                    categoryHTML += `
+                    <div style="margin-bottom: 15px;">
+                        <h4>${category} (${categorySuccess}/${categoryTotal} - ${categoryRate}%)</h4>
+                        <div style="margin-left: 20px;">
+                            ${categoryResults.map((r) => `<div>${r.success ? "✅" : "❌"} ${r.name}</div>`).join("")}
+                        </div>
+                    </div>
+                `;
+                }
+
+                detailsElement.innerHTML = categoryHTML;
+                summaryElement.style.display = "block";
+            }
+
+            function clearAllResults() {
+                const resultElements = [
+                    "health-result",
+                    "get-articles-result",
+                    "refresh-articles-result",
+                    "summary-result",
+                    "json-validation-result",
+                    "performance-result",
+                    "all-tests-result",
+                ];
+
+                resultElements.forEach((id) => {
+                    const element = document.getElementById(id);
+                    element.innerHTML = "";
+                    element.className = "result";
+                });
+
+                document.getElementById("test-summary").style.display = "none";
+                testResults = {};
+            }
+
+            // Auto-run connectivity test on page load
+            window.addEventListener("load", function () {
+                setTimeout(testConnectivity, 500);
+            });
+        </script>
+    </body>
+</html>
+

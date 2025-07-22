@@ -131,6 +131,9 @@
   import VueDatePicker from '@vuepic/vue-datepicker'
   import '@vuepic/vue-datepicker/dist/main.css'
   import { useCheckinStore } from '@/stores/checkin'
+  import { useSleepStore } from '@/stores/sleep'
+
+const sleepStore = useSleepStore()
 
   const props = defineProps({
     modelValue: {
@@ -350,13 +353,17 @@
 
       console.log('Sleep data saved successfully:', savedEntry)
       
+      // IMPORTANT: Refresh the sleep store for today's date
+    const currentDate = new Date().toISOString().split('T')[0]
+    await sleepStore.refreshSleepForDate(currentDate)
+
       // Clear form and close dialog
       errors.value = {}
       localBedTime.value = null
       localAwakeTime.value = null
       
-      // Emit saved event for parent component
-      emit('saved', savedEntry)
+      // Emit save event for parent component
+      emit('save')
       emit('update:modelValue', false)
       
     } catch (error) {

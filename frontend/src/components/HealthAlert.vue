@@ -1,75 +1,87 @@
 <!-- TODO: USE AI HERE INSTEAD OF HEALTH!! -->
 
 <template>
-  <div v-if="hasHealthAlert" class="mb-6">
-    <h2 class="text-body-1 font-weight-medium mb-3">
-      {{ currentChild.name }}'s Smart Alert
-    </h2>
-
-    <v-alert
-      class="health-alert"
-      color="#FFF2F0"
-      variant="tonal"
+    <div
+        v-if="hasHealthAlert"
+        class="mb-6"
     >
-      <div class="d-flex align-center justify-space-between">
-        <div class="d-flex align-center">
-          <v-icon
-            class="mr-3 ml-1"
-            color="#FF5252"
-          >mdi-alert</v-icon>
-          <div>
-            <div class="text-body-1 font-weight-medium mb-1">
-              {{ healthData.status }}
-            </div>
-            <div class="text-body-2 text-grey-darken-1">
-              {{ healthData.message }}
-              <div v-if="healthData.symptoms?.length" class="mt-1">
-                Symptoms: {{ healthData.symptoms.join(', ') }}
-              </div>
-              <div v-if="healthData.temperature" class="mt-1">
-                Temperature: {{ healthData.temperature }}°C
-              </div>
-            </div>
-          </div>
-        </div>
-        <v-btn
-          class="text-white mr-3"
-          color="#FF5252"
-          size="small"
-          variant="flat"
-          @click="handleViewMore"
+        <h2 class="text-body-1 font-weight-medium mb-3">
+            {{ currentChild.name }}'s Smart Alert
+        </h2>
+
+        <v-alert
+            class="health-alert"
+            color="#FFF2F0"
+            variant="tonal"
         >
-          View More
-        </v-btn>
-      </div>
-    </v-alert>
-  </div>
+            <div class="d-flex align-center justify-space-between">
+                <div class="d-flex align-center">
+                    <v-icon
+                        class="mr-3 ml-1"
+                        color="#FF5252"
+                        >mdi-alert</v-icon
+                    >
+                    <div>
+                        <div class="text-body-1 font-weight-medium mb-1">
+                            {{ healthData.status }}
+                        </div>
+                        <div class="text-body-2 text-grey-darken-1">
+                            {{ healthData.message }}
+                            <div
+                                v-if="healthData.symptoms?.length"
+                                class="mt-1"
+                            >
+                                Symptoms: {{ healthData.symptoms.join(', ') }}
+                            </div>
+                            <div
+                                v-if="healthData.temperature"
+                                class="mt-1"
+                            >
+                                Temperature: {{ healthData.temperature }}°C
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <v-btn
+                    class="text-white mr-3"
+                    color="#FF5252"
+                    size="small"
+                    variant="flat"
+                    @click="handleViewMore"
+                >
+                    View More
+                </v-btn>
+            </div>
+        </v-alert>
+    </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
+    // ------DEMO-------
+    import { useHealthAlert } from '@/composables/useHealthAlert'
+    // import { ref, computed } from 'vue'
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const props = defineProps({
-    currentChild: {
-      type: Object,
-      required: true,
-    },
-  })
+    const props = defineProps({
+      currentChild: {
+        type: Object,
+        required: true,
+      },
+    })
 
-  const emit = defineEmits(['view-more'])
+     const emit = defineEmits(['view-more'])
 
-  // TODO: Replace with actual health alert data from store
-  const healthData = ref({
-    status: 'No alerts',
-    message: 'Everything looks normal',
-    symptoms: [],
-    temperature: null
-  })
+    const { healthData, hasHealthAlert } = useHealthAlert()
+    // TODO: Replace with actual health alert data from store
+    // const healthData = ref({
+    //   status: 'No alerts',
+    //   message: 'Everything looks normal',
+    //   symptoms: [],
+    //   temperature: null
+    // })
 
-  const hasHealthAlert = computed(() => false) // TODO: Implement actual alert logic
+    // const hasHealthAlert = computed(() => false) // TODO: Implement actual alert logic
 
-  const handleViewMore = () => {
-    emit('view-more', healthData.value)
-  }
+    const handleviewmore = () => {
+      emit('view-more', healthData.value)
+     }
 </script>

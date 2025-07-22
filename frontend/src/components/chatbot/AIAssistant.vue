@@ -17,9 +17,9 @@
             Powered by AI for childcare guidance. SuriAI can help with sleep
             patterns, meal suggestions, development milestones, and more.
           </div>
-          <div class="suriai-input-container">
+          <div class="suriai-input-container d-flex align-center">
             <v-card
-              class="input-card"
+              class="input-card flex-grow-1"
               variant="outlined"
             >
               <div class="d-flex align-center px-4 py-2">
@@ -31,18 +31,18 @@
                   variant="plain"
                   @keyup.enter="sendMessage"
                 />
-                <v-btn
-                  class="ml-2"
-                  color="#D87179"
-                  :disabled="!message.trim()"
-                  icon
-                  variant="text"
-                  @click="sendMessage"
-                >
-                  <v-icon>mdi-send</v-icon>
-                </v-btn>
               </div>
             </v-card>
+            <v-btn
+              class="ml-3"
+              color="#D87179"
+              :disabled="!message.trim()"
+              icon
+              variant="flat"
+              @click="sendMessage"
+            >
+              <v-icon>mdi-send</v-icon>
+            </v-btn>
           </div>
         </div>
       </div>

@@ -1,13 +1,13 @@
 <template>
   <BaseCheckInDialog
-    icon="mdi-stethoscope"
-    icon-color="#000000"
+    icon="mdi-heart"
+    icon-color="#D87179"
     :loading="loading"
     max-width="800px"
     :model-value="modelValue"
     :notes="notes"
-    subtitle="Does Jennie have any symptoms?"
-    title="Symptoms"
+    subtitle="Does Pui Sim have any symptoms?"
+    title="Health"
     @close="handleClose"
     @save="handleSave"
     @update:model-value="handleDialogUpdate"
@@ -121,8 +121,14 @@
 </template>
 
 <script setup lang="ts">
-  import { nextTick, ref, watch } from 'vue'
   import BaseCheckInDialog from './BaseCheckInDialog.vue'
+  import { useCheckinStore } from '@/stores/checkin' 
+   import { nextTick, ref, watch, computed } from 'vue'
+  import { useSymptomOptions } from '@/composables/useSymptomOptions'
+  import type { SymptomsData } from '@/stores/checkin'
+
+  const checkinStore = useCheckinStore()
+
 
   const props = defineProps({
     modelValue: {
@@ -165,8 +171,7 @@
     'close',
   ])
 
-  // Use dynamic options from database
-  import { useSymptomOptions } from '@/composables/useSymptomOptions'
+
 
   const {
     symptomOptions,
@@ -368,21 +373,48 @@
     emit('close')
   }
 
+  const resetFormData = () => {
+    errors.value = {}
+    localSymptoms.value = []
+    selectedFile.value = null
+    localOtherSymptom.value = ''
+    imagePreview.value = null
+  }
+
+
+
   // Handle save
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       return
     }
 
-    const symptomsData = {
-      symptoms: localSymptoms.value,
-      photo: selectedFile.value,
-      otherSymptom: localOtherSymptom.value,
-      notes: props.notes,
-    }
+    try {
+      const symptomsData: SymptomsData = {
+        symptoms: localSymptoms.value,
+        photo: selectedFile.value,
+        otherSymptom: localOtherSymptom.value,
+        notes: props.notes,
+      }
 
-    errors.value = {}
-    emit('save', symptomsData)
+      console.log('💾 Saving symptoms directly:', symptomsData)
+
+      // Save using the checkin store
+      await checkinStore.saveSymptoms(symptomsData)
+
+      console.log('✅ Symptoms saved successfully')
+
+      // Emit save event for parent component
+      emit('save')
+      // Close dialog and reset form
+      resetFormData()
+      emit('update:modelValue', false)
+
+    } catch (error) {
+      console.error('❌ Failed to save symptoms:', error)
+      // Dialog stays open so user can retry
+      // Error is already handled by the store and displayed via checkinStore.error
+    }
   }
 </script>
 

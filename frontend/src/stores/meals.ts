@@ -3,15 +3,25 @@ import { computed, ref } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import axios from 'axios'
 import { useChildrenStore } from './children'
+import { timestampToDateString, dateToString } from '@/utils/dateUtils'
 
 interface MealPercentages {
-  breakfast: number
-  lunch: number
-  dinner: number
+  [mealType: string]: number
+}
+
+interface MealStats {
+  consumption: number  // Total consumption percentage
+  count: number       // Number of meals
+  avgConsumption: number  // Average consumption per meal
+}
+
+interface MealStatistics {
+  [mealType: string]: MealStats
 }
 
 export interface MealsData {
   percentages: MealPercentages
+  statistics: MealStatistics
   refusedItems: string[]
   preferences: string[]
 }
@@ -28,6 +38,8 @@ interface MealsStoreInterface {
   fetchMealsForDate: (date: string) => Promise<void>
   updateMealsForDate: (date: string, mealsData: MealsData) => Promise<void>
   getMealCount: ComputedRef<(date: string | Date) => number | string>
+  invalidateCache: (date?: string) => void
+  refreshMealsForDate: (date: string) => Promise<void>
 }
 
 export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
@@ -36,59 +48,93 @@ export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
   const loadingState = ref<boolean>(false)
   const errorMessage = ref<string | null>(null)
 
-  // Utility: Convert Date to YYYY-MM-DD string
-  const dateToString = (date: Date): string => {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
+  // Date utilities are now imported from shared utils
 
-  // Utility: Convert timestamp to YYYY-MM-DD string (handles both seconds and milliseconds)
-  const timestampToDateString = (timestamp: number): string => {
-    // If timestamp is in seconds (< 10 digits), convert to milliseconds
-    const ms = timestamp < 10000000000 ? timestamp * 1000 : timestamp
-    
-    // Create date and convert to your local timezone (China Standard Time)
-    const date = new Date(ms)
-    
-    // Get the date in your local timezone (GMT+8)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    
-    return `${year}-${month}-${day}`
-  }
-
-  // Utility: Map meal time category ID to name
-  const getMealTimeName = (categoryId: number): string => {
-    const mapping: { [key: number]: string } = {
-      1: 'breakfast',
-      2: 'lunch',
-      3: 'dinner'
+  // Dynamic meal time category mapping from database
+  let mealTimeCategoryMap: { [key: number]: string } = {}
+  
+  // Load meal time categories from database
+  const loadMealTimeCategories = async (): Promise<void> => {
+    try {
+      const { useLookupData } = await import('@/composables/useLookupData')
+      const { mealTimeCategories, fetchMealTimeCategories } = useLookupData()
+      
+      if (mealTimeCategories.value.length === 0) {
+        await fetchMealTimeCategories()
+      }
+      
+      // Build dynamic mapping from database
+      mealTimeCategoryMap = {}
+      mealTimeCategories.value.forEach(category => {
+        mealTimeCategoryMap[category.id] = category.value
+      })
+      
+      console.log('🔄 Loaded meal time categories:', mealTimeCategoryMap)
+    } catch (error) {
+      console.error('Error loading meal time categories:', error)
+      // Fallback to hardcoded mapping
+      mealTimeCategoryMap = {
+        1: 'breakfast',
+        2: 'lunch',
+        3: 'dinner'
+      }
     }
-    return mapping[categoryId] || 'unknown'
+  }
+  
+  // Utility: Map meal time category ID to name (now dynamic)
+  const getMealTimeName = (categoryId: number): string => {
+    return mealTimeCategoryMap[categoryId] || 'unknown'
   }
 
-  // Process meal data into percentages
-  const processMealPercentages = (meals: any[]): MealPercentages => {
+  // Process meal data into smart statistics
+  const processMealData = (meals: any[]): { percentages: MealPercentages, statistics: MealStatistics } => {
     console.log(`🔄 Processing ${meals.length} meals...`)
     
-    const percentages = { breakfast: 0, lunch: 0, dinner: 0 }
+    const mealStats: { [key: string]: { total: number, count: number, meals: number[] } } = {}
     
     meals.forEach((meal, index) => {
       const timeName = getMealTimeName(meal.meal_time_category)
-      const consumption = meal.consumption_level || 0 // Convert 0.75 → 75
+      const consumption = meal.consumption_level || 0
       
       console.log(`  📋 Meal ${index + 1}: ${timeName} = ${consumption}%`)
       
-      if (timeName === 'breakfast') percentages.breakfast = Math.max(percentages.breakfast, consumption)
-      else if (timeName === 'lunch') percentages.lunch = Math.max(percentages.lunch, consumption)
-      else if (timeName === 'dinner') percentages.dinner = Math.max(percentages.dinner, consumption)
+      if (timeName === 'unknown') {
+        console.warn(`⚠️ Unknown meal time category: ${meal.meal_time_category}`)
+        return
+      }
+      
+      if (!mealStats[timeName]) {
+        mealStats[timeName] = { total: 0, count: 0, meals: [] }
+      }
+      
+      mealStats[timeName].total += consumption
+      mealStats[timeName].count += 1
+      mealStats[timeName].meals.push(consumption)
+    })
+    
+    const percentages: MealPercentages = {}
+    const statistics: MealStatistics = {}
+    
+    Object.entries(mealStats).forEach(([timeName, stats]) => {
+      const avgConsumption = stats.total / stats.count
+      
+      // For backward compatibility, use average consumption as the main percentage
+      percentages[timeName] = Math.round(avgConsumption)
+      
+      // Detailed statistics
+      statistics[timeName] = {
+        consumption: Math.round(stats.total),
+        count: stats.count,
+        avgConsumption: Math.round(avgConsumption)
+      }
+      
+      console.log(`  🎯 ${timeName}: ${stats.count} meals, avg ${avgConsumption}%, total ${stats.total}%`)
     })
     
     console.log(`🎯 Final percentages:`, percentages)
-    return percentages
+    console.log(`📊 Final statistics:`, statistics)
+    
+    return { percentages, statistics }
   }
 
   // Extract meal information (refused items, preferences)
@@ -138,7 +184,7 @@ export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
       console.log(`🌐 Calling API for child ${childrenStore.currentChild.id}`)
       
       // Fetch all meals for the child
-      const response = await axios.get(`http://127.0.0.1:8000/meal/child/${childrenStore.currentChild.id}`)
+const response = await axios.get(`http://127.0.0.1:8000/meal/child/${childrenStore.currentChild.id}?days=60`)
       const allMeals = response.data || []
       
       console.log(`📊 API returned ${allMeals.length} total meals`)
@@ -167,13 +213,17 @@ export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
 
       console.log(`📅 Found ${mealsForDate.length} meals for ${targetDate}`)
 
-      // Process the data
-      const percentages = processMealPercentages(mealsForDate)
+      // Load meal time categories from database
+      await loadMealTimeCategories()
+
+      // Process the data with smart statistics
+      const { percentages, statistics } = processMealData(mealsForDate)
       const { refusedItems, preferences } = extractMealInfo(mealsForDate)
 
       // Cache the result
       mealsCache.value[targetDate] = {
         percentages,
+        statistics,
         refusedItems,
         preferences
       }
@@ -189,7 +239,8 @@ export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
       
       // Set empty data on error
       mealsCache.value[targetDate] = {
-        percentages: { breakfast: 0, lunch: 0, dinner: 0 },
+        percentages: {},
+        statistics: {},
         refusedItems: [],
         preferences: []
       }
@@ -218,7 +269,8 @@ export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
       
       // Return empty data while loading
       return {
-        percentages: { breakfast: 0, lunch: 0, dinner: 0 },
+        percentages: {},
+        statistics: {},
         refusedItems: [],
         preferences: []
       }
@@ -228,22 +280,44 @@ export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
     return cachedData
   })
 
-  // Get meal count for a date
+  // Get meal count for a date (now shows total meal instances, not just meal types)
   const getMealCount = computed(() => (dateInput: string | Date): number | string => {
     const meals = getMealsForDate.value(dateInput)
-    const mealCount = Object.values(meals.percentages).filter(p => p > 0).length
+    
+    // Count total number of meal instances from statistics
+    const totalMealCount = Object.values(meals.statistics).reduce((total, stats) => total + stats.count, 0)
     
     // Return dash if no meals have data
-    if (mealCount === 0) {
+    if (totalMealCount === 0) {
       return '-'
     }
     
-    return mealCount
+    return totalMealCount
   })
 
   // Update meals for a date
   const updateMealsForDate = async (date: string, mealsData: MealsData): Promise<void> => {
     mealsCache.value[date] = mealsData
+  }
+
+  // Invalidate cache for specific date or all dates
+  const invalidateCache = (date?: string) => {
+    if (date) {
+      delete mealsCache.value[date]
+      console.log(`🗑️ Invalidated meals cache for ${date}`)
+    } else {
+      mealsCache.value = {}
+      console.log(`🗑️ Cleared entire meals cache`)
+    }
+    // Force reactivity update
+    mealsCache.value = { ...mealsCache.value }
+  }
+
+  // Force refresh for specific date
+  const refreshMealsForDate = async (date: string): Promise<void> => {
+    console.log(`🔄 Force refreshing meals data for ${date}`)
+    invalidateCache(date)
+    await fetchMealsForDate(date)
   }
 
   return {
@@ -254,5 +328,7 @@ export const useMealsStore = defineStore('meals', (): MealsStoreInterface => {
     fetchMealsForDate,
     updateMealsForDate,
     getMealCount,
+    invalidateCache,
+    refreshMealsForDate,
   }
 })

@@ -48,15 +48,15 @@ export const useChatbotStore = defineStore('chatbot', () => {
   const error = ref<string | null>(null)
 
   // Computed properties
-  const currentChat = computed(() => 
+  const currentChat = computed(() =>
     chats.value.find(chat => chat.id === currentChatId.value) || null
   )
 
   const currentMessages = computed(() => currentChat.value?.messages || [])
 
-  const sortedChats = computed(() => 
-    [...chats.value].sort((a, b) => 
-      new Date(b.updated_at || b.created_at || '').getTime() - 
+  const sortedChats = computed(() =>
+    [...chats.value].sort((a, b) =>
+      new Date(b.updated_at || b.created_at || '').getTime() -
       new Date(a.updated_at || a.created_at || '').getTime()
     )
   )
@@ -81,8 +81,8 @@ export const useChatbotStore = defineStore('chatbot', () => {
     } else if (date.toDateString() === yesterday.toDateString()) {
       return 'Yesterday'
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
         day: 'numeric',
         year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
       })
@@ -111,7 +111,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
   }
 
   const makeApiCall = async <T>(
-    url: string, 
+    url: string,
     options: RequestInit = {}
   ): Promise<T> => {
     const authHeaders = authStore.getAuthHeaders()
@@ -119,7 +119,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
     const cleanAuthHeaders = Object.fromEntries(
       Object.entries(authHeaders).filter(([_, value]) => value !== undefined)
     )
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...cleanAuthHeaders,
@@ -162,7 +162,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
     } catch (err) {
       console.error('Error loading chats:', err)
       setError(err instanceof Error ? err.message : 'Failed to load chats')
-      
+
       // Fallback to empty state instead of hardcoded data
       chats.value = []
     } finally {
@@ -264,7 +264,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
       const chatIndex = chats.value.findIndex(chat => chat.id === currentChatId.value)
       if (chatIndex !== -1) {
         chats.value[chatIndex].messages.push(userMessage)
-        
+
         // Update chat title if it's the first message
         if (chats.value[chatIndex].messages.length === 1) {
           chats.value[chatIndex].title = messageText.slice(0, 30) + (messageText.length > 30 ? '...' : '')
@@ -344,7 +344,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
     } catch (err) {
       console.error('Error sending message:', err)
       setError(err instanceof Error ? err.message : 'Failed to send message')
-      
+
       // Remove the optimistic user message on error
       const chatIndex = chats.value.findIndex(chat => chat.id === currentChatId.value)
       if (chatIndex !== -1) {
@@ -352,7 +352,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
           msg => !msg.id.startsWith('temp-')
         )
       }
-      
+
       return false
     } finally {
       isSendingMessage.value = false
@@ -362,7 +362,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
   // Select a chat
   const selectChat = async (chatId: string) => {
     currentChatId.value = chatId
-    
+
     // Load messages if not already loaded
     const chat = chats.value.find(c => c.id === chatId)
     if (chat && chat.messages.length === 0) {
@@ -386,7 +386,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
     }
 
     await loadChats()
-    
+
     // Select first chat if available and no current chat selected
     if (chats.value.length > 0 && !currentChatId.value) {
       await selectChat(chats.value[0].id)
@@ -396,7 +396,7 @@ export const useChatbotStore = defineStore('chatbot', () => {
   // Suggested prompts for new chats
   const suggestedPrompts = ref([
     "How do I treat a mild rash at home?",
-    "Where can I find a good doctor?", 
+    "Where can I find a good doctor?",
     "What are good activities for the motor skills of my child?",
     "What are the best ways to help my child with their sleep?"
   ])
@@ -427,4 +427,4 @@ export const useChatbotStore = defineStore('chatbot', () => {
     setError,
     clearError
   }
-}) 
+})

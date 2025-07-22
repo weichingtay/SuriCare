@@ -12,6 +12,13 @@ export interface SymptomsData {
   notes: string
 }
 
+export interface SymptomType {
+  id: number
+  value: string
+  label: string
+  icon?: string
+}
+
 export interface PoopData {
   color: string
   texture: string
@@ -217,6 +224,80 @@ export const useCheckinStore = defineStore('checkin', () => {
 
     return response.json()
   }
+
+  // Photo upload helper function
+  const uploadPhotoToCloud = async (photo: File): Promise<string> => {
+    try {
+      // For now, return empty string - implement actual photo upload later
+      console.log('Photo upload not implemented yet, skipping:', photo.name)
+      return ''
+    } catch (error) {
+      console.error('Photo upload failed:', error)
+      return ''
+    }
+  }
+
+
+  //SAVE SYMPTOM
+   // Save Symptom using POST /symptom/ (NEW IMPLEMENTATION)
+  const saveSymptomsToBackend = async (data: SymptomsData): Promise<{ success: boolean; id?: number }> => {
+    if (!authStore.isAuthenticated) {
+      setError('User not authenticated')
+      return { success: false }
+    }
+
+    const childrenStore = useChildrenStore()
+    if (!childrenStore.currentChild) {
+      setError('No child selected')
+      return { success: false }
+    }
+
+    try {
+      clearError()
+
+      // Handle photo upload if present
+      let photoUrl = ''
+      if (data.photo) {
+        photoUrl = await uploadPhotoToCloud(data.photo)
+      }
+
+      // Prepare symptoms string
+      let symptomString = data.symptoms.join(', ')
+      
+      // Add other symptom if specified
+      if (data.symptoms.includes('other') && data.otherSymptom) {
+        // Replace 'other' with the actual description
+        symptomString = symptomString.replace('other', data.otherSymptom)
+      }
+
+      const payload = {
+        child_id: childrenStore.currentChild.id,
+        check_in: new Date().toISOString(),
+        symptom: symptomString, // Combined symptoms string
+        photo_url: photoUrl || '', // Empty string if no photo
+        note: data.notes || null, // Note can be null
+      }
+
+      console.log('📦 Symptom payload:', payload)
+
+      const result = await makeApiCall<any>(
+        getApiUrl('/symptom/'),
+        {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }
+      )
+
+      console.log('✅ Symptom saved to backend:', result)
+      return { success: true, id: result.id }
+
+    } catch (err) {
+      console.error('❌ Symptom save error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to save symptom data')
+      return { success: false }
+    }
+  }
+
 
   // Save Growth using POST /growth (following chat.ts patterns)
   const saveGrowthToBackend = async (data: GrowthData): Promise<{ success: boolean; id?: number }> => {
@@ -491,77 +572,9 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
     }
   }
 
-  // Save Symptoms using POST /symptom/ (following chat.ts patterns with file upload)
-  const saveSymptomToBackend = async (data: SymptomsData): Promise<{ success: boolean; id?: number }> => {
-    if (!authStore.isAuthenticated) {
-      setError('User not authenticated')
-      return { success: false }
-    }
-
-    const childrenStore = useChildrenStore()
-    if (!childrenStore.currentChild) {
-      setError('No child selected')
-      return { success: false }
-    }
-
-    try {
-      clearError()
-
-      // Handle file upload differently
-      let requestBody: string | FormData
-      let requestHeaders = authStore.getAuthHeaders()
-
-      if (data.photo) {
-        // Use FormData for photo upload
-        const formData = new FormData()
-        formData.append('child_id', childrenStore.currentChild.id.toString())
-        formData.append('symptoms', JSON.stringify(data.symptoms))
-        formData.append('other_symptom', data.otherSymptom || '')
-        formData.append('check_in', new Date().toISOString())
-        formData.append('notes', data.notes || '')
-        formData.append('photo', data.photo)
-
-        requestBody = formData
-        // Remove Content-Type for FormData
-        delete requestHeaders['Content-Type']
-      } else {
-        // Regular JSON payload
-        const payload = {
-          child_id: childrenStore.currentChild.id,
-          symptom: JSON.stringify(data.symptoms), // Your DB stores as varchar, not array
-          photo_url: '', // Will be updated if photo upload succeeds
-          check_in: new Date().toISOString(),
-          note: data.notes || null, // 'note' not 'notes'
-        }
-        requestBody = JSON.stringify(payload)
-        requestHeaders['Content-Type'] = 'application/json'
-      }
-
-      console.log('📦 Symptom request:', { hasPhoto: !!data.photo })
-
-      const response = await fetch(getApiUrl('/symptom/'), {
-        method: 'POST',
-        headers: requestHeaders,
-        body: requestBody,
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`API call failed: ${response.status} ${response.statusText} - ${errorText}`)
-      }
-
-      const result = await response.json()
-      console.log('✅ Symptom saved to backend:', result)
-      return { success: true, id: result.id }
-
-    } catch (err) {
-      console.error('❌ Symptom save error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to save symptom data')
-      return { success: false }
-    }
-  }
-
-  // Enhanced save methods (keeping your exact interface but adding backend integration)
+  
+  //saveSymptom
+  // Save symptoms (NEW IMPLEMENTATION)
   const saveSymptoms = async (data: SymptomsData): Promise<SymptomsEntry> => {
     isLoading.value = true
 
@@ -574,28 +587,29 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
     }
 
     try {
-      // Save to local state first (your existing behavior)
       history.value.symptoms.unshift(entry)
       clearSymptomsForm()
 
-      // Save to backend
-      const backendResult = await saveSymptomToBackend(data)
+      const backendResult = await saveSymptomsToBackend(data)
       
       if (backendResult.success) {
         entry.serverSaved = true
         entry.serverId = backendResult.id
       }
 
-      console.log('✅ Symptoms saved:', entry)
+      console.log('✅ Symptoms data saved:', entry)
       return entry
 
     } catch (err) {
-      console.error('❌ Error saving symptoms:', err)
+      console.error('❌ Error saving symptoms data:', err)
       return entry
     } finally {
       isLoading.value = false
     }
   }
+ 
+
+ 
 
   const savePoop = async (data: PoopData): Promise<PoopEntry> => {
     isLoading.value = true
@@ -740,6 +754,11 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
     }
   }
 
+   //save symptom to backend
+  
+
+
+
   // Clear form methods (keeping your existing ones)
   const clearSymptomsForm = (): void => {
     symptomsData.value = {
@@ -870,7 +889,7 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
     unsyncedEntries,
 
     // Actions
-    saveSymptoms,
+    saveSymptoms, 
     savePoop,
     saveSleep,
     saveMeal,
@@ -887,5 +906,6 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
     importData,
     setError,
     clearError,
+    
   }
 })

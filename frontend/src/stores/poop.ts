@@ -99,6 +99,7 @@ import type { ComputedRef, Ref } from 'vue'
 // ADD THESE TWO IMPORTS:
 import axios from 'axios'
 import { useChildrenStore } from './children'
+import { timestampToDateString, dateToString } from '@/utils/dateUtils'
 
 export interface PoopData {
   count: number
@@ -118,6 +119,8 @@ interface PoopStore {
   getPoopForDate: ComputedRef<(date: string) => PoopData>
   fetchPoopForDate: (date: string) => Promise<void>
   updatePoopForDate: (date: string, poopData: PoopData) => Promise<void>
+  invalidateCache: (date?: string) => void
+  refreshPoopForDate: (date: string) => Promise<void>
 }
 
 export const usePoopStore = defineStore('poop', (): PoopStore => {
@@ -126,17 +129,7 @@ export const usePoopStore = defineStore('poop', (): PoopStore => {
   const isLoading = ref<boolean>(false)
   const error = ref<string | null>(null)
 
-   // ADD THIS HELPER FUNCTION HERE:
-  const timestampToDateString = (timestamp: string): string => {
-    const date = new Date(timestamp)
-
-    // Get the date in your local timezone (GMT+8)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    
-    return `${year}-${month}-${day}`
-  }
+   // Date utilities are now imported from shared utils
 
   // REMOVE THIS ENTIRE MOCK FUNCTION:
   // const generateMockPoopData = (date: string): PoopData => ({
@@ -145,6 +138,47 @@ export const usePoopStore = defineStore('poop', (): PoopStore => {
   //   normal: Math.floor(Math.random() * 3) + 1, // 1-3 normal
   //   lastUpdated: new Date().toISOString(),
   // })
+
+  // Bristol Stool Chart classification function
+  const classifyStoolType = (poop: any): 'normal' | 'unusual' => {
+    const color = poop.color_name?.toLowerCase() || ''
+    const texture = poop.texture_name?.toLowerCase() || ''
+    
+    // Concerning colors (always unusual regardless of texture)
+    const concerningColors = ['red', 'black', 'white', 'pale', 'clay', 'green']
+    if (concerningColors.includes(color)) {
+      return 'unusual'
+    }
+    
+    // Bristol Chart Type 1 & 2 (Constipated)
+    const hardTextures = ['hard', 'pellets', 'lumpy', 'sausage-lumpy', 'cracked']
+    if (hardTextures.includes(texture)) {
+      return 'unusual'
+    }
+    
+    // Bristol Chart Type 3 & 4 (Normal/Ideal)
+    const normalTextures = ['sausage', 'smooth', 'soft', 'formed', 'log']
+    if (normalTextures.includes(texture)) {
+      return 'normal'
+    }
+    
+    // Bristol Chart Type 5, 6 & 7 (Loose/Diarrhea)
+    const looseTextures = ['soft-blobs', 'mushy', 'watery', 'liquid', 'loose']
+    if (looseTextures.includes(texture)) {
+      return 'unusual'
+    }
+    
+    // Default classification based on common descriptors
+    const additionalNormal = ['brown', 'tan', 'yellow'] // normal colors
+    const additionalUnusual = ['sticky', 'foamy', 'floating', 'mucus'] // texture concerns
+    
+    if (additionalNormal.includes(color) && !additionalUnusual.some(desc => texture.includes(desc))) {
+      return 'normal'
+    }
+    
+    // When in doubt, classify as unusual for safety (especially for children)
+    return 'unusual'
+  }
 
   // UPDATE THIS GETTER:
 // REPLACE THIS ENTIRE FUNCTION:
@@ -193,7 +227,7 @@ const getPoopForDate = computed(() => (date: string): PoopData => {
       }
 
       // Fetch real poop data from API
-      const response = await axios.get(`http://127.0.0.1:8000/poop/child/${childrenStore.currentChild.id}`)
+      const response = await axios.get(`http://127.0.0.1:8000/poop/child/${childrenStore.currentChild.id}?days=90`)
       const allPoops = response.data || []
       
           console.log(`📊 API returned ${allPoops.length} total poop records`) // ADD THIS
@@ -235,29 +269,24 @@ const samplePoops = allPoops.slice(0, 3).map((poop: any) => ({
 } else {
   console.log(`🔄 Processing ${poopsForDate.length} poop records...`)
   
-  // Count unusual vs normal based on colors/textures
-  const concerningColors = ['red', 'black']
-  const concerningTextures = ['watery', 'pellets']
-  
-  let unusualCount = 0
-  poopsForDate.forEach((poop, index) => {
-    const hasUnusual = concerningColors.includes(poop.color_name?.toLowerCase()) || 
-                      concerningTextures.includes(poop.texture_name?.toLowerCase())
-    if (hasUnusual) unusualCount++
-    
-    console.log(`  💩 Poop ${index + 1}: Color=${poop.color_name}, Texture=${poop.texture_name}, Unusual=${hasUnusual}`)
-  })
+        let unusualCount = 0
+        poopsForDate.forEach((poop, index) => {
+          const classification = classifyStoolType(poop)
+          if (classification === 'unusual') unusualCount++
+          
+          console.log(`  💩 Poop ${index + 1}: Color=${poop.color_name}, Texture=${poop.texture_name}, Classification=${classification}`)
+        })
 
-  poopByDate.value[date] = {
-    count: poopsForDate.length,
-    unusual: unusualCount,
-    normal: poopsForDate.length - unusualCount,
-    lastUpdated: new Date().toISOString(),
-  }
-  
-  console.log(`✅ Cached poop data for ${date}:`, poopByDate.value[date])
-}
-    poopByDate.value = { ...poopByDate.value }
+        poopByDate.value[date] = {
+          count: poopsForDate.length,
+          unusual: unusualCount,
+          normal: poopsForDate.length - unusualCount,
+          lastUpdated: new Date().toISOString(),
+        }
+        
+        console.log(`✅ Cached poop data for ${date}:`, poopByDate.value[date])
+      }
+      poopByDate.value = { ...poopByDate.value }
 
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An unknown error occurred'
@@ -294,6 +323,26 @@ const samplePoops = allPoops.slice(0, 3).map((poop: any) => ({
     }
   }
 
+  // Invalidate cache for specific date or all dates
+  const invalidateCache = (date?: string) => {
+    if (date) {
+      delete poopByDate.value[date]
+      console.log(`🗑️ Invalidated poop cache for ${date}`)
+    } else {
+      poopByDate.value = {}
+      console.log(`🗑️ Cleared entire poop cache`)
+    }
+    // Force reactivity update
+    poopByDate.value = { ...poopByDate.value }
+  }
+
+  // Force refresh for specific date
+  const refreshPoopForDate = async (date: string): Promise<void> => {
+    console.log(`🔄 Force refreshing poop data for ${date}`)
+    invalidateCache(date)
+    await fetchPoopForDate(date)
+  }
+
   return {
     poopByDate,
     isLoading,
@@ -301,5 +350,7 @@ const samplePoops = allPoops.slice(0, 3).map((poop: any) => ({
     getPoopForDate,
     fetchPoopForDate,
     updatePoopForDate,
+    invalidateCache,
+    refreshPoopForDate,
   }
 })
