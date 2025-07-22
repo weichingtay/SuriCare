@@ -1,60 +1,54 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from app.db import engine, get_session
-from app.models import Growth, Growth_Benchmark
-from typing import Optional
+from app.models import Growth
+from typing import List, Optional
+from datetime import datetime, timedelta
 import pandas as pd
-import numpy as np
 import json
 
 router = APIRouter(
+    prefix="/growth",
     tags=["growth"],
 )
 
-@router.get('/growth/{child_id}')
-def growth_metrics(child_id: int):
+@router.get('/{growth_id}', response_model=Growth)
+def get_growth(*, session: Session = Depends(get_session), growth_id: int):
+    """Get a specific growth record"""
+    growth = session.get(Growth, growth_id)
+    if not growth:
+        raise HTTPException(status_code=404, detail=f"Growth ID #{growth_id} not found")
+    return growth
+
+@router.get('/child/{child_id}', response_model=List[Growth])
+def get_growth_by_child(child_id: int, days: Optional[int] = 30):
+    """Get growth records for a specific child within the last N days"""
     with engine.connect() as conn, conn.begin():
-        sql_text_child = f"""
-                            SELECT 
-                                c.name, 
-                                c.gender,
-                                c.birth_date,  
-                                g.check_in, 
-                                (g.check_in - c.birth_date) as age,
-                                g.weight as actual_weight, 
-                                g.height as actual_height, 
-                                g.head_circumference as actual_head_circumference
-                            FROM child as c
-                            JOIN growth as g    ON c.id = g.child_id
-                            WHERE c.id = {child_id}
-                            ORDER BY    g.check_in DESC
-                            LIMIT   30
-                        """
-        child = pd.read_sql_query(sql_text_child, parse_dates=['birth_date', 'check_in'], con=conn)
-        child['age'] = (child.check_in - child.birth_date) / np.timedelta64(30,'D')
-        child['age'] = child['age'].astype(int)
+        sql_text = f"""
+            SELECT
+                id,
+                child_id,
+                check_in,
+                weight,
+                height,
+                head_circumference,
+                note
+            FROM growth
+            WHERE child_id = {child_id} 
+            AND check_in >= NOW() - INTERVAL '{days} DAY'
+            ORDER BY check_in DESC
+        """
+        growth_data = pd.read_sql_query(sql_text, parse_dates=['check_in'], con=conn)
+        
+        if growth_data.empty:
+            return []
+        
+        # Convert timestamps to Asia/Singapore timezone
+        growth_data['check_in'] = growth_data['check_in'].dt.tz_convert('Asia/Singapore')
 
-        sql_text_metrics = f"""
-                                SELECT
-                                    gender as benchmark_gender,
-                                    age_month as benchmark_age,
-                                    weight as benchmark_weight,
-                                    height as benchmark_height,
-                                    head_circumference as benchmark_head_circumference
-                                FROM   growth_benchmark 
-                            """
-        metrics = pd.read_sql_query(sql_text_metrics, conn)
+    return [Growth(**growth) for growth in growth_data.to_dict(orient='records')]
 
-        df = pd.merge(
-            left=child,
-            right=metrics,
-            left_on=['gender', 'age'],
-            right_on=['benchmark_gender', 'benchmark_age']
-        )
-
-    return json.loads(df.to_json(orient='records'))
-
-@router.get('/growth/latest/{child_id}', response_model=Optional[Growth])
+@router.get('/child/{child_id}/latest', response_model=Optional[Growth])
 def get_latest_growth(*, session: Session = Depends(get_session), child_id: int):
     """Get the most recent growth record for a specific child"""
     try:
@@ -71,51 +65,59 @@ def get_latest_growth(*, session: Session = Depends(get_session), child_id: int)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get growth data: {str(e)}")
 
-@router.post('/growth', response_model=Growth)
-def new_growth(*, session: Session = Depends(get_session), growth: Growth):
-    session.add(growth)
-    session.commit()
-    session.refresh(growth)
-    return growth
+@router.post('/', response_model=Growth)
+def create_growth(*, session: Session = Depends(get_session), growth: Growth):
+    """Create a new growth record"""
+    try:
+        session.add(growth)
+        session.commit()
+        session.refresh(growth)
+        return growth
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create growth: {str(e)}")
 
-# Growth benchmarks endpoints (moved from reference router)
-@router.get('/growth/benchmarks')
-def get_growth_benchmarks(gender: Optional[str] = None, age_month: Optional[int] = None):
-    """Get growth benchmarks, optionally filtered by gender and/or age"""
-    with engine.connect() as conn, conn.begin():
-        sql_conditions = []
-        if gender:
-            sql_conditions.append(f"gender = '{gender}'")
-        if age_month is not None:
-            sql_conditions.append(f"age_month = {age_month}")
+@router.put('/{growth_id}', response_model=Growth)
+def update_growth(*, session: Session = Depends(get_session), growth_id: int, growth_update: Growth):
+    """Update an existing growth record"""
+    try:
+        growth = session.get(Growth, growth_id)
+        if not growth:
+            raise HTTPException(status_code=404, detail=f"Growth ID #{growth_id} not found")
         
-        where_clause = " AND ".join(sql_conditions) if sql_conditions else "1=1"
+        # Update fields (exactly like meal router)
+        growth.check_in = growth_update.check_in
+        growth.weight = growth_update.weight
+        growth.height = growth_update.height
+        growth.head_circumference = growth_update.head_circumference
+        growth.note = growth_update.note
+        growth.child_id = growth_update.child_id
         
-        sql_text = f"""
-                    SELECT *
-                    FROM growth_benchmark
-                    WHERE {where_clause}
-                    ORDER BY age_month ASC
-                """
-        benchmarks = pd.read_sql_query(sql_text, con=conn)
+        session.add(growth)
+        session.commit()
+        session.refresh(growth)
+        return growth
         
-        if benchmarks.empty:
-            return []
-        
-    return json.loads(benchmarks.to_json(orient='records'))
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update growth: {str(e)}")
 
-@router.get('/growth/benchmarks/{gender}/{age_month}')
-def get_growth_benchmark_specific(gender: str, age_month: int):
-    """Get specific growth benchmark for gender and age"""
-    with engine.connect() as conn, conn.begin():
-        sql_text = f"""
-                    SELECT *
-                    FROM growth_benchmark
-                    WHERE gender = '{gender}' AND age_month = {age_month}
-                """
-        benchmark = pd.read_sql_query(sql_text, con=conn)
+@router.delete('/{growth_id}')
+def delete_growth(*, session: Session = Depends(get_session), growth_id: int):
+    """Delete a growth record"""
+    try:
+        growth = session.get(Growth, growth_id)
+        if not growth:
+            raise HTTPException(status_code=404, detail=f"Growth ID #{growth_id} not found")
         
-        if benchmark.empty:
-            raise HTTPException(status_code=404, detail=f"Growth benchmark not found for {gender} at {age_month} months")
+        session.delete(growth)
+        session.commit()
+        return {"message": f"Growth ID #{growth_id} deleted successfully"}
         
-    return json.loads(benchmark.to_json(orient='records'))[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete growth: {str(e)}")
