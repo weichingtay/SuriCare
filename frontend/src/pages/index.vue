@@ -21,10 +21,12 @@
         </div> -->
 
         <!-- Health Issue Alert -->
-        <HealthAlert
-          :current-child="childrenStore.currentChild"
-          @view-more="handleHealthAlert"
-        />
+        <!-- Health Issue Alert -->
+<HealthAlert
+  :current-child="childrenStore.currentChild"
+  :current-date="selectedDate"
+  @view-more="handleHealthAlert"
+/>
 
         <!-- Check-ins History section -->
         <CheckInsHistory
@@ -74,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, reactive } from 'vue'
+  import { onMounted, reactive, ref } from 'vue'
   import { useChildrenStore } from '@/stores/children'
   import { useSummaryStore } from '@/stores/summary'
   import { useCheckinStore } from '@/stores/checkin'
@@ -114,6 +116,8 @@
     poop: false,
     health: false,
   })
+
+  const selectedDate = ref(new Date())
 
 
   // ===== SAVE HANDLERS =====
@@ -208,6 +212,8 @@
 
   // Load data for a specific date and current child
   const loadDataForDate = async (date: Date) => {
+      selectedDate.value = date
+
     const dateStr = date.toISOString().split('T')[0]
     console.log('🔄 loadDataForDate called for:', dateStr)
     

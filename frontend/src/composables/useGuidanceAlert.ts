@@ -255,3 +255,10 @@ export function useGuidanceAlert () {
     alertsCount,
   }
 }
+
+const alertsByPriority = computed(() => {
+  const priorityOrder = { error: 3, warning: 2, info: 1 }
+  return alerts.value.sort((a, b) => 
+    priorityOrder[b.type] - priorityOrder[a.type]
+  )
+})

@@ -1,504 +1,459 @@
-// import { computed, onMounted } from 'vue'
-// import { useHealthStore } from '@/stores/health'
-// import { storeToRefs } from 'pinia'
-
-// export function useHealthAlert() {
-//   const healthStore = useHealthStore()
-//   const { getHealthForDate } = storeToRefs(healthStore)
-
-//   // Get current date
-//   const currentDate = computed(() => new Date().toISOString().split('T')[0])
-
-//   // Get health data
-//   const healthData = computed(() => getHealthForDate.value(currentDate.value))
-
-//   // Check if we should show the alert
-//   const hasHealthAlert = computed(() => healthData.value?.status !== 'Healthy')
-
-//   // Fetch health data on mount
-//   onMounted(async () => {
-//     await healthStore.fetchHealthForDate(currentDate.value)
-//   })
-
-//   return {
-//     healthData,
-//     hasHealthAlert
-//   }
-// }
-
-// src/composables/useHealthAlert.ts
-// src/composables/useHealthAlert.ts
-import { computed, onMounted } from 'vue'
+// src/composables/useHealthAlert.ts - Fixed Version with Date Context
+import { computed, onMounted, ref, watch, readonly } from 'vue'
 import { useHealthStore } from '@/stores/health'
-import { storeToRefs } from 'pinia'
+import { useMealsStore } from '@/stores/meals'
+import { usePoopStore } from '@/stores/poop'
+import { useChildrenStore } from '@/stores/children'
 
-// Types for our data structures
-interface MealEntry {
-  date: string
-  mealTime: 'breakfast' | 'lunch' | 'dinner'
-  consumptionLevel: string // '0', '25', '50', '75', '100'
-  mealCategory: 'milk' | 'solid' | 'mixed' | 'others'
-  subCategory?: string
-  customMeal?: string
-  notes?: string
-}
-
-interface SleepEntry {
-  date: string
-  bedTime: string
-  awakeTime: string
-  duration: number // in minutes
-  notes?: string
-}
-
-interface PoopEntry {
-  date: string
-  color: 'yellow' | 'red' | 'brown' | 'green' | 'black' | 'gray'
-  texture: 'pellets' | 'lumpy' | 'cracked' | 'smooth' | 'soft' | 'mushy' | 'watery'
-  notes?: string
-}
-
-interface GrowthEntry {
-  date: string
-  weight: number
-  height: number
-  headCircumference: number
-  notes?: string
-}
-
-interface SymptomEntry {
-  date: string
-  symptoms: string[]
-  otherSymptom?: string
-  photo?: File
-  notes?: string
-}
-
-interface PredictiveAlert {
+interface SimpleAlert {
   id: string
+  title: string
+  description: string
   type: 'warning' | 'error' | 'info'
-  status: string
-  message: string
-  symptoms?: string[]
-  temperature?: string
-  category: 'meal' | 'sleep' | 'poop' | 'growth' | 'health'
-  pattern: string
-  daysObserved: number
-  significance: 'low' | 'medium' | 'high'
-  recommendations?: string[]
+  suggestions: Array<{
+    id: number
+    title: string
+    content: string
+  }>
 }
 
-// Dummy data for pattern detection
-const generateDummyData = () => {
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
-    return date.toISOString().split('T')[0]
-  }).reverse()
+export function useHealthAlert(viewingDate?: string) {
+  // Initialize stores
+  const mealsStore = useMealsStore()
+  const poopStore = usePoopStore()
+  const healthStore = useHealthStore()
+  const childrenStore = useChildrenStore()
 
-  // Generate meal data showing gradual decrease in intake
-  const mealData: MealEntry[] = last7Days.flatMap(date => [
-    {
-      date,
-      mealTime: 'breakfast',
-      consumptionLevel: date === last7Days[0] ? '100' :
-        date === last7Days[1] ? '100' :
-          date === last7Days[2] ? '75' :
-            date === last7Days[3] ? '75' :
-              date === last7Days[4] ? '50' :
-                date === last7Days[5] ? '25' : '25',
-      mealCategory: 'mixed',
-      notes: date === last7Days[6] ? 'Seemed less interested in banana today' : '',
-    },
-    {
-      date,
-      mealTime: 'lunch',
-      consumptionLevel: date === last7Days[0] ? '100' :
-        date === last7Days[1] ? '75' :
-          date === last7Days[2] ? '75' :
-            date === last7Days[3] ? '50' :
-              date === last7Days[4] ? '50' :
-                date === last7Days[5] ? '25' : '0',
-      mealCategory: 'solid',
-    },
-  ])
-
-  // Generate sleep data showing increased night wakings
-  const sleepData: SleepEntry[] = last7Days.map(date => ({
-    date,
-    bedTime: '20:30',
-    awakeTime: date === last7Days[0] ? '07:00' :
-      date === last7Days[1] ? '06:45' :
-        date === last7Days[2] ? '06:30' :
-          date === last7Days[3] ? '06:15' :
-            date === last7Days[4] ? '06:00' :
-              date === last7Days[5] ? '05:45' : '05:30',
-    duration: date === last7Days[0] ? 630 :
-      date === last7Days[1] ? 615 :
-        date === last7Days[2] ? 600 :
-          date === last7Days[3] ? 585 :
-            date === last7Days[4] ? 570 :
-              date === last7Days[5] ? 555 : 540,
-    notes: date >= last7Days[4] ? 'Woke up several times during night' : '',
-  }))
-
-  // Generate poop data showing consistency changes
-  const poopData: PoopEntry[] = last7Days.slice(0, 4).map((date, i) => ({
-    date,
-    color: i === 0 ? 'brown' : i === 1 ? 'brown' : i === 2 ? 'green' : 'green',
-    texture: i === 0 ? 'smooth' : i === 1 ? 'soft' : i === 2 ? 'mushy' : 'watery',
-    notes: i >= 2 ? 'Consistency softer than usual' : '',
-  }))
-
-  // Generate growth data showing plateau
-  const growthData: GrowthEntry[] = last7Days.slice(0, 3).map((date, i) => ({
-    date,
-    weight: i === 0 ? 8.2 : i === 1 ? 8.2 : 8.1, // Weight plateau
-    height: i === 0 ? 72 : i === 1 ? 72 : 72, // Height plateau
-    headCircumference: 46.5,
-  }))
-
-  // Generate symptom data showing persistent low-grade issues
-  const symptomData: SymptomEntry[] = last7Days.slice(0, 3).map(date => ({
-    date,
-    symptoms: ['fever'],
-    notes: 'Low-grade fever, seems slightly more tired than usual',
-  }))
-
-  return { mealData, sleepData, poopData, growthData, symptomData }
-}
-
-// Pattern detection functions
-const analyzeMealPatterns = (mealData: MealEntry[]): PredictiveAlert[] => {
-  const alerts: PredictiveAlert[] = []
-
-  // Detect gradual decrease in intake
-  const breakfastIntakes = mealData
-    .filter(meal => meal.mealTime === 'breakfast')
-    .map(meal => parseInt(meal.consumptionLevel))
-    .slice(-5) // Last 5 days
-
-  if (breakfastIntakes.length >= 3) {
-    const isDecreasing = breakfastIntakes.every((intake, i) =>
-      i === 0 || intake <= breakfastIntakes[i - 1]
-    )
-
-    const averageDecrease = breakfastIntakes[0] - breakfastIntakes[breakfastIntakes.length - 1]
-
-    if (isDecreasing && averageDecrease >= 25) {
-      alerts.push({
-        id: 'meal-decrease-001',
-        type: 'warning',
-        status: 'Gradual Meal Intake Decrease Detected',
-        message: `Breakfast consumption has decreased by ${averageDecrease}% over ${breakfastIntakes.length} days`,
-        category: 'meal',
-        pattern: 'gradual_intake_decrease',
-        daysObserved: breakfastIntakes.length,
-        significance: averageDecrease >= 50 ? 'high' : 'medium',
-        recommendations: [
-          'Monitor for signs of illness or teething',
-          'Try offering preferred foods',
-          'Check for any throat discomfort',
-          'Consider consulting pediatrician if pattern continues',
-        ],
-      })
+  // Get data from stores safely
+  const mealsCache = computed(() => {
+    try {
+      return mealsStore.mealsCache || {}
+    } catch (error) {
+      return {}
     }
-  }
+  })
 
-  // Detect food aversion patterns
-  const recentMeals = mealData.slice(-7)
-  const refusalPattern = recentMeals.filter(meal =>
-    meal.consumptionLevel === '0' && meal.notes?.toLowerCase().includes('refused')
-  )
-
-  if (refusalPattern.length >= 2) {
-    alerts.push({
-      id: 'meal-aversion-001',
-      type: 'warning',
-      status: 'Sudden Food Aversion Pattern',
-      message: `Child has been refusing previously liked foods over ${refusalPattern.length} recent meals`,
-      category: 'meal',
-      pattern: 'food_aversion',
-      daysObserved: refusalPattern.length,
-      significance: 'medium',
-      recommendations: [
-        'Note which specific foods are being refused',
-        'Consider food sensitivity or allergy',
-        'Try alternative preparations of the same food',
-        'Monitor for other symptoms',
-      ],
-    })
-  }
-
-  return alerts
-}
-
-const analyzeSleepPatterns = (sleepData: SleepEntry[]): PredictiveAlert[] => {
-  const alerts: PredictiveAlert[] = []
-
-  // Detect sleep duration changes
-  const recentSleep = sleepData.slice(-5)
-  if (recentSleep.length >= 3) {
-    const durations = recentSleep.map(sleep => sleep.duration)
-    const averageDuration = durations.reduce((a, b) => a + b, 0) / durations.length
-    const normalDuration = 600 // 10 hours normal for toddler
-
-    if (averageDuration < normalDuration - 60) { // More than 1 hour less
-      alerts.push({
-        id: 'sleep-duration-001',
-        type: 'warning',
-        status: 'Sleep Duration Changes Detected',
-        message: `Sleep has decreased by ${Math.round((normalDuration - averageDuration) / 60 * 10) / 10} hours on average over the past ${recentSleep.length} nights`,
-        category: 'sleep',
-        pattern: 'duration_decrease',
-        daysObserved: recentSleep.length,
-        significance: averageDuration < normalDuration - 90 ? 'high' : 'medium',
-        recommendations: [
-          'Check sleep environment for disturbances',
-          'Monitor for signs of discomfort or pain',
-          'Review bedtime routine consistency',
-          'Consider growth spurt or developmental changes',
-        ],
-      })
+  const poopByDate = computed(() => {
+    try {
+      return poopStore.poopByDate || {}
+    } catch (error) {
+      return {}
     }
+  })
+
+  const healthByDate = computed(() => {
+    try {
+      return healthStore.healthByDate || {}
+    } catch (error) {
+      return {}
+    }
+  })
+
+  const currentChild = computed(() => childrenStore.currentChild)
+
+  // Simple refs for alerts
+  const alerts = ref<SimpleAlert[]>([])
+  const isAnalyzing = ref(false)
+
+  // FIXED: Get current date context from viewing date or app data
+const getCurrentAppDate = () => {
+  // If a specific viewing date is provided, use it
+  if (viewingDate) {
+    console.log('📅 Using provided viewing date as context:', viewingDate)
+    return viewingDate
   }
-
-  // Detect night waking patterns
-  const nightWakingNotes = sleepData.slice(-4).filter(sleep =>
-    sleep.notes?.toLowerCase().includes('woke') ||
-    sleep.notes?.toLowerCase().includes('wake')
-  )
-
-  if (nightWakingNotes.length >= 3) {
-    alerts.push({
-      id: 'sleep-waking-001',
-      type: 'warning',
-      status: 'Increased Night Wakings Detected',
-      message: `More frequent night wakings have been observed over the past ${nightWakingNotes.length} nights`,
-      category: 'sleep',
-      pattern: 'night_wakings',
-      daysObserved: nightWakingNotes.length,
-      significance: 'medium',
-      recommendations: [
-        'Check for teething symptoms',
-        'Evaluate room temperature and comfort',
-        'Monitor for signs of sleep apnea',
-        'Consider recent routine changes',
-      ],
-    })
-  }
-
-  return alerts
+  
+  // Fallback to existing logic when no viewing date provided
+  const mealDates = Object.keys(mealsCache.value).filter(date => date !== new Date().toISOString().split('T')[0])
+  const poopDates = Object.keys(poopByDate.value).filter(date => date !== new Date().toISOString().split('T')[0])
+  const healthDates = Object.keys(healthByDate.value).filter(date => date !== new Date().toISOString().split('T')[0])
+  
+  const allDates = [...mealDates, ...poopDates, ...healthDates]
+    .filter(date => date !== new Date().toISOString().split('T')[0])
+    .sort().reverse()
+  
+  console.log('🗓️ Available dates for context:', allDates)
+  
+  const contextDate = allDates[0] || new Date().toISOString().split('T')[0]
+  console.log('📅 Selected context date:', contextDate)
+  return contextDate
 }
 
-const analyzePoopPatterns = (poopData: PoopEntry[]): PredictiveAlert[] => {
-  const alerts: PredictiveAlert[] = []
+  // FIXED: Get last 7 days relative to current app context
+  const getLast7Days = () => {
+    const contextDate = getCurrentAppDate()
+    const baseDate = new Date(contextDate + 'T00:00:00')
+    
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(baseDate)
+      date.setDate(date.getDate() - (6 - i)) // Include context date by starting from 6 days ago
+      return date.toISOString().split('T')[0]
+    }).reverse()
+  }
 
-  // Detect consistency changes
-  const recentPoops = poopData.slice(-3)
-  if (recentPoops.length >= 2) {
-    const textures = recentPoops.map(poop => poop.texture)
-    const progressiveSoftening = ['smooth', 'soft', 'mushy', 'watery']
+  // Enhanced meal analysis with better debugging
+  const checkMealPatterns = async () => {
+    console.log('🔥 HOT RELOAD TEST - checkMealPatterns called!')
+    
+    const last7Days = getLast7Days()
+    console.log('📅 Analyzing dates:', last7Days)
+    
+    // Force load data for all dates if missing
+    for (const date of last7Days) {
+      if (!mealsCache.value[date]) {
+        console.log(`📥 Force loading data for ${date}...`)
+        try {
+          await mealsStore.fetchMealsForDate(date)
+        } catch (error) {
+          console.warn(`⚠️ Failed to load meals for ${date}:`, error)
+        }
+      }
+    }
+    
+    let poorAppetiteDays = 0
+    let totalDaysWithData = 0
+    const analysisDetails: any[] = []
 
-    let isSoftening = true
-    for (let i = 1; i < textures.length; i++) {
-      const currentIndex = progressiveSoftening.indexOf(textures[i])
-      const previousIndex = progressiveSoftening.indexOf(textures[i - 1])
-      if (currentIndex <= previousIndex) {
-        isSoftening = false
-        break
+    last7Days.forEach(date => {
+      const dayData = mealsCache.value[date]
+      console.log(`📊 Checking ${date}:`, dayData)
+      
+      if (dayData && dayData.percentages) {
+        totalDaysWithData++
+        const percentages = dayData.percentages
+        
+        // Count as poor appetite if most meals are under 80%
+        const mealValues = Object.values(percentages) as number[]
+        const avgConsumption = mealValues.length > 0 
+          ? mealValues.reduce((a, b) => a + b, 0) / mealValues.length 
+          : 0
+        
+        analysisDetails.push({
+          date,
+          percentages,
+          avgConsumption,
+          isPoorAppetite: avgConsumption < 80
+        })
+        
+        console.log(`  - Meals: ${JSON.stringify(percentages)}`)
+        console.log(`  - Average: ${avgConsumption.toFixed(1)}%`)
+        console.log(`  - Poor appetite: ${avgConsumption < 80}`)
+          
+        if (avgConsumption < 80) {
+          poorAppetiteDays++
+        }
+      } else {
+        console.log(`  - No meal data for ${date}`)
+      }
+    })
+
+    console.log(`📈 Analysis Summary:`)
+    console.log(`  - Days with data: ${totalDaysWithData}`)
+    console.log(`  - Poor appetite days: ${poorAppetiteDays}`)
+    console.log(`  - Threshold met: ${poorAppetiteDays >= 2 && totalDaysWithData >= 3}`)
+    console.log('  - Details:', analysisDetails)
+
+    // LOWERED threshold for testing: 2+ days and at least 3 days of data
+    if (poorAppetiteDays >= 2 && totalDaysWithData >= 3) {
+      const alert = {
+        id: 'meal-reduced-appetite',
+        title: 'Reduced Appetite Pattern Detected',
+        description: `${currentChild.value?.name || 'Your child'} has shown reduced appetite for ${poorAppetiteDays} days over the past ${totalDaysWithData} days`,
+        type: 'warning' as const,
+        suggestions: [
+          {
+            id: 1,
+            title: 'Monitor for Early Signs',
+            content: 'Watch for signs of illness such as runny nose, cough, or increased fussiness. Teething can also cause decreased appetite, so check for swollen gums, drooling, or desire to chew on objects.'
+          },
+          {
+            id: 2,
+            title: 'Offer Preferred Foods',
+            content: 'During periods of decreased appetite, focus on offering foods your child typically enjoys and finds comforting. Small, frequent offerings may be more appealing than large portions.'
+          },
+          {
+            id: 3,
+            title: 'Check for Discomfort',
+            content: 'Gently feel around your child\'s neck for any swollen lymph nodes, and observe if they seem to have difficulty or pain when swallowing.'
+          }
+        ]
+      }
+      
+      console.log('🚨 MEAL ALERT GENERATED:', alert)
+      return alert
+    }
+
+    console.log('✅ No meal alerts generated')
+    return null
+  }
+
+  // Simple poop analysis - check for unusual patterns
+  const checkPoopPatterns = () => {
+    const last7Days = getLast7Days()
+    let unusualDays = 0
+    let totalDaysWithData = 0
+
+    last7Days.forEach(date => {
+      const dayData = poopByDate.value[date]
+      if (dayData && Array.isArray(dayData)) {
+        totalDaysWithData++
+        
+        // Check each poop entry for unusual characteristics
+        dayData.forEach((poop: any) => {
+          const color = poop.color_name?.toLowerCase() || ''
+          const texture = poop.texture_name?.toLowerCase() || ''
+          
+          // Flag as unusual if color is concerning or texture is very soft/watery
+          const unusualColor = ['green', 'red', 'black', 'gray'].includes(color)
+          const unusualTexture = ['watery', 'very soft'].includes(texture)
+          
+          if (unusualColor || unusualTexture) {
+            unusualDays++
+          }
+        })
+      }
+    })
+
+    // Generate alert if 2+ days of unusual bowel movements
+    if (unusualDays >= 2 && totalDaysWithData >= 3) {
+      return {
+        id: 'poop-unusual-pattern',
+        title: 'Unusual Bowel Movement Pattern',
+        description: `Unusual bowel movements have been recorded for ${unusualDays} days over the past week`,
+        type: 'warning' as const,
+        suggestions: [
+          {
+            id: 1,
+            title: 'Monitor Hydration',
+            content: 'Ensure your child is getting adequate fluids. Watch for signs like decreased urination, dry mouth, or unusual fussiness that might indicate fluid loss.'
+          },
+          {
+            id: 2,
+            title: 'Review Recent Diet',
+            content: 'Review any new foods introduced in the past few days, as well as changes in quantity or timing of meals. Keep a simple food log to identify potential triggers.'
+          },
+          {
+            id: 3,
+            title: 'Watch for Other Symptoms',
+            content: 'Be alert for other signs of illness such as fever, decreased appetite, unusual fussiness, or changes in activity level. Contact your pediatrician if symptoms persist.'
+          }
+        ]
       }
     }
 
-    if (isSoftening && textures[textures.length - 1] === 'watery') {
-      alerts.push({
-        id: 'poop-consistency-001',
-        type: 'warning',
-        status: 'Stool Consistency Changes Detected',
-        message: `Stool has been progressively becoming softer over the past ${recentPoops.length} bowel movements`,
-        category: 'poop',
-        pattern: 'consistency_softening',
-        daysObserved: recentPoops.length,
-        significance: 'medium',
-        recommendations: [
-          'Monitor hydration levels',
-          'Review recent dietary changes',
-          'Watch for signs of illness or infection',
-          'Consider consulting pediatrician if continues',
-        ],
-      })
+    return null
+  }
+
+  // Simple health/symptom analysis
+  const checkHealthPatterns = () => {
+    const last7Days = getLast7Days()
+    let symptomDays = 0
+    let feverDays = 0
+
+    last7Days.forEach(date => {
+      const dayData = healthByDate.value[date]
+      if (dayData && Array.isArray(dayData)) {
+        dayData.forEach((health: any) => {
+          if (health.symptom) {
+            symptomDays++
+            if (health.symptom.toLowerCase().includes('fever')) {
+              feverDays++
+            }
+          }
+        })
+      }
+    })
+
+    // Generate alert for persistent symptoms
+    if (feverDays >= 3) {
+      return {
+        id: 'health-persistent-fever',
+        title: 'Persistent Low-Grade Symptoms',
+        description: `Low-grade fever and related symptoms have been consistently observed over ${feverDays} days`,
+        type: 'error' as const,
+        suggestions: [
+          {
+            id: 1,
+            title: 'Schedule Medical Consultation',
+            content: 'Contact your pediatrician to discuss the persistent symptoms. Keep a log of temperatures, timing, and any other symptoms to share with your healthcare provider.'
+          },
+          {
+            id: 2,
+            title: 'Monitor Temperature',
+            content: 'Check your child\'s temperature regularly (every 4-6 hours) and keep a record. Note the time, temperature reading, and any medications given.'
+          },
+          {
+            id: 3,
+            title: 'Comfort and Hydration',
+            content: 'Ensure your child stays well-hydrated and offer comfort measures like lukewarm baths, light clothing, and extra cuddles while awaiting medical guidance.'
+          }
+        ]
+      }
+    } else if (symptomDays >= 2) {
+      return {
+        id: 'health-multiple-symptoms',
+        title: 'Multiple Symptoms Detected',
+        description: `Various symptoms have been recorded over ${symptomDays} days this week`,
+        type: 'info' as const,
+        suggestions: [
+          {
+            id: 1,
+            title: 'Keep a Symptom Log',
+            content: 'Track when symptoms occur, their severity, and any potential triggers to help identify patterns.'
+          },
+          {
+            id: 2,
+            title: 'Monitor Overall Wellbeing',
+            content: 'Watch your child\'s general mood, activity level, and appetite alongside specific symptoms.'
+          },
+          {
+            id: 3,
+            title: 'Consider Environmental Factors',
+            content: 'Think about any changes in environment, routine, or diet that might be contributing to symptoms.'
+          }
+        ]
+      }
+    }
+
+    return null
+  }
+  
+  // Enhanced analysis function with better logging
+  const analyzePatterns = async () => {
+    if (!currentChild.value?.id) {
+      console.log('❌ No current child selected')
+      return
+    }
+
+    console.log('🔍 Starting health pattern analysis...')
+    console.log('📅 Current date context:', getCurrentAppDate())
+    console.log('🧒 Current child:', currentChild.value?.name)
+    
+    const newAlerts: SimpleAlert[] = []
+
+    // Check each pattern type
+    console.log('🍽️ Checking meal patterns...')
+    const mealAlert = await checkMealPatterns()
+    
+    console.log('💩 Checking poop patterns...')
+    const poopAlert = checkPoopPatterns()
+    
+    console.log('🌡️ Checking health patterns...')
+    const healthAlert = checkHealthPatterns()
+
+    if (mealAlert) {
+      console.log('✅ Meal alert added:', mealAlert.title)
+      newAlerts.push(mealAlert)
+    }
+    if (poopAlert) {
+      console.log('✅ Poop alert added:', poopAlert.title)
+      newAlerts.push(poopAlert)
+    }
+    if (healthAlert) {
+      console.log('✅ Health alert added:', healthAlert.title)
+      newAlerts.push(healthAlert)
+    }
+
+    // Sort by priority (error > warning > info)
+    newAlerts.sort((a, b) => {
+      const priority = { error: 3, warning: 2, info: 1 }
+      return priority[b.type] - priority[a.type]
+    })
+
+    alerts.value = newAlerts
+    console.log(`✅ Analysis complete: ${newAlerts.length} alerts generated`)
+    console.log('🎯 Final alerts:', newAlerts)
+  }
+
+  // Debounce function
+  function debounce(func: Function, wait: number) {
+    let timeout: ReturnType<typeof setTimeout>
+    return function executedFunction(...args: any[]) {
+      const later = () => {
+        clearTimeout(timeout)
+        func(...args)
+      }
+      clearTimeout(timeout)
+      timeout = setTimeout(later, wait)
     }
   }
 
-  // Detect unusual color patterns
-  const unusualColors = poopData.slice(-3).filter(poop =>
-    ['green', 'red', 'black', 'gray'].includes(poop.color)
-  )
-
-  if (unusualColors.length >= 2) {
-    alerts.push({
-      id: 'poop-color-001',
-      type: 'error',
-      status: 'Unusual Stool Colors Detected',
-      message: `Persistent unusual stool colors have been observed over the past ${unusualColors.length} bowel movements`,
-      category: 'poop',
-      pattern: 'unusual_colors',
-      daysObserved: unusualColors.length,
-      significance: 'high',
-      recommendations: [
-        'Document exact colors and frequency',
-        'Review recent foods and medications',
-        'Contact pediatrician promptly',
-        'Monitor for other symptoms',
-      ],
-    })
-  }
-
-  return alerts
-}
-
-const analyzeGrowthPatterns = (growthData: GrowthEntry[]): PredictiveAlert[] => {
-  const alerts: PredictiveAlert[] = []
-
-  if (growthData.length >= 2) {
-    const weights = growthData.map(entry => entry.weight)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const heights = growthData.map(entry => entry.height)
-
-    // Detect weight plateau
-    const weightChanges = weights.slice(1).map((weight, i) => Math.abs(weight - weights[i]))
-    const hasWeightPlateau = weightChanges.every(change => change <= 0.1) // Less than 100g change
-
-    if (hasWeightPlateau && growthData.length >= 3) {
-      alerts.push({
-        id: 'growth-plateau-001',
-        type: 'warning',
-        status: 'Growth Plateau Detected',
-        message: `Weight has remained stable across the past ${growthData.length} measurements over recent weeks`,
-        category: 'growth',
-        pattern: 'weight_plateau',
-        daysObserved: growthData.length,
-        significance: 'medium',
-        recommendations: [
-          'Review nutritional intake adequacy',
-          'Monitor overall health and activity',
-          'Consider growth spurt timing',
-          'Discuss with pediatrician at next visit',
-        ],
-      })
+  const analyzeWithDebounce = debounce(async () => {
+    if (!isAnalyzing.value) {
+      isAnalyzing.value = true
+      try {
+        await analyzePatterns()
+      } finally {
+        isAnalyzing.value = false
+      }
     }
-  }
+  }, 1000)
 
-  return alerts
-}
+  // Watch for data changes
+  watch([mealsCache, poopByDate, healthByDate, currentChild], () => {
+    if (currentChild.value?.id) {
+      console.log('🔄 Data changed, triggering analysis...')
+      analyzeWithDebounce()
+    }
+  }, { deep: true, immediate: false })
 
-const analyzeHealthPatterns = (symptomData: SymptomEntry[]): PredictiveAlert[] => {
-  const alerts: PredictiveAlert[] = []
+  // Computed properties to match the expected interface
+  const hasHealthAlert = computed(() => alerts.value.length > 0)
 
-  // Detect persistent low-grade symptoms
-  const feverDays = symptomData.filter(entry =>
-    entry.symptoms.includes('fever')
-  )
-
-  if (feverDays.length >= 3) {
-    alerts.push({
-      id: 'health-persistent-001',
-      type: 'error',
-      status: 'Persistent Low-Grade Symptoms',
-      message: `Low-grade fever and fatigue have been consistently observed over the past ${feverDays.length} days`,
-      symptoms: ['Persistent fever', 'Increased fatigue'],
-      temperature: '37.8°C',
-      category: 'health',
-      pattern: 'persistent_symptoms',
-      daysObserved: feverDays.length,
-      significance: 'high',
-      recommendations: [
-        'Schedule pediatrician appointment',
-        'Monitor temperature regularly',
-        'Ensure adequate hydration',
-        'Watch for additional symptoms',
-      ],
-    })
-  }
-
-  return alerts
-}
-
-export function useHealthAlert () {
-  const healthStore = useHealthStore()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { getHealthForDate } = storeToRefs(healthStore)
-
-  // Get current date
-  const currentDate = computed(() => new Date().toISOString().split('T')[0])
-
-  const analyzeAllPatterns = () => {
-    const { mealData, sleepData, poopData, growthData, symptomData } = generateDummyData()
-
-    const allAlerts = [
-      ...analyzeMealPatterns(mealData),
-      ...analyzeSleepPatterns(sleepData),
-      ...analyzePoopPatterns(poopData),
-      ...analyzeGrowthPatterns(growthData),
-      ...analyzeHealthPatterns(symptomData),
-    ]
-
-    // Sort by significance and return the most important alert
-    const sortedAlerts = allAlerts.sort((a, b) => {
-      const significanceOrder = { high: 3, medium: 2, low: 1 }
-      return significanceOrder[b.significance] - significanceOrder[a.significance]
-    })
-
-    return sortedAlerts[0] || null
-  }
-
-  // Get health data with predictive analysis
   const healthData = computed(() => {
-    const topAlert = analyzeAllPatterns()
-
+    const topAlert = alerts.value[0]
     if (!topAlert) {
       return {
         status: 'All patterns normal',
-        message: 'No unusual patterns detected in recent data',
+        message: `${currentChild.value?.name || 'Your child'} is showing normal patterns across all health metrics`,
         symptoms: [],
         temperature: undefined,
         lastUpdated: new Date().toISOString(),
+        allAlerts: []
       }
     }
 
-    // Transform PredictiveAlert to HealthData format
     return {
-      status: topAlert.status,
-      message: topAlert.message,
-      symptoms: topAlert.symptoms || [],
-      temperature: topAlert.temperature ? parseFloat(topAlert.temperature.replace('°C', '')) : undefined,
+      status: topAlert.title,
+      message: topAlert.description,
+      symptoms: [],
+      temperature: undefined,
       lastUpdated: new Date().toISOString(),
-      // Additional predictive fields for enhanced UI
-      category: topAlert.category,
-      pattern: topAlert.pattern,
-      daysObserved: topAlert.daysObserved,
-      significance: topAlert.significance,
-      recommendations: topAlert.recommendations,
+      allAlerts: alerts.value
     }
   })
 
-  // Check if we should show the alert
-  const hasHealthAlert = computed(() => {
-    const data = healthData.value
-    return data.status !== 'All patterns normal' && data.status !== 'Healthy'
-  })
-
-  // Initialize pattern analysis and fetch health data
+  // Initialize
   onMounted(async () => {
-    // Fetch health data from store (this will generate mock data if none exists)
-    await healthStore.fetchHealthForDate(currentDate.value)
-    console.log('Initialized predictive pattern analysis with health store integration')
+    if (currentChild.value?.id) {
+      console.log('🚀 Initializing simplified health alert system...')
+      
+      // Trigger initial analysis after a delay
+      setTimeout(() => {
+        console.log('🎬 Running initial analysis...')
+        analyzeWithDebounce()
+      }, 1000)
+    }
   })
 
   return {
-    healthData,
-    hasHealthAlert,
+  healthData,
+  hasHealthAlert,
+  alerts: computed(() => alerts.value),
+  // Debug function
+  forceAnalysis: async () => {
+    console.log('🎯 Force analysis triggered')
+    await analyzePatterns()
+  },
+  // Add method to update viewing context
+  updateContext: (newViewingDate: string) => {
+    console.log('🔄 Updating viewing context to:', newViewingDate)
+    // Update the viewingDate parameter
+    viewingDate = newViewingDate
+    // Clear existing alerts
+    alerts.value = []
+    // Trigger new analysis
+    analyzeWithDebounce()
   }
 }
-
-//  TODO: REUSE THE FIRST HALF OF THE CODES AFTER PRESENTATION
+}
