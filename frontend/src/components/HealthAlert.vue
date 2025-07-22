@@ -59,18 +59,23 @@
       </v-alert>
     </div>
 
-    <!-- Case 3: All Normal -->
-    <div v-else>
-      <v-alert class="health-alert" color="#E8F5E5" variant="tonal">
-        <div class="d-flex align-center">
-          <v-icon class="mr-3" color="#4CAF50">mdi-check-circle</v-icon>
-          <div>
-            <div class="text-body-1 font-weight-medium mb-1">All Patterns Normal</div>
-            <div class="text-body-2 text-grey-darken-1">No concerning patterns detected for {{ currentDateString }}</div>
-          </div>
-        </div>
-      </v-alert>
+  <!-- Case 3: All Normal -->
+<div v-else>
+  <v-alert 
+    class="health-alert normal-alert" 
+    color="rgba(76, 175, 80, 0.04)" 
+    variant="tonal"
+    style="border: 2px solid #4CAF50 !important; background: rgba(76, 175, 80, 0.04) !important;"
+  >
+    <div class="d-flex align-center">
+      <v-icon class="mr-3" color="#4CAF50">mdi-check-circle</v-icon>
+      <div>
+        <div class="text-body-1 font-weight-medium mb-1" style="color: #2c1810;">All Patterns Normal</div>
+        <div class="text-body-2" style="color: #5d4037;">No concerning patterns detected for {{ currentDateString }}</div>
+      </div>
     </div>
+  </v-alert>
+</div>
   </div>
 </template>
 

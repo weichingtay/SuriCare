@@ -23,6 +23,7 @@
         <!-- Health Issue Alert -->
         <!-- Health Issue Alert -->
 <HealthAlert
+  :key="`health-alert-${childrenStore.currentChild?.id}`"
   :current-child="childrenStore.currentChild"
   :current-date="selectedDate"
   @view-more="handleHealthAlert"
