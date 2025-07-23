@@ -6,7 +6,27 @@
       <v-col cols="4">
         <!-- Welcome text -->
         <div class="welcome-content">
-          <h1 class="welcome-text mb-1">Welcome, Wei Ching</h1>
+          <div
+            class="welcome-header"
+            style="display: flex; align-items: center; gap: 8px"
+          >
+            <h1 class="welcome-text mt-1 mb-1">Welcome, Wei Ching</h1>
+            <v-chip
+              :color="userProfile.role === 'Guardian' ? '#D87179' : '#FFC107'"
+              size="small"
+              variant="flat"
+              style="display: flex; align-items: center; height: 28px"
+              ><span
+                :class="
+                  userProfile.role === 'Guardian'
+                    ? 'mdi mdi-human-male-female-child'
+                    : 'mdi mdi-mother-heart'
+                "
+                style="font-size: 18px; line-height: 1"
+              ></span
+              >&nbsp {{ userProfile.role }}</v-chip
+            >
+          </div>
           <p class="welcome-subtitle">Let's check on your little one today</p>
         </div>
       </v-col>
@@ -98,6 +118,7 @@
   import { usePoopStore } from '@/stores/poop'
   import { useHealthStore } from '@/stores/health'
   import { useRouter } from 'vue-router'
+  import { useUserProfile } from '@/composables/useUserProfile'
 
   // Import components
   import AIAssistant from '@/components/chatbot/AIAssistant.vue'
@@ -119,6 +140,7 @@
   const sleepStore = useSleepStore()
   const poopStore = usePoopStore()
   const healthStore = useHealthStore()
+  const { userProfile } = useUserProfile()
 
   const router = useRouter()
 
@@ -156,7 +178,7 @@
     try {
       const currentDate = new Date()
       const dateStr = currentDate.toISOString().split('T')[0]
-      
+
       // Use meals store's built-in refresh method
       if (mealsStore.refreshMealsForDate) {
         await mealsStore.refreshMealsForDate(dateStr)
@@ -174,7 +196,7 @@
     try {
       const currentDate = new Date()
       const dateStr = currentDate.toISOString().split('T')[0]
-      
+
       // Use sleep store's built-in refresh method
       if (sleepStore.refreshSleepForDate) {
         await sleepStore.refreshSleepForDate(dateStr)
@@ -190,7 +212,7 @@
     try {
       const currentDate = new Date()
       const dateStr = currentDate.toISOString().split('T')[0]
-      
+
       // Use poop store's built-in refresh method
       if (poopStore.refreshPoopForDate) {
         await poopStore.refreshPoopForDate(dateStr)
@@ -208,7 +230,7 @@
     try {
       const currentDate = new Date()
       const dateStr = currentDate.toISOString().split('T')[0]
-      
+
       // Use health store's built-in refresh method
       if (healthStore.refreshHealthForDate) {
         await healthStore.refreshHealthForDate(dateStr)
@@ -243,14 +265,14 @@
   const loadDataForDate = async (date: Date) => {
     const dateStr = date.toISOString().split('T')[0]
     console.log('🔄 loadDataForDate called for:', dateStr)
-    
+
     // Force refresh by clearing caches first
     console.log('🗑️ Clearing caches for date:', dateStr)
-    
+
     if (sleepStore.invalidateCache) {
       sleepStore.invalidateCache(dateStr)
     }
-    
+
     // Clear caches for other stores by deleting the cached data
     // This forces a fresh fetch from the API
     try {
@@ -258,26 +280,35 @@
       if (mealsStore.mealsCache?.value) {
         console.log('🗑️ Clearing meals cache for:', dateStr)
         delete mealsStore.mealsCache.value[dateStr]
-        console.log('🗑️ Meals cache after clearing:', Object.keys(mealsStore.mealsCache.value))
+        console.log(
+          '🗑️ Meals cache after clearing:',
+          Object.keys(mealsStore.mealsCache.value)
+        )
       }
-      
+
       // Clear poop cache
       if (poopStore.poopByDate?.value) {
         console.log('🗑️ Clearing poop cache for:', dateStr)
         delete poopStore.poopByDate.value[dateStr]
-        console.log('🗑️ Poop cache after clearing:', Object.keys(poopStore.poopByDate.value))
+        console.log(
+          '🗑️ Poop cache after clearing:',
+          Object.keys(poopStore.poopByDate.value)
+        )
       }
-      
+
       // Clear health cache (if applicable)
       if (healthStore.healthByDate?.value) {
         console.log('🗑️ Clearing health cache for:', dateStr)
         delete healthStore.healthByDate.value[dateStr]
-        console.log('🗑️ Health cache after clearing:', Object.keys(healthStore.healthByDate.value))
+        console.log(
+          '🗑️ Health cache after clearing:',
+          Object.keys(healthStore.healthByDate.value)
+        )
       }
     } catch (error) {
       console.warn('Error clearing caches:', error)
     }
-    
+
     // Load summary data from store
     console.log('🔄 About to call summaryStore.loadSummaryForDate')
     await summaryStore.loadSummaryForDate(date, childrenStore.currentChild.id)
