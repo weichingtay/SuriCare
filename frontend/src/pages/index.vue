@@ -151,34 +151,6 @@
 
   // ===== SAVE HANDLERS =====
 
-<<<<<<< HEAD
-  const handleMealSave = (mealData) => {
-    console.log('Saving meal data:', mealData)
-    // TODO: Save to store
-    dialogs.meal = false
-    showAlert('Meal data saved successfully!', 'success')
-  }
-
-  const handleSleepSave = (sleepData) => {
-    console.log('Saving sleep data:', sleepData)
-    // TODO: Save to store
-    dialogs.sleep = false
-    showAlert('Sleep data saved successfully!', 'success')
-  }
-
-  const handlePoopSave = (poopData) => {
-    console.log('Saving poop data:', poopData)
-    // TODO: Save to store
-    dialogs.poop = false
-    showAlert('Poop data saved successfully!', 'success')
-  }
-
-  const handleHealthSave = (healthData) => {
-    console.log('Saving health data:', healthData)
-    // TODO: Save to store
-    dialogs.health = false
-    showAlert('Health data saved successfully!', 'success')
-=======
   const handleMealSaved = async () => {
     console.log('🍽️ handleMealSaved called - Reloading meal data...')
     try {
@@ -247,7 +219,6 @@
     } catch (error) {
       console.error('❌ Error reloading health data:', error)
     }
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
   }
 
   // ===== METHODS =====
@@ -269,9 +240,6 @@
   }
 
   // Load data for a specific date and current child
-<<<<<<< HEAD
-  const loadDataForDate = (date) => {
-=======
   const loadDataForDate = async (date: Date) => {
     const dateStr = date.toISOString().split('T')[0]
     console.log('🔄 loadDataForDate called for:', dateStr)
@@ -310,7 +278,6 @@
       console.warn('Error clearing caches:', error)
     }
     
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     // Load summary data from store
     console.log('🔄 About to call summaryStore.loadSummaryForDate')
     await summaryStore.loadSummaryForDate(date, childrenStore.currentChild.id)

@@ -261,17 +261,10 @@
   }
 
   const handleSave = async () => {
-<<<<<<< HEAD
-    console.log('🐾 PoopDialog handleSave clicked!')
-
-    if (!validateForm()) {
-      console.log('❌ Validation failed:', errors.value)
-=======
     console.log('💩 PoopDialog handleSave clicked!')
     
     if (!validateForm()) {
       console.log('❌ Poop validation failed:', errors.value)
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
       return
     }
 
@@ -281,24 +274,6 @@
       notes: props.notes,
     }
 
-<<<<<<< HEAD
-    console.log('📦 Poop data to save:', poopData)
-    errors.value = {}
-
-    try {
-      console.log('💾 About to call checkinStore.savePoop...')
-
-      // Save to store (which handles backend integration)
-      await checkinStore.savePoop(poopData)
-      console.log('✅ Poop save completed successfully!')
-
-      emit('save', poopData)
-
-      // Close dialog on success
-      handleDialogUpdate(false)
-    } catch (error) {
-      console.error('❌ Failed to save poop data:', error)
-=======
     console.log('💩 Poop data to save:', poopData)
     errors.value = {}
 
@@ -324,7 +299,6 @@
       } catch (error) {
         console.error('❌ Failed to save poop data:', error)
       }
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     }
   }
 </script>
@@ -417,12 +391,7 @@
     transform: scale(1.05);
   }
 
-<<<<<<< HEAD
-  .texture-image {
-    /* margin-bottom: 4px; */
-=======
 .texture-image{
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     width: 40px;
     height: 40px;
     border-radius: 100%;
@@ -441,27 +410,13 @@
     transform: scale(1.05);
   }
 
-<<<<<<< HEAD
-  /* .color-option.selected {
-    transform: scale(1.05);
-} */
-
-  .error-message {
-    color: #d87179;
-=======
 .error-message {
     color: #D87179;
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     font-size: 12px;
     margin-top: 8px;
   }
 
   .color-options {
     min-height: 70px;
-<<<<<<< HEAD
-  }
-</style>
-=======
 }
 </style>
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
