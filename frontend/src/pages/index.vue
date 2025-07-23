@@ -2,46 +2,41 @@
 <template>
   <!-- Main application container with light theme -->
   <v-app theme="light">
-    <v-row>
-      <v-col cols="4">
-        <!-- Welcome text -->
-        <div class="welcome-content">
-          <div
-            class="welcome-header"
-            style="display: flex; align-items: center; gap: 8px"
-          >
-            <h1 class="welcome-text mt-1 mb-1">Welcome, Wei Ching</h1>
-            <v-chip
-              :color="userProfile.role === 'Guardian' ? '#D87179' : '#FFC107'"
-              size="small"
-              variant="flat"
-              style="display: flex; align-items: center; height: 28px"
-              ><span
-                :class="
-                  userProfile.role === 'Guardian'
-                    ? 'mdi mdi-human-male-female-child'
-                    : 'mdi mdi-mother-heart'
-                "
-                style="font-size: 18px; line-height: 1"
-              ></span
-              >&nbsp {{ userProfile.role }}</v-chip
-            >
-          </div>
-          <p class="welcome-subtitle">Let's check on your little one today</p>
-        </div>
-      </v-col>
+    <!-- Show alert if needed -->
+    <v-alert
+      v-if="alert.show"
+      :type="alert.type"
+      :text="alert.message"
+      class="mb-4 centered-alert"
+      closable
+    ></v-alert>
 
-      <v-col cols="4">
-        <!-- Show alert if needed -->
-        <v-alert
-          v-if="alert.show"
-          :type="alert.type"
-          :text="alert.message"
-          class="mb-4 centered-alert"
-          closable
-        ></v-alert>
-      </v-col>
-    </v-row>
+    <!-- Welcome text -->
+    <div class="welcome-content">
+      <div
+        class="welcome-header"
+        style="display: flex; align-items: center; gap: 8px"
+      >
+        <h1 class="welcome-text mt-1 mb-1">Welcome, Wei Ching</h1>
+        <v-chip
+          :color="userProfile.role === 'Guardian' ? '#D87179' : '#FFC107'"
+          size="small"
+          variant="flat"
+          style="display: flex; align-items: center; height: 28px"
+          ><span
+            :class="
+              userProfile.role === 'Guardian'
+                ? 'mdi mdi-human-male-female-child'
+                : 'mdi mdi-mother-heart'
+            "
+            style="font-size: 18px; line-height: 1"
+          ></span
+          >&nbsp {{ userProfile.role }}</v-chip
+        >
+      </div>
+      <p class="welcome-subtitle">Let's check on your little one today</p>
+    </div>
+
     <!-- Main content area -->
     <v-main style="background-color: #faf7f2">
       <v-container
@@ -183,6 +178,7 @@
       if (mealsStore.refreshMealsForDate) {
         await mealsStore.refreshMealsForDate(dateStr)
         console.log('✅ Meal data reload completed successfully!')
+        showAlert('Meal data saved successfully!', 'success')
       } else {
         console.error('❌ refreshMealsForDate method not available')
       }
@@ -201,6 +197,7 @@
       if (sleepStore.refreshSleepForDate) {
         await sleepStore.refreshSleepForDate(dateStr)
         console.log('✅ Sleep data reload completed successfully!')
+        showAlert('Sleep data saved successfully!', 'success')
       }
     } catch (error) {
       console.error('❌ Error reloading sleep data:', error)
@@ -217,6 +214,7 @@
       if (poopStore.refreshPoopForDate) {
         await poopStore.refreshPoopForDate(dateStr)
         console.log('✅ Poop data reload completed successfully!')
+        showAlert('Poop data saved successfully!', 'success')
       } else {
         console.error('❌ refreshPoopForDate method not available')
       }
@@ -235,6 +233,7 @@
       if (healthStore.refreshHealthForDate) {
         await healthStore.refreshHealthForDate(dateStr)
         console.log('✅ Health data reload completed successfully!')
+        showAlert('Health data saved successfully!', 'success')
       } else {
         console.error('❌ refreshHealthForDate method not available')
       }
