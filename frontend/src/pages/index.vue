@@ -105,15 +105,16 @@
 </template>
 
 <script setup lang="ts">
-    import { onMounted, reactive, ref } from 'vue'
-    import { useChildrenStore } from '@/stores/children'
-    import { useSummaryStore } from '@/stores/summary'
-    import { useCheckinStore } from '@/stores/checkin'
-    import { useMealsStore } from '@/stores/meals'
-    import { useSleepStore } from '@/stores/sleep'
-    import { usePoopStore } from '@/stores/poop'
-    import { useHealthStore } from '@/stores/health'
-    import { useRouter } from 'vue-router'
+  import { onMounted, reactive } from 'vue'
+  import { useChildrenStore } from '@/stores/children'
+  import { useSummaryStore } from '@/stores/summary'
+  import { useCheckinStore } from '@/stores/checkin'
+  import { useMealsStore } from '@/stores/meals'
+  import { useSleepStore } from '@/stores/sleep'
+  import { usePoopStore } from '@/stores/poop'
+  import { useHealthStore } from '@/stores/health'
+  import { useRouter } from 'vue-router'
+  import { useUserProfile } from '@/composables/useUserProfile'
 
     // Import components
     import AIAssistant from '@/components/chatbot/AIAssistant.vue'
@@ -127,14 +128,15 @@
     import PoopDialog from '@/components/dialog/PoopDialog.vue'
     import SymptomDialog from '@/components/dialog/SymptomDialog.vue'
 
-    // Use stores and composables
-    const childrenStore = useChildrenStore()
-    const summaryStore = useSummaryStore()
-    const checkinStore = useCheckinStore()
-    const mealsStore = useMealsStore()
-    const sleepStore = useSleepStore()
-    const poopStore = usePoopStore()
-    const healthStore = useHealthStore()
+  // Use stores and composables
+  const childrenStore = useChildrenStore()
+  const summaryStore = useSummaryStore()
+  const checkinStore = useCheckinStore()
+  const mealsStore = useMealsStore()
+  const sleepStore = useSleepStore()
+  const poopStore = usePoopStore()
+  const healthStore = useHealthStore()
+  const { userProfile } = useUserProfile()
 
     const router = useRouter()
 
@@ -280,21 +282,30 @@
       if (mealsStore.mealsCache?.value) {
         console.log('🗑️ Clearing meals cache for:', dateStr)
         delete mealsStore.mealsCache.value[dateStr]
-        console.log('🗑️ Meals cache after clearing:', Object.keys(mealsStore.mealsCache.value))
+        console.log(
+          '🗑️ Meals cache after clearing:',
+          Object.keys(mealsStore.mealsCache.value)
+        )
       }
 
       // Clear poop cache
       if (poopStore.poopByDate?.value) {
         console.log('🗑️ Clearing poop cache for:', dateStr)
         delete poopStore.poopByDate.value[dateStr]
-        console.log('🗑️ Poop cache after clearing:', Object.keys(poopStore.poopByDate.value))
+        console.log(
+          '🗑️ Poop cache after clearing:',
+          Object.keys(poopStore.poopByDate.value)
+        )
       }
 
       // Clear health cache (if applicable)
       if (healthStore.healthByDate?.value) {
         console.log('🗑️ Clearing health cache for:', dateStr)
         delete healthStore.healthByDate.value[dateStr]
-        console.log('🗑️ Health cache after clearing:', Object.keys(healthStore.healthByDate.value))
+        console.log(
+          '🗑️ Health cache after clearing:',
+          Object.keys(healthStore.healthByDate.value)
+        )
       }
     } catch (error) {
       console.warn('Error clearing caches:', error)
