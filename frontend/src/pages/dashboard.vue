@@ -873,11 +873,11 @@ const fetchSleep = async (selectedDateParam) => {
     const childId = getCurrentChildId()
     if (!childId) return
 
-    // Use the actual sleep endpoint
-    const response = await axios.get(`http://127.0.0.1:8000/sleeptime/${childId}`)
-    const api_data = response.data
+    // SOLUTION: Use the sleep store instead of direct API calls
+    const { useSleepStore } = await import('@/stores/sleep')
+    const sleepStore = useSleepStore()
 
-    // Create baseline date range for x-axis (last 7 days for weekly, 30 days for monthly)
+    // Create baseline date range for x-axis
     const days = sleepViewMode.value === 'weekly' ? 7 : 30
     const baselineDates = []
     
@@ -886,67 +886,70 @@ const fetchSleep = async (selectedDateParam) => {
       date.setDate(date.getDate() - i)
       baselineDates.push({
         x: date.getTime(),
-        y: 0 // Zero sleep hours as placeholder
+        y: 0
       })
     }
 
-    if (!api_data || api_data.length === 0) {
-      console.log('No sleep data available - showing baseline dates')
-      // Show empty chart with date labels
-      sleepSeries.value = [
-        { name: 'Nap', data: baselineDates.map(d => ({...d})) },
-        { name: 'Night', data: baselineDates.map(d => ({...d})) }
-      ]
+    // Get sleep data for each day in the range using sleep store
+    const napData = []
+    const nightData = []
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(selectedDate.value)
+      date.setDate(date.getDate() - i)
+      const dateString = date.toISOString().split('T')[0] // YYYY-MM-DD
       
-      actual.sleep_time.nap = []
-      actual.sleep_time.night = []
-      return
-    }
-
-    // Process actual sleep data
-    const nap_series = []
-    const night_series = []
-
-    api_data.forEach(item => {
-      const x = new Date(item.check_in)
-      const time_ms = new Date(item.end_time) - new Date(item.start_time)
-      const total_hours = time_ms / (1000 * 60 * 60)
-      const y = Number(total_hours.toFixed(1))
-      const start_hour = new Date(item.start_time).getHours()
-
-      // For now, put all sleep as night sleep since your data shows 8+ hour sleeps
-      night_series.push({ x: x.getTime(), y })
-    })
-
-    // Merge actual data with baseline dates to ensure x-axis shows full date range
-    const createFullSeries = (actualData) => {
-      const dataMap = new Map(actualData.map(item => [
-        new Date(item.x).toDateString(), 
-        item.y
-      ]))
+      // Force refresh to get latest data
+      await sleepStore.refreshSleepForDate(dateString)
       
-      return baselineDates.map(baseline => {
-        const dateKey = new Date(baseline.x).toDateString()
-        return {
-          x: baseline.x,
-          y: dataMap.get(dateKey) || 0
-        }
+      // Get processed sleep data from store
+      const sleepData = sleepStore.getSleepForDate(dateString)
+      
+      const x = date.getTime()
+      
+      // Use the SAME data that the summary card uses
+      napData.push({
+        x: x,
+        y: sleepData.napHours || 0
+      })
+      
+      nightData.push({
+        x: x, 
+        y: sleepData.nightHours || 0
       })
     }
 
-    const napSeriesWithDates = createFullSeries([])
-    const nightSeriesWithDates = createFullSeries(night_series)
+    // Store the processed data
+    actual.sleep_time.nap = napData
+    actual.sleep_time.night = nightData
 
-    actual.sleep_time.nap = napSeriesWithDates
-    actual.sleep_time.night = nightSeriesWithDates
+    // Calculate Y-axis range
+    const allSleepValues = [...napData, ...nightData].map(item => item.y)
+    if (allSleepValues.length > 0) {
+      setY_max_for_sleep(napData.map(item => item.y), nightData.map(item => item.y))
+    }
+
+    // Update chart series
+    sleepSeries.value = [
+      { name: 'Nap', data: napData },
+      { name: 'Night', data: nightData }
+    ]
 
     // Apply date filtering
     updateChartsForDate()
 
+    console.log(`✅ Sleep data from store loaded:`, {
+      nap_points: napData.filter(d => d.y > 0).length,
+      night_points: nightData.filter(d => d.y > 0).length,
+      total_nap_hours: napData.reduce((sum, d) => sum + d.y, 0),
+      total_night_hours: nightData.reduce((sum, d) => sum + d.y, 0)
+    })
+
   } catch (error) {
-    console.error('Error fetching sleep data: ' + error)
+    console.error('❌ Error fetching sleep data from store:', error)
+    dataError.value = 'Failed to load sleep data'
     
-    // Even on error, show baseline dates
+    // Fallback to empty baseline
     const days = sleepViewMode.value === 'weekly' ? 7 : 30
     const errorBaseline = []
     
