@@ -43,6 +43,119 @@ export function useHealthAlert() {
     }).reverse()
   }
 
+  // NEW API FUNCTIONS
+  const saveAlertToAPI = async (alert: SimpleAlert, analysisDate: string): Promise<void> => {
+    if (!currentChild.value?.id) return
+
+    const last7Days = getLast7Days(analysisDate)
+    
+    const alertData = {
+      child_id: currentChild.value.id,
+      alert_type: alert.id,
+      title: alert.title,
+      description: alert.description,
+      severity: alert.type,
+      suggestions: alert.suggestions,
+      analysis_date: analysisDate,
+      data_period_start: last7Days[last7Days.length - 1],
+      data_period_end: last7Days[0]
+    }
+
+    try {
+      await fetch('http://localhost:8000/health-alerts/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(alertData)
+      })
+      console.log('✅ Alert saved:', alert.title)
+    } catch (error) {
+      console.error('Error saving alert:', error)
+    }
+  }
+
+  const loadAlertsForTab = async (): Promise<SimpleAlert[]> => {
+    if (!currentChild.value?.id) return []
+
+    try {
+      const response = await fetch(`http://localhost:8000/health-alerts/timeline/${currentChild.value.id}`)
+      if (!response.ok) return []
+      
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error loading alerts for tab:', error)
+      return []
+    }
+  }
+
+  const getBadgeCount = async (): Promise<number> => {
+    if (!currentChild.value?.id) return 0
+
+    try {
+      const response = await fetch(`http://localhost:8000/health-alerts/unread-count/${currentChild.value.id}`)
+      if (!response.ok) return 0
+      
+      const data = await response.json()
+      return data.unread_count || 0
+    } catch (error) {
+      console.error('Error getting badge count:', error)
+      return 0
+    }
+  }
+
+  const markAlertRead = async (alertId: string): Promise<void> => {
+    try {
+      await fetch(`http://localhost:8000/health-alerts/${alertId}/read`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_read: true })
+      })
+    } catch (error) {
+      console.error('Error marking as read:', error)
+    }
+  }
+
+// Fixed deleteAlert function for health alerts soft delete API
+const deleteAlert = async (alertId: string): Promise<void> => {
+  console.log('🗑️ Attempting to delete alert:', alertId);
+  
+  // Validate the alert ID
+  if (!alertId || alertId === 'undefined' || alertId === 'null') {
+    console.error('❌ Invalid alert ID:', alertId);
+    throw new Error('Invalid alert ID provided');
+  }
+
+  try {
+    const response = await fetch(`http://localhost:8000/health-alerts/${alertId}`, {
+      method: 'DELETE',
+      headers: { 
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      // Get error details from FastAPI response
+      let errorMessage = `HTTP ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage += `: ${errorData.detail || 'Unknown error'}`;
+      } catch {
+        errorMessage += `: ${response.statusText}`;
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Parse the success response (matches your backend)
+    const result = await response.json();
+    console.log('✅ Alert deleted successfully:', result.message, result.alert_id);
+    
+  } catch (error) {
+    console.error('❌ Error deleting alert:', error);
+    throw error;
+  }
+}
+
   // WORKING: Use the same data source as the summary card (FROM YOUR REFERENCE)
   const getMealsDataForDate = async (dateString: string) => {
     console.log(`📡 Getting meals data for ${dateString} via store`)
@@ -659,35 +772,46 @@ export function useHealthAlert() {
       if (sleepAlert) individualAlerts.push(sleepAlert)
       if (poopAlert) individualAlerts.push(poopAlert)
       if (healthAlert) individualAlerts.push(healthAlert)
-      
-      const newAlerts: SimpleAlert[] = []
-      
-      if (individualAlerts.length >= 2) {
-        // Multiple issues - create combined alert
-        const combinedAlert = createCombinedAlert(individualAlerts)
-        newAlerts.push(combinedAlert)
-      } else if (individualAlerts.length === 1) {
-        // Single issue - show individual alert
-        newAlerts.push(individualAlerts[0])
-      }
-      
-      // STABLE: Sort by priority
-      newAlerts.sort((a, b) => {
-        const priority = { error: 3, warning: 2, info: 1 }
-        return priority[b.type] - priority[a.type]
-      })
-      
-      alerts.value = newAlerts
-      console.log(`✅ Analysis complete: ${newAlerts.length} alerts`)
-      
-    } catch (error) {
-      console.error('❌ Analysis error:', error)
-      alerts.value = []
-    }
-  }
+     
+     const newAlerts: SimpleAlert[] = []
+     
+     if (individualAlerts.length >= 2) {
+       // Multiple issues - create combined alert
+       const combinedAlert = createCombinedAlert(individualAlerts)
+       newAlerts.push(combinedAlert)
+     } else if (individualAlerts.length === 1) {
+       // Single issue - show individual alert
+       newAlerts.push(individualAlerts[0])
+     }
+     
+     // SAVE ALERTS TO DATABASE
+     for (const alert of newAlerts) {
+       await saveAlertToAPI(alert, dateString)
+     }
+     
+     // STABLE: Sort by priority
+     newAlerts.sort((a, b) => {
+       const priority = { error: 3, warning: 2, info: 1 }
+       return priority[b.type] - priority[a.type]
+     })
+     
+     alerts.value = newAlerts
+     console.log(`✅ Analysis complete: ${newAlerts.length} alerts`)
+     
+   } catch (error) {
+     console.error('❌ Analysis error:', error)
+     alerts.value = []
+   }
+ }
 
-  return {
-    alerts: computed(() => alerts.value),
-    analyzeForDate
-  }
+ // 🚨 FIXED: Added deleteAlert to the return statement
+ return {
+   alerts: computed(() => alerts.value),
+   analyzeForDate,
+   saveAlertToAPI,
+   loadAlertsForTab,
+   getBadgeCount,
+   markAlertRead,
+   deleteAlert  // ⭐ THIS WAS MISSING!
+ }
 }

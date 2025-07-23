@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import users, children, growth, sleep, chat, meal, poop, symptom, reference, analytics, guidance
+from app.routers import users, children, growth, sleep, chat, meal, poop, symptom, reference, analytics, guidance, health_alerts  # ← Make sure health_alerts is here
 
 app = FastAPI()
 
@@ -35,6 +35,8 @@ app.include_router(symptom.router)
 app.include_router(reference.router)
 app.include_router(analytics.router)
 app.include_router(guidance.router)
+app.include_router(health_alerts.router)  # ← Make sure this line exists
+
 # Skip saved_articles for now since you don't have that model yet
 
 @app.get("/")

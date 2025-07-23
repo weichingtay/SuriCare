@@ -61,7 +61,7 @@
           icon="$close"
           style="position: absolute; top: 12px; right: 12px; z-index: 1"
           variant="plain"
-          @click="$emit('read-alert')"
+          @click="handleDeleteClick"
         />
 
         <div class="pa-6">
@@ -97,7 +97,6 @@
 <script setup lang="ts">
   import { ref } from 'vue'
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const props = defineProps({
     alert: {
       type: Object,
@@ -110,7 +109,13 @@
     isExpanded.value = !isExpanded.value
   }
 
-  defineEmits(['read-alert'])
+  // 🎯 Fixed: Get emit function and properly handle delete click
+  const emit = defineEmits(['read-alert'])
+  
+  const handleDeleteClick = () => {
+    console.log('🗑️ Delete clicked for alert:', props.alert.id);
+    emit('read-alert', props.alert.id);
+  }
 </script>
 
 <style scoped>
