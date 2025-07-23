@@ -1,7 +1,7 @@
 <template>
   <BaseCheckInDialog
     icon="mdi-sleep"
-    icon-color="#000000"
+    icon-color="#D87179"
     :loading="checkinStore.isLoading"
     :model-value="modelValue"
     :notes="checkinStore.sleepData.notes"

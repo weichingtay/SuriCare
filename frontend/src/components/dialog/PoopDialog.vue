@@ -1,7 +1,7 @@
 <template>
     <BaseCheckInDialog
         icon="mdi-emoticon-poop"
-        icon-color="#000000"
+        icon-color="#D87179"
         :loading="loading"
         max-width="600px"
         :model-value="modelValue"
