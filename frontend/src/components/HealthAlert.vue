@@ -4,14 +4,14 @@
       {{ currentChild.name }}'s Smart Alert
     </h2>
     
-    <!-- DEBUG: Show current state -->
+    <!-- DEBUG: Show current state
     <div class="mb-2 p-2 bg-yellow-lighten-4 rounded">
       <p><strong>DEBUG:</strong> isLoading={{ isLoading }}, hasAlert={{ hasAlert }}, alerts.length={{ alerts.length }}</p>
       <p><strong>Current Date:</strong> {{ currentDateString }}</p>
       <p><strong>Alert Title:</strong> {{ topAlert?.title || 'NULL' }}</p>
       <p><strong>Alert Type:</strong> {{ topAlert?.type || 'NULL' }}</p>
       <v-btn size="small" @click="triggerAnalysis" class="mr-2">Force Analysis</v-btn>
-    </div>
+    </div> -->
     
     <!-- Case 1: Has Alert -->
     <div v-if="hasAlert && topAlert">
