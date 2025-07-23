@@ -92,7 +92,7 @@ const poopData = computed(() => poopStore.getPoopForDate(dateString.value))
     // Check if data is still loading or no data exists
     if (!data || !data.lastUpdated || data.lastUpdated === '') {
       console.log(`⏳ No data or empty lastUpdated`)
-      return 'Loading stool data...'
+      return 'No stool data for this date'
     }
 
     const count = data.count || 0

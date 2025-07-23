@@ -135,7 +135,7 @@ export const useChildrenStore = defineStore('children', () => {
 
           // Fetch latest growth data for this child
           try {
-            const growthResponse = await fetch(`${baseUrl}/growth/latest/${row.id}`)
+            const growthResponse = await fetch(`${baseUrl}/growth/child/${row.id}/latest`)
             if (growthResponse.ok) {
               const growthData = await growthResponse.json()
               child.growth = {
@@ -144,11 +144,16 @@ export const useChildrenStore = defineStore('children', () => {
                 headCircumference: growthData.head_circumference,
                 lastUpdated: new Date(growthData.check_in),
               }
-            }
-          } catch (err) {
-            console.warn(`Failed to load growth data for child ${row.id}:`, err)
-            // Keep default values if growth fetch fails
-          }
+  } else if (growthResponse.status === 404) {
+    console.log(`No growth endpoint available yet for child ${row.id} - using defaults`)
+    // Keep default values (already set above)
+  } else {
+    console.warn(`Failed to fetch growth data for child ${row.id}: ${growthResponse.status}`)
+  }
+} catch (err) {
+  console.warn(`Failed to load growth data for child ${row.id}:`, err)
+  // Keep default values if growth fetch fails
+}
 
           return child
         })

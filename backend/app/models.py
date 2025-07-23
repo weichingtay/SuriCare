@@ -164,3 +164,21 @@ class Saved_Articles(SQLModel, table = True):
     article_data: Dict[str, Any] = Field(sa_column=Column(JSON))
     saved_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False), default_factory=datetime.now)
     child_id: int | None = Field(default=None, foreign_key="child.id")
+
+class Health_Alerts(SQLModel, table=True):
+    __tablename__ = "health_alerts"
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    child_id: int = Field(foreign_key="child.id")
+    alert_type: str
+    title: str
+    description: str = Field(sa_column=Column(TEXT))
+    severity: str = Field(regex="^(error|warning|info)$")  # Validates the severity values
+    suggestions: Dict[str, Any] = Field(sa_column=Column(JSON))
+    analysis_date: datetime = Field(sa_column=Column(DateTime(timezone=False), nullable=False))  # Date only
+    data_period_start: datetime = Field(sa_column=Column(DateTime(timezone=False), nullable=False))
+    data_period_end: datetime = Field(sa_column=Column(DateTime(timezone=False), nullable=False))
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False), default_factory=datetime.now)
+    is_read: bool = Field(default=False)
+    read_at: datetime | None = Field(sa_column=Column(DateTime(timezone=True)), default=None)
+    is_deleted: bool = Field(default=False)
+    deleted_at: datetime | None = Field(sa_column=Column(DateTime(timezone=True)), default=None)

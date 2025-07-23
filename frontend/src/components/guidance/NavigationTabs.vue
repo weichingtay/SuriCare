@@ -47,47 +47,52 @@
 <script setup lang="ts">
   import { onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { useHealthAlert } from '@/composables/useHealthAlert'
 
-  // TODO: Replace with actual alert count from store
-  const alertsCount = ref(0)
+  const { getBadgeCount } = useHealthAlert()
   const route = useRoute()
   const router = useRouter()
 
   const activeTab = ref('guidance')
+  const alertsCount = ref(0)
 
-  // Emit the active tab to parent component
   const emit = defineEmits(['tab-changed'])
 
-  // Initialize tab based on route query parameter
-  onMounted(() => {
-    const tabFromQuery = route.query.tab
+  onMounted(async () => {
+    // Load badge count
+    try {
+      alertsCount.value = await getBadgeCount()
+    } catch (error) {
+      console.error('Failed to load badge count:', error)
+      alertsCount.value = 0
+    }
+
+    const tabFromQuery = route.query.tab as string
     if (tabFromQuery && ['guidance', 'alert', 'saved'].includes(tabFromQuery)) {
       activeTab.value = tabFromQuery
       emit('tab-changed', tabFromQuery)
     }
   })
 
-  // Watch for tab changes and emit to parent + update URL
   watch(activeTab, (newTab) => {
     emit('tab-changed', newTab)
-
-    // Update URL query parameter without triggering navigation
     router.replace({
       query: { ...route.query, tab: newTab },
     })
   })
 
-  // Watch for route changes (e.g., browser back/forward)
   watch(
     () => route.query.tab,
     (newTab) => {
-      if (newTab && ['guidance', 'alert', 'saved'].includes(newTab)) {
-        activeTab.value = newTab
+      if (newTab && ['guidance', 'alert', 'saved'].includes(newTab as string)) {
+        activeTab.value = newTab as string
         emit('tab-changed', newTab)
       }
     }
   )
 </script>
+
+<!-- Keep ALL your existing styles unchanged -->
 
 <style scoped>
   .inactive {

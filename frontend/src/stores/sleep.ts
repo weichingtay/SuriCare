@@ -57,20 +57,32 @@ export const useSleepStore = defineStore('sleep', (): SleepStoreInterface => {
     let totalNapHours = 0
 
     sleepRecords.forEach((sleep, index) => {
-      const startTime = new Date(sleep.start_time)
-      const endTime = new Date(sleep.end_time)
-      const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60) // hours
-      const startHour = startTime.getHours()
-      
-      // Simple classification: afternoon (12-18) = nap, otherwise = night sleep
-      if (startHour >= 12 && startHour <= 18) {
-        totalNapHours += duration
-        console.log(`  😴 Sleep ${index + 1}: NAP = ${duration.toFixed(1)}h (${startHour}:00)`)
-      } else {
-        totalNightHours += duration
-        console.log(`  🌙 Sleep ${index + 1}: NIGHT = ${duration.toFixed(1)}h (${startHour}:00)`)
-      }
-    })
+  const startTime = new Date(sleep.start_time)
+  const endTime = new Date(sleep.end_time)
+  
+  // FIXED: Handle overnight sleep properly
+  let duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60) // hours
+  
+  // If duration is negative, it means sleep crossed midnight - add 24 hours
+  if (duration < 0) {
+    duration = duration + 24
+    console.log(`  🌙 Overnight sleep detected: adding 24h to duration`)
+  }
+  
+  // Ensure duration is positive and reasonable (max 24 hours)
+  duration = Math.max(0, Math.min(duration, 24))
+  
+  const startHour = startTime.getHours()
+  
+  // Simple classification: afternoon (12-18) = nap, otherwise = night sleep
+  if (startHour >= 12 && startHour <= 18) {
+    totalNapHours += duration
+    console.log(`  😴 Sleep ${index + 1}: NAP = ${duration.toFixed(1)}h (${startHour}:00)`)
+  } else {
+    totalNightHours += duration
+    console.log(`  🌙 Sleep ${index + 1}: NIGHT = ${duration.toFixed(1)}h (${startHour}:00)`)
+  }
+})
 
     const result = {
       nightHours: Math.round(totalNightHours * 10) / 10,
@@ -127,8 +139,8 @@ export const useSleepStore = defineStore('sleep', (): SleepStoreInterface => {
       console.log(`🌐 Calling API for child ${childrenStore.currentChild.id}`)
       
       // Fetch all sleep records for the child (last 60 days to match your pattern)
-      const response = await axios.get(`http://127.0.0.1:8000/sleeptime/${childrenStore.currentChild.id}?days=60`)
-      const allSleepRecords = response.data || []
+const response = await axios.get(`http://127.0.0.1:8000/sleep/child/${childrenStore.currentChild.id}?days=60`)      
+const allSleepRecords = response.data || []
       
       console.log(`📊 API returned ${allSleepRecords.length} total sleep records`)
       

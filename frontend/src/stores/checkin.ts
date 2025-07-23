@@ -555,7 +555,7 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
       console.log('📦 Sleep payload:', payload)
 
       const result = await makeApiCall<any>(
-        getApiUrl('/sleeptime/'),
+        getApiUrl('/sleep/'),
         {
           method: 'POST',
           body: JSON.stringify(payload)

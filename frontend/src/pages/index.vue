@@ -37,11 +37,14 @@
           </h1>
         </div> -->
 
-                <!-- Health Issue Alert -->
-                <HealthAlert
-                    :current-child="childrenStore.currentChild"
-                    @view-more="handleHealthAlert"
-                />
+        <!-- Health Issue Alert -->
+        <!-- Health Issue Alert -->
+<HealthAlert
+  :key="`health-alert-${childrenStore.currentChild?.id}`"
+  :current-child="childrenStore.currentChild"
+  :current-date="selectedDate"
+  @view-more="handleHealthAlert"
+/>
 
                 <!-- Check-ins History section -->
                 <CheckInsHistory
@@ -91,15 +94,15 @@
 </template>
 
 <script setup lang="ts">
-    import { onMounted, reactive } from 'vue'
-    import { useChildrenStore } from '@/stores/children'
-    import { useSummaryStore } from '@/stores/summary'
-    import { useCheckinStore } from '@/stores/checkin'
-    import { useMealsStore } from '@/stores/meals'
-    import { useSleepStore } from '@/stores/sleep'
-    import { usePoopStore } from '@/stores/poop'
-    import { useHealthStore } from '@/stores/health'
-    import { useRouter } from 'vue-router'
+  import { onMounted, reactive, ref } from 'vue'
+  import { useChildrenStore } from '@/stores/children'
+  import { useSummaryStore } from '@/stores/summary'
+  import { useCheckinStore } from '@/stores/checkin'
+  import { useMealsStore } from '@/stores/meals'
+  import { useSleepStore } from '@/stores/sleep'
+  import { usePoopStore } from '@/stores/poop'
+  import { useHealthStore } from '@/stores/health'
+  import { useRouter } from 'vue-router'
 
     // Import components
     import AIAssistant from '@/components/chatbot/AIAssistant.vue'
@@ -150,6 +153,8 @@
             alert.show = false
         }, 3000)
     }
+  const selectedDate = ref(new Date())
+
 
     // ===== SAVE HANDLERS =====
 
@@ -271,6 +276,8 @@
 
     // Load data for a specific date and current child
     const loadDataForDate = async (date: Date) => {
+      selectedDate.value = date
+
         const dateStr = date.toISOString().split('T')[0]
         console.log('🔄 loadDataForDate called for:', dateStr)
 
