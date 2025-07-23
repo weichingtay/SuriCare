@@ -635,7 +635,13 @@ const deleteConfirmDialog = ref({
     if (sleep.start_time && sleep.end_time) {
       const startTime = new Date(sleep.start_time)
       const endTime = new Date(sleep.end_time)
-      const duration = endTime.getTime() - startTime.getTime()
+
+let duration = endTime.getTime() - startTime.getTime()
+    
+    // ⬅️ ADD THIS: Handle overnight sleep (same logic as your store)
+    if (duration < 0) {
+      duration = duration + (24 * 60 * 60 * 1000) // Add 24 hours in milliseconds
+    }      
       const hours = Math.floor(duration / (1000 * 60 * 60))
       const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60))
       
