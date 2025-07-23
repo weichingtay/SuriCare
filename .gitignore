@@ -12,3 +12,4 @@ venv/
 .backend_schema
 errors.txt
 error.txt
+.opencode

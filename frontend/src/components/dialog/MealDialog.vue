@@ -16,16 +16,12 @@
   >
     <template #custom-content>
       <div class="meal-content">
-<<<<<<< HEAD
-=======
-        
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
         <!-- Meal Time and Consumption Level Row -->
         <div class="meal-time-consumption">
           <!-- Meal Time -->
           <div class="meal-time-section">
             <label class="section-label">Meal Time</label>
-            
+
             <!-- Always show meal time buttons but disable/lock when editing -->
             <div class="meal-time-buttons">
               <div
@@ -116,11 +112,6 @@
           </div>
         </div>
 
-<<<<<<< HEAD
-        <!-- Consumption Level -->
-
-=======
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
         <!-- Meal Category -->
         <div class="meal-category-section">
           <label class="section-label">Meal Category</label>
@@ -167,14 +158,7 @@
         </div>
 
         <!-- Sub Categories for Milk -->
-<<<<<<< HEAD
-        <div
-          v-if="localMealCategory === 'milk'"
-          class="milk-subcategory"
-        >
-=======
         <div v-if="localMealCategory === 'Milk'" class="milk-subcategory">
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
           <div class="milk-buttons">
             <v-btn
               v-for="subCat in milkSubCategories"
@@ -193,14 +177,11 @@
         </div>
 
         <!-- Custom Meal Input for Others -->
-<<<<<<< HEAD
         <div
           v-if="localMealCategory === 'others'"
           class="custom-meal-section"
         >
-=======
         <div v-if="localMealCategory === 'Others'" class="custom-meal-section">
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
           <label class="section-label">Specify meal details</label>
           <v-text-field
             v-model="localCustomMeal"
@@ -221,6 +202,7 @@
             {{ errors.customMeal }}
           </div>
         </div>
+      </div>
       </div>
     </template>
   </BaseCheckInDialog>
@@ -310,24 +292,6 @@
   let subCategoryTimeout = null
   let customMealTimeout = null
 
-<<<<<<< HEAD
-  watch(
-    () => props.modelValue,
-    (newValue) => {
-      if (newValue) {
-        // Reset all form data when opening dialog
-        localMealTime.value = props.mealTime || ''
-        localConsumptionLevel.value = props.consumptionLevel || ''
-        localMealCategory.value = props.mealCategory || ''
-        localSubCategory.value = props.subCategory || ''
-        localCustomMeal.value = props.customMeal || ''
-        // Clear all errors when opening
-        errors.value = {}
-      }
-    },
-    { immediate: true }
-  )
-=======
   // Get current meal time label for locked display
   const getCurrentMealTimeLabel = () => {
     const mealTimeOption = mealTimeOptions.value.find(option => option.value === localMealTime.value)
@@ -346,7 +310,6 @@
       errors.value = {}
     }
   }, { immediate: true })
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
 
   watch(
     () => props.mealTime,
@@ -453,16 +416,12 @@
     }
   }
 
-<<<<<<< HEAD
-  const selectMealTime = (time) => {
-=======
   const selectMealTime = time => {
     if (props.isEditing && localMealTime.value !== time) {
       // Show alert if trying to change meal time while editing
       alert('Meal time cannot be changed when editing an existing entry.')
       return
     }
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     localMealTime.value = time
   }
 
@@ -551,7 +510,7 @@
 
   const handleSave = async () => {
     console.log('🍽️ MealDialog handleSave clicked!')
-    
+
     if (!validateForm()) {
       console.log('❌ Meal validation failed')
       return
@@ -569,17 +528,6 @@
     console.log('🍽️ Meal data to save:', mealData)
     errors.value = {}
 
-<<<<<<< HEAD
-    try {
-      // Save to store (which handles backend integration)
-      await checkinStore.saveMeal(mealData)
-      emit('save', mealData)
-      // Close dialog on success
-      handleDialogUpdate(false)
-    } catch (error) {
-      console.error('Failed to save meal data:', error)
-      // Error is already handled by the store
-=======
     if (props.isEditing) {
       // 🖊️ EDIT MODE: Just emit to parent timeline, don't call store
       console.log('📝 Edit mode: emitting save to timeline')
@@ -587,34 +535,29 @@
     } else {
       // ➕ CREATE MODE: Call store to create new entry (normal check-in)
       console.log('➕ Create mode: calling checkinStore.saveMeal for new entry')
-    
+
       try {
         // Save to store (which handles backend integration)
         console.log('🍽️ About to call checkinStore.saveMeal...')
         await checkinStore.saveMeal(mealData)
         console.log('✅ Meal save completed successfully!')
-        
+
         // Emit save event to parent for reload
         console.log('🍽️ Emitting save event to parent...')
         emit('save')
-        
+
         // Close dialog on success
         handleDialogUpdate(false)
       } catch (error) {
         console.error('❌ Failed to save meal data:', error)
         // Error is already handled by the store
       }
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     }
   }
 </script>
 
 <style scoped>
-<<<<<<< HEAD
-  .meal-content {
-=======
 .meal-content {
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -640,15 +583,11 @@
     margin-bottom: 4px;
   }
 
-<<<<<<< HEAD
-  .meal-time-buttons {
-=======
 .locked-text {
     font-weight: 600;
 }
 
 .meal-time-buttons {
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     display: flex;
     gap: 8px;
   }
@@ -666,11 +605,6 @@
     color: #333 !important;
   }
 
-<<<<<<< HEAD
-  .meal-time-btn.v-btn--variant-flat,
-  .meal-category-btn.v-btn--variant-flat {
-    background-color: #d87179 !important;
-=======
 .meal-time-btn.locked-btn {
     opacity: 0.5;
     background-color: #f5f5f5 !important;
@@ -685,7 +619,6 @@
 .meal-time-btn.v-btn--variant-flat,
 .meal-category-btn.v-btn--variant-flat {
     background-color: #D87179 !important;
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     color: white !important;
   }
 
@@ -707,12 +640,7 @@
     font-size: 14px !important;
   }
 
-<<<<<<< HEAD
-  /* Updated styles for consumption dropdown */
-  .consumption-select :deep(.v-field) {
-=======
 .consumption-select :deep(.v-field) {
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     min-height: 32px !important;
     border-radius: 4px !important;
     width: 120px !important;
@@ -750,12 +678,7 @@
     border-radius: 4px !important;
   }
 
-<<<<<<< HEAD
-  /* Dropdown menu width and options font size */
-  .consumption-select :deep(.v-overlay__content) {
-=======
 .consumption-select :deep(.v-overlay__content) {
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     width: 200px !important;
   }
 
@@ -776,11 +699,7 @@
     font-size: 14px !important;
   }
 
-<<<<<<< HEAD
-  .meal-category-section {
-=======
 .meal-category-section {
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     display: flex;
     flex-direction: column;
   }
@@ -824,12 +743,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
   }
 
-<<<<<<< HEAD
-  /* Make textarea wider for meal dialog */
-  :deep(.notes-textarea) {
-=======
 :deep(.notes-textarea) {
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
     width: 800px !important;
     min-width: 600px !important;
   }
@@ -840,10 +754,5 @@
 
   :deep(.dialog-notes-section) {
     width: 800px !important;
-<<<<<<< HEAD
-  }
-</style>
-=======
 }
 </style>
->>>>>>> 06d178eac6de5efac03ecbebf8f19fc981c1cb04
