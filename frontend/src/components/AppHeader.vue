@@ -7,7 +7,7 @@
     height="72"
   >
     <!-- Glassmorphism background overlay -->
-    <div class="header-background" />
+    <div class="header-background" :class="{ 'header-background-caregiver': userProfile.role === 'Caregiver' }" />
 
     <v-container
       class="header-container"
@@ -24,7 +24,7 @@
                 v-bind="menuProps"
                 class="child-selector-btn"
                 height="48"
-                style="justify-content: flex-start;"
+                style="justify-content: flex-start"
                 variant="elevated"
               >
                 <v-avatar
@@ -44,7 +44,8 @@
                 <v-icon
                   class="dropdown-icon"
                   size="16"
-                >mdi-chevron-down</v-icon>
+                  >mdi-chevron-down</v-icon
+                >
               </v-btn>
             </template>
 
@@ -75,15 +76,33 @@
               <!-- Single Add Child at bottom -->
               <v-list-item
                 class="add-child-item"
-                style="border-top: 1px solid rgba(255, 255, 255, 0.2); margin-top: 8px;"
+                style="
+                  border-top: 1px solid rgba(255, 255, 255, 0.2);
+                  margin-top: 8px;
+                "
                 @click="addNewChild"
               >
                 <template #prepend>
-                  <div style="width: 32px; height: 32px; border-radius: 50%; background: #f0c6c9; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
-                    <v-icon size="16" style="color: #d87179;">mdi-plus</v-icon>
+                  <div
+                    style="
+                      width: 32px;
+                      height: 32px;
+                      border-radius: 50%;
+                      background: #f0c6c9;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      margin-right: 16px;
+                    "
+                  >
+                    <v-icon
+                      size="16"
+                      style="color: #d87179"
+                      >mdi-plus</v-icon
+                    >
                   </div>
                 </template>
-                <v-list-item-title style="color: #d87179; font-weight: 500;">
+                <v-list-item-title style="color: #d87179; font-weight: 500">
                   Add Child
                 </v-list-item-title>
               </v-list-item>
@@ -104,7 +123,9 @@
               <v-icon size="20">mdi-human-male-height</v-icon>
               <div class="metric-info">
                 <span class="growth-label">Height</span>
-                <span class="growth-value">{{ currentChild.growth?.height || '100' }}cm</span>
+                <span class="growth-value"
+                  >{{ currentChild.growth?.height || '100' }}cm</span
+                >
               </div>
             </div>
 
@@ -112,7 +133,9 @@
               <v-icon size="20">mdi-weight-kilogram</v-icon>
               <div class="metric-info">
                 <span class="growth-label">Weight</span>
-                <span class="growth-value">{{ currentChild.growth?.weight || '20' }}kg</span>
+                <span class="growth-value"
+                  >{{ currentChild.growth?.weight || '20' }}kg</span
+                >
               </div>
             </div>
 
@@ -120,7 +143,9 @@
               <v-icon size="20">mdi-head</v-icon>
               <div class="metric-info">
                 <span class="growth-label">Head Circ.</span>
-                <span class="growth-value">{{ currentChild.growth?.headCircumference || '45' }}cm</span>
+                <span class="growth-value"
+                  >{{ currentChild.growth?.headCircumference || '45' }}cm</span
+                >
               </div>
             </div>
 
@@ -134,7 +159,8 @@
               <v-icon
                 color="rgba(0,0,0,0.6)"
                 size="14"
-              >mdi-pencil</v-icon>
+                >mdi-pencil</v-icon
+              >
             </v-btn>
           </div>
         </div>
@@ -143,7 +169,7 @@
       <!-- Right section: Share functionality -->
       <div
         class="right-section"
-        style="display: flex; align-items: center;"
+        style="display: flex; align-items: center"
       >
         <!-- Share button -->
         <v-btn
@@ -237,7 +263,8 @@
           <v-btn
             variant="text"
             @click="closeDialog"
-          >Close</v-btn>
+            >Close</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -257,6 +284,7 @@
   import { useRouter } from 'vue-router'
   import { useShareChild } from '@/composables/useShareChild'
   import { useGrowthDialog } from '@/composables/useGrowthDialog'
+  import { useUserProfile } from '@/composables/useUserProfile'
   import GrowthDialog from '../components/dialog/GrowthDialog.vue'
   
   // ADD THESE STORE IMPORTS
@@ -266,6 +294,8 @@
   import { useHealthStore } from '@/stores/health'
 
   import type { Child } from '@/stores/children'
+
+  const { userProfile } = useUserProfile()
 
   // Router
   const router = useRouter()
@@ -391,5 +421,9 @@
     padding-right: 16px !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+  }
+
+  .header-background-caregiver {
+    background: #F2CBCC; /* #F2CBCC with 90% opacity */
   }
 </style>

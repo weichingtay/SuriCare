@@ -177,10 +177,6 @@
         </div>
 
         <!-- Custom Meal Input for Others -->
-        <div
-          v-if="localMealCategory === 'others'"
-          class="custom-meal-section"
-        >
         <div v-if="localMealCategory === 'Others'" class="custom-meal-section">
           <label class="section-label">Specify meal details</label>
           <v-text-field

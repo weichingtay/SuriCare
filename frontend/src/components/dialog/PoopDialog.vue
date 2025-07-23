@@ -265,7 +265,23 @@
         errors.value = {}
         localColor.value = ''
         localTexture.value = ''
-        emit('close')
+      })
+    }
+  }
+
+  const handleClose = () => {
+    errors.value = {}
+    localColor.value = ''
+    localTexture.value = ''
+    emit('close')
+  }
+
+  const handleSave = async () => {
+    console.log('💩 PoopDialog handleSave clicked!')
+    
+    if (!validateForm()) {
+      console.log('❌ Poop validation failed:', errors.value)
+      return
     }
 
     const handleSave = async () => {
@@ -311,6 +327,34 @@
             }
         }
     }
+
+    console.log('💩 Poop data to save:', poopData)
+    errors.value = {}
+
+    if (props.isEditing) {
+      // 🖊️ EDIT MODE: Just emit to parent timeline, don't call store
+      console.log('📝 Edit mode: emitting save to timeline')
+      emit('save', poopData)
+    } else {
+      // ➕ CREATE MODE: Call store to create new entry (normal check-in)
+      console.log('➕ Create mode: calling checkinStore.savePoop for new entry')
+      
+      try {
+        console.log('💩 About to call checkinStore.savePoop...')
+        
+        // Save to store (which handles backend integration)
+        await checkinStore.savePoop(poopData)
+        console.log('✅ Poop save completed successfully!')
+        
+        // Emit save event for parent component
+        emit('save')
+        // Close dialog on success
+        handleDialogUpdate(false)
+      } catch (error) {
+        console.error('❌ Failed to save poop data:', error)
+      }
+    }
+  }
 </script>
 
 <style scoped>

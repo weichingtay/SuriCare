@@ -138,12 +138,174 @@
 
     const router = useRouter()
 
-    // Dialog states
-    const dialogs = reactive({
-        meal: false,
-        sleep: false,
-        poop: false,
-        health: false,
+  // Dialog states
+  const dialogs = reactive({
+    meal: false,
+    sleep: false,
+    poop: false,
+    health: false,
+  })
+
+  const alert = reactive({
+    show: false,
+    message: '',
+    type: 'success', // success | info | warning | error
+  })
+
+  const showAlert = (
+    message: string,
+    type: 'success' | 'info' | 'warning' | 'error' = 'success'
+  ) => {
+    alert.message = message
+    alert.type = type
+    alert.show = true
+
+    setTimeout(() => {
+      alert.show = false
+    }, 3000)
+  }
+
+  // ===== SAVE HANDLERS =====
+
+  const handleMealSaved = async () => {
+    console.log('🍽️ handleMealSaved called - Reloading meal data...')
+    try {
+      const currentDate = new Date()
+      const dateStr = currentDate.toISOString().split('T')[0]
+      
+      // Use meals store's built-in refresh method
+      if (mealsStore.refreshMealsForDate) {
+        await mealsStore.refreshMealsForDate(dateStr)
+        console.log('✅ Meal data reload completed successfully!')
+      } else {
+        console.error('❌ refreshMealsForDate method not available')
+      }
+    } catch (error) {
+      console.error('❌ Error reloading meal data:', error)
+    }
+  }
+
+  const handleSleepSaved = async () => {
+    console.log('💤 handleSleepSaved called - Reloading sleep data...')
+    try {
+      const currentDate = new Date()
+      const dateStr = currentDate.toISOString().split('T')[0]
+      
+      // Use sleep store's built-in refresh method
+      if (sleepStore.refreshSleepForDate) {
+        await sleepStore.refreshSleepForDate(dateStr)
+        console.log('✅ Sleep data reload completed successfully!')
+      }
+    } catch (error) {
+      console.error('❌ Error reloading sleep data:', error)
+    }
+  }
+
+  const handlePoopSaved = async () => {
+    console.log('💩 handlePoopSaved called - Reloading poop data...')
+    try {
+      const currentDate = new Date()
+      const dateStr = currentDate.toISOString().split('T')[0]
+      
+      // Use poop store's built-in refresh method
+      if (poopStore.refreshPoopForDate) {
+        await poopStore.refreshPoopForDate(dateStr)
+        console.log('✅ Poop data reload completed successfully!')
+      } else {
+        console.error('❌ refreshPoopForDate method not available')
+      }
+    } catch (error) {
+      console.error('❌ Error reloading poop data:', error)
+    }
+  }
+
+  const handleHealthSaved = async () => {
+    console.log('🏥 handleHealthSaved called - Reloading health data...')
+    try {
+      const currentDate = new Date()
+      const dateStr = currentDate.toISOString().split('T')[0]
+      
+      // Use health store's built-in refresh method
+      if (healthStore.refreshHealthForDate) {
+        await healthStore.refreshHealthForDate(dateStr)
+        console.log('✅ Health data reload completed successfully!')
+      } else {
+        console.error('❌ refreshHealthForDate method not available')
+      }
+    } catch (error) {
+      console.error('❌ Error reloading health data:', error)
+    }
+  }
+
+  // ===== METHODS =====
+
+  const openMealDialog = () => {
+    dialogs.meal = true
+  }
+
+  const openSleepDialog = () => {
+    dialogs.sleep = true
+  }
+
+  const openPoopDialog = () => {
+    dialogs.poop = true
+  }
+
+  const openHealthDialog = () => {
+    dialogs.health = true
+  }
+
+  // Load data for a specific date and current child
+  const loadDataForDate = async (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0]
+    console.log('🔄 loadDataForDate called for:', dateStr)
+    
+    // Force refresh by clearing caches first
+    console.log('🗑️ Clearing caches for date:', dateStr)
+    
+    if (sleepStore.invalidateCache) {
+      sleepStore.invalidateCache(dateStr)
+    }
+    
+    // Clear caches for other stores by deleting the cached data
+    // This forces a fresh fetch from the API
+    try {
+      // Clear meals cache
+      if (mealsStore.mealsCache?.value) {
+        console.log('🗑️ Clearing meals cache for:', dateStr)
+        delete mealsStore.mealsCache.value[dateStr]
+        console.log('🗑️ Meals cache after clearing:', Object.keys(mealsStore.mealsCache.value))
+      }
+      
+      // Clear poop cache
+      if (poopStore.poopByDate?.value) {
+        console.log('🗑️ Clearing poop cache for:', dateStr)
+        delete poopStore.poopByDate.value[dateStr]
+        console.log('🗑️ Poop cache after clearing:', Object.keys(poopStore.poopByDate.value))
+      }
+      
+      // Clear health cache (if applicable)
+      if (healthStore.healthByDate?.value) {
+        console.log('🗑️ Clearing health cache for:', dateStr)
+        delete healthStore.healthByDate.value[dateStr]
+        console.log('🗑️ Health cache after clearing:', Object.keys(healthStore.healthByDate.value))
+      }
+    } catch (error) {
+      console.warn('Error clearing caches:', error)
+    }
+    
+    // Load summary data from store
+    console.log('🔄 About to call summaryStore.loadSummaryForDate')
+    await summaryStore.loadSummaryForDate(date, childrenStore.currentChild.id)
+    console.log('✅ summaryStore.loadSummaryForDate completed')
+  }
+
+  // Handle health alert view more
+  const handleHealthAlert = (alert) => {
+    console.log('Health alert clicked:', alert)
+    router.push({
+      path: '/guidance',
+      query: { tab: 'alert' },
     })
 
     const alert = reactive({
