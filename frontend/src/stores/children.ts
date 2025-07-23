@@ -120,11 +120,20 @@ export const useChildrenStore = defineStore('children', () => {
       // Map children and fetch their latest growth data
       const childrenWithGrowth = await Promise.all(
         data.map(async (row: any) => {
+           // ⬅️ MAP AVATAR BY CHILD ID FROM DATABASE
+    const getAvatarById = (id: number) => {
+      const avatarMap = {
+        1: new URL('@/assets/puisim.jpg', import.meta.url).href,  // Child ID 1 = Pui Sim
+        2: new URL('@/assets/pang.jpg', import.meta.url).href,    // Child ID 2 = Pang
+        // Add more child IDs as your database grows
+      }
+      return avatarMap[id] || new URL('@/assets/puisim.jpg', import.meta.url).href // fallback
+    }
           const child = {
             id: row.id,
             name: row.name,
             age: calcAge(row.birth_date),
-            avatar: new URL('@/assets/puisim.jpg', import.meta.url).href,
+            avatar: getAvatarById(row.id),
             growth: {
               height: 0,
               weight: 0,
