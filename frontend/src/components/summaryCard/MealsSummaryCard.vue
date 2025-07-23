@@ -12,14 +12,15 @@
       <div class="meal-breakdown">
         <div v-for="meal in mealBreakdown" :key="meal.name" class="breakdown-item">
           <div class="meal-icon-group">
-            <span class="breakdown-value">{{ meal.percentage > 0 ? meal.percentage + '%' : '-' }}</span>
+            <!-- Updated to use hasData -->
+<span class="breakdown-value">{{ meal.hasData ? meal.percentage + '%' : '-' }}</span>
             <div class="pie-chart-icon">
               <svg height="12" viewBox="0 0 16 16" width="12">
                 <circle cx="8" cy="8" r="6" />
                 <path
-                  :class="{ 'filled': meal.percentage > 0 }"
-                  :d="getPieSlicePath(meal.percentage)"
-                />
+  :class="{ 'filled': meal.hasData && meal.percentage > 0 }"
+  :d="getPieSlicePath(meal.hasData ? meal.percentage : 0)"
+/>
               </svg>
             </div>
           </div>
