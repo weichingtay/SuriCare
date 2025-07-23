@@ -1118,63 +1118,286 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
     const childId = getCurrentChildId()
     if (!childId) return
 
-    // Use the poop router endpoint for poop data
-    const response = await axios.get(`http://127.0.0.1:8000/poop/child/${childId}?days=30`)
-    const poopData = response.data
+    // SINGLE SOURCE OF TRUTH: Use poop store instead of direct API calls
+    const { usePoopStore } = await import('@/stores/poop')
+    const poopStore = usePoopStore()
 
-    if (!poopData || poopData.length === 0) {
-      // No data available, show empty chart
-      poopFrequencySeries.value = [{
-        name: 'Daily Frequency',
-        data: []
-      }]
-      return
-    }
-
-    const poopByDate = {}
-
-    poopData.forEach(poop => {
-      const date = new Date(poop.check_in).toDateString()
-      poopByDate[date] = (poopByDate[date] || 0) + 1
-    })
-
-    // Create chart data for the selected time range
+    // Create baseline date range
     const days = poopViewMode.value === 'weekly' ? 7 : 30
     const chartData = []
+    const chartColors = [] // Separate array for colors
+    const unusualDays = []
     
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(selectedDate.value)
       date.setDate(date.getDate() - i)
-      const dateString = date.toDateString()
+      const dateString = date.toISOString().split('T')[0]
+      
+      // Force refresh to get latest data
+      await poopStore.refreshPoopForDate(dateString)
+      
+      // Get processed poop data from store
+      const poopData = poopStore.getPoopForDate(dateString)
+      
+      const x = date.getTime()
+      const count = poopData.count || 0
+      const unusual = poopData.unusual || 0
+      
+      // Determine color based on pattern
+      let barColor
+      if (count === 0) {
+        barColor = '#ef4444' // Red for no movement
+      } else if (count >= 5) {
+        barColor = '#dc2626' // Dark red for too many movements  
+      } else if (unusual > 0) {
+        barColor = '#f97316' // Orange for unusual characteristics
+      } else {
+        barColor = '#22c55e' // Green for normal/healthy
+      }
       
       chartData.push({
-        x: date.getTime(),
-        y: poopByDate[dateString] || 0
+        x: x,
+        y: count,
+        // Store metadata for tooltips
+        fillColor: barColor,
+        strokeColor: barColor
       })
+      
+      chartColors.push(barColor)
+      
+      // Track unusual days
+      const isUnusualDay = count === 0 || count >= 5 || unusual > 0
+      if (isUnusualDay) {
+        unusualDays.push({
+          date: dateString,
+          count: count,
+          unusual: unusual,
+          reason: getUnusualReason(count, unusual)
+        })
+      }
     }
 
+    // Update chart series
     poopFrequencySeries.value = [{
       name: 'Daily Frequency',
       data: chartData
     }]
 
+    // FIXED: Update chart options with proper color handling
+    poopFrequencyOptions.value = {
+      chart: {
+        type: 'bar',
+        toolbar: { show: false },
+      },
+      theme: {
+        mode: 'light',
+        palette: 'palette5',
+      },
+      // FIXED: Use the colors array directly
+      colors: chartColors,
+      fill: {
+        colors: chartColors,
+        type: 'solid'
+      },
+      stroke: {
+        colors: chartColors,
+        width: 1
+      },
+      xaxis: {
+        type: 'datetime',
+        labels: {
+          show: true,
+          rotate: -45,
+          rotateAlways: true,
+          datetimeUTC: false,
+          formatter: (_, timestamp, opts) => {
+            const date = new Date(timestamp)
+            if (poopViewMode.value === 'weekly') {
+              return opts.dateFormatter(date, 'dd MMM')
+            } else {
+              return opts.dateFormatter(date, 'dd')
+            }
+          },
+          maxHeight: 60,
+          trim: true,
+          showDuplicates: false,
+        },
+        tickAmount: Math.min(days, poopViewMode.value === 'weekly' ? 7 : 10),
+        tickPlacement: 'between',
+      },
+      yaxis: {
+        title: {
+          text: 'Times per Day'
+        },
+        min: 0,
+        max: 6,
+        tickAmount: 6,
+        labels: {
+          formatter: function (val) {
+            return parseInt(val)
+          }
+        }
+      },
+      title: {
+        text: '',
+      },
+      plotOptions: {
+        bar: {
+          borderRadius: 4,
+          horizontal: false,
+          columnWidth: '60%',
+          distributed: true, // This allows individual bar colors
+        }
+      },
+      legend: {
+        show: false,
+      },
+      // ENHANCED: Simple but informative tooltips
+      tooltip: {
+        shared: false,
+        intersect: true,
+        custom: function({ series, seriesIndex, dataPointIndex, w }) {
+          const dataPoint = chartData[dataPointIndex]
+          if (!dataPoint) return ''
+          
+          const date = new Date(dataPoint.x).toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric' 
+          })
+          
+          const count = dataPoint.y
+          let statusIcon = ''
+          let statusText = ''
+          
+          if (count === 0) {
+            statusIcon = '🔴'
+            statusText = 'No movements - possible constipation'
+          } else if (count >= 5) {
+            statusIcon = '🔴'
+            statusText = 'High frequency - monitor for diarrhea'
+          } else if (dataPoint.fillColor === '#f97316') {
+            statusIcon = '🟡'
+            statusText = 'Some unusual characteristics detected'
+          } else {
+            statusIcon = '🟢'
+            statusText = 'Normal healthy pattern'
+          }
+          
+          return `
+            <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #374151; margin-bottom: 6px;">${date}</div>
+              <div style="font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">
+                ${count} movement${count !== 1 ? 's' : ''}
+              </div>
+              <div style="font-size: 12px; color: #6b7280;">
+                ${statusIcon} ${statusText}
+              </div>
+            </div>
+          `
+        }
+      },
+      responsive: [{
+        breakpoint: 768,
+        options: {
+          xaxis: {
+            labels: {
+              rotate: -90,
+              formatter: (_, timestamp, opts) => {
+                return opts.dateFormatter(new Date(timestamp), 'dd')
+              }
+            }
+          },
+          plotOptions: {
+            bar: {
+              columnWidth: '80%'
+            }
+          }
+        }
+      }]
+    }
+
+    console.log(`✅ Poop data from store loaded:`, {
+      total_days: chartData.length,
+      unusual_days: unusualDays.length,
+      color_breakdown: {
+        red_days: chartColors.filter(c => c.includes('#ef4444') || c.includes('#dc2626')).length,
+        orange_days: chartColors.filter(c => c.includes('#f97316')).length,
+        green_days: chartColors.filter(c => c.includes('#22c55e')).length
+      }
+    })
+
+    if (unusualDays.length > 0) {
+      console.log(`🚨 Unusual poop patterns detected:`, unusualDays)
+    }
+
   } catch (error) {
-    console.error('Error fetching poop data:', error)
-    // Fallback to mock data
+    console.error('❌ Error fetching poop data from store:', error)
+    
+    // Simple fallback
     const days = poopViewMode.value === 'weekly' ? 7 : 30
-    const dailyFrequency = Array.from({ length: days }, (_, i) => {
+    const fallbackData = Array.from({ length: days }, (_, i) => {
       const date = new Date(selectedDate.value)
       date.setDate(date.getDate() - (days - 1 - i))
       return {
         x: date.getTime(),
-        y: Math.floor(Math.random() * 3) + 1
+        y: 0,
+        fillColor: '#9ca3af' // Gray for no data
       }
     })
 
     poopFrequencySeries.value = [{
       name: 'Daily Frequency',
-      data: dailyFrequency
+      data: fallbackData
     }]
+    
+    // Reset options to default
+    poopFrequencyOptions.value = {
+      ...poopFrequencyOptions.value,
+      colors: ['#9ca3af']
+    }
+  }
+}
+
+// Helper function to determine why a day is unusual
+const getUnusualReason = (count, unusual) => {
+  if (count === 0) {
+    return 'No bowel movements - possible constipation'
+  } else if (count >= 5) {
+    return 'High frequency - possible diarrhea'
+  } else if (unusual > 0) {
+    return `${unusual} movement${unusual > 1 ? 's' : ''} with concerning characteristics`
+  }
+  return 'Unusual pattern detected'
+}
+
+// Helper function for health assessment in tooltips
+const getHealthAssessment = (count, unusual) => {
+  if (count === 0) {
+    return {
+      message: '🔴 Constipation concern',
+      class: 'assessment-negative'
+    }
+  } else if (count >= 5) {
+    return {
+      message: '🔴 High frequency concern', 
+      class: 'assessment-negative'
+    }
+  } else if (unusual > 0) {
+    return {
+      message: '🟡 Monitor characteristics',
+      class: 'assessment-warning'
+    }
+  } else if (count >= 1 && count <= 3) {
+    return {
+      message: '🟢 Normal healthy pattern',
+      class: 'assessment-positive'
+    }
+  } else {
+    return {
+      message: '🟡 Slightly high frequency',
+      class: 'assessment-warning'
+    }
   }
 }
 
@@ -1769,4 +1992,68 @@ onMounted(async () => {
     font-size: 24px;
   }
 }
+
+/* Add this to your dashboard component styles */
+:deep(.poop-tooltip) {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+  min-width: 180px;
+}
+
+:deep(.tooltip-date) {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+:deep(.tooltip-count) {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+:deep(.tooltip-breakdown) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+:deep(.normal-count) {
+  color: #059669;
+}
+
+:deep(.unusual-count) {
+  color: #d97706;
+}
+
+:deep(.tooltip-assessment) {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+:deep(.assessment-positive) {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+:deep(.assessment-warning) {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+:deep(.assessment-negative) {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
 </style>
