@@ -97,6 +97,7 @@
           <div
             class="growth-card combined-card"
             @click="openGrowthDialog"
+            
           >
             <!-- Metric Pairs: icon + (label+value) -->
             <div class="metric-pair height-pair">
@@ -164,6 +165,7 @@
       :loading="false"
       :notes="growthFormData.notes"
       :weight="growthFormData.weight"
+      :current-child="currentChild"
       @close="growthDialog = false"
       @save="saveGrowthData"
       @update:head-circumference="growthFormData.headCircumference = $event"

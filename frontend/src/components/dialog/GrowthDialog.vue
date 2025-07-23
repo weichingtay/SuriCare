@@ -6,7 +6,7 @@
     max-width="841px"
     :model-value="modelValue"
     :notes="localNotes"
-    subtitle="How is Jennie growing?"
+    :subtitle="`How is ${currentChild.name} growing?`"
     title="Growth"
     @close="handleClose"
     @save="handleSave"
@@ -111,7 +111,10 @@
       type: Boolean,
       default: false,
     },
-
+currentChild: {
+    type: Object,
+    default: () => ({ name: 'Child' })
+  },
     // Growth Measurements
     weight: {
       type: [String, Number],

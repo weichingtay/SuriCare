@@ -5,7 +5,7 @@
     :loading="checkinStore.isLoading"
     :model-value="modelValue"
     :notes="checkinStore.sleepData.notes"
-    subtitle="How did Jennie Sleep?"
+    :subtitle="`How did ${currentChild.name} Sleep?`"
     title="Sleep"
     width="800px"
     max-height="80vh"
@@ -140,6 +140,10 @@
       type: Boolean,
       default: false,
     },
+    currentChild: {
+    type: Object,
+    default: () => ({ name: 'Child' })
+  },
     // NEW: Add props for editing mode
     bedTime: {
       type: String,

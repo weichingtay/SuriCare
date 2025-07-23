@@ -6,7 +6,7 @@
     max-width="800px"
     :model-value="modelValue"
     :notes="localNotes"
-    subtitle="Does Pui Sim have any symptoms?"
+    :subtitle="`Does ${currentChild.name} have any symptoms?`"
     title="Health"
     @close="handleClose"
     @save="handleSave"
@@ -134,6 +134,10 @@
       type: Boolean,
       default: false,
     },
+    currentChild: {
+    type: Object,
+    default: () => ({ name: 'Child' })
+  },
     maxWidth: {
       type: String,
       default:'800px',
