@@ -2,26 +2,19 @@
 <template>
   <!-- Main application container with light theme -->
   <v-app theme="light">
-    <v-row>
-      <v-col cols="4">
-        <!-- Welcome text -->
-        <div class="welcome-content">
-          <h1 class="welcome-text mb-1">Welcome, Wei Ching</h1>
-          <p class="welcome-subtitle">Let's check on your little one today</p>
-        </div>
-      </v-col>
+    <!-- Show alert if needed -->
+    <v-alert
+      v-if="alert.show"
+      :type="alert.type"
+      :text="alert.message"
+      class="mb-4 centered-alert"
+      closable
+    ></v-alert>
 
-      <v-col cols="4">
-        <!-- Show alert if needed -->
-        <v-alert
-          v-if="alert.show"
-          :type="alert.type"
-          :text="alert.message"
-          class="mb-4 centered-alert"
-          closable
-        ></v-alert>
-      </v-col>
-    </v-row>
+    <div class="welcome-content">
+      <h1 class="welcome-text mb-1">Welcome, Wei Ching</h1>
+      <p class="welcome-subtitle">Let's check on your little one today</p>
+    </div>
     <!-- Main content area -->
     <v-main style="background-color: #faf7f2">
       <v-container
