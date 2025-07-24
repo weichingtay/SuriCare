@@ -29,11 +29,12 @@ interface MealBreakdownItem {
   count: number
   totalConsumption: number
   displayName: string
+  hasData: boolean  // Track if meal has actual data
 }
 
 interface UseMealsReturn {
   mealBreakdown: ComputedRef<MealBreakdownItem[]>
-  mealCount: ComputedRef<number | string>  // Changed to allow string (dash)
+  mealCount: ComputedRef<number | string>
   statusNote: ComputedRef<string>
   statusClass: ComputedRef<string>
   getPieSlicePath: (percentage: number) => string
@@ -44,7 +45,7 @@ const VALID_PERCENTAGES = [0, 25, 50, 75, 100]
 
 // Function to ensure percentage is valid
 const validatePercentage = (percentage: number): number => {
-  console.log('Validating percentage:', percentage, 'Type:', typeof percentage) // ADD THIS LINE
+  console.log('Validating percentage:', percentage, 'Type:', typeof percentage)
   
   if (!percentage || percentage === 0) return 0
 
@@ -53,7 +54,7 @@ const validatePercentage = (percentage: number): number => {
     return Math.abs(curr - percentage) < Math.abs(prev - percentage) ? curr : prev
   })
 
-  console.log('Closest valid percentage found:', closest) // ADD THIS LINE
+  console.log('Closest valid percentage found:', closest)
   return closest
 }
 
@@ -82,18 +83,22 @@ export function useMeals (mealsData: ComputedRef<MealsData | undefined>): UseMea
       const stats = statisticsKey ? statistics[statisticsKey] : null
       const percentage = percentageKey ? percentages[percentageKey] : 0
       
-      console.log(`🔍 ${mealType}: percentage=${percentage}, stats=`, stats)
+      // ⬅️ KEY CHANGE: hasData is true only if there are actual meal records
+      const hasData = stats && stats.count > 0
+      
+      console.log(`🔍 ${mealType}: percentage=${percentage}, stats=`, stats, `hasData=${hasData}`)
       
       breakdown.push({
         name: mealType,
-        percentage: validatePercentage(percentage),
+        percentage: hasData ? validatePercentage(percentage) : 0,
         count: stats?.count || 0,
         totalConsumption: stats?.consumption || 0,
-        displayName: mealType.charAt(0).toUpperCase() + mealType.slice(1)
+        displayName: mealType.charAt(0).toUpperCase() + mealType.slice(1),
+        hasData: hasData  // ⬅️ ADD THIS
       })
     })
     
-    // If no data, show default meal types
+    // If no data at all, show default meal types with no data
     if (breakdown.length === 0) {
       ['breakfast', 'lunch', 'dinner'].forEach(mealType => {
         breakdown.push({
@@ -101,7 +106,8 @@ export function useMeals (mealsData: ComputedRef<MealsData | undefined>): UseMea
           percentage: 0,
           count: 0,
           totalConsumption: 0,
-          displayName: mealType.charAt(0).toUpperCase() + mealType.slice(1)
+          displayName: mealType.charAt(0).toUpperCase() + mealType.slice(1),
+          hasData: false  // No data for default entries
         })
       })
     }
@@ -131,8 +137,8 @@ export function useMeals (mealsData: ComputedRef<MealsData | undefined>): UseMea
       return `Refused ${refusedItems.join(', ')}`
     }
 
-    // Check if we have any data at all
-    const hasAnyData = breakdown.some(meal => meal.percentage > 0)
+    // Check if we have any data at all - ⬅️ UPDATED LOGIC
+    const hasAnyData = breakdown.some(meal => meal.hasData)
     
     if (!hasAnyData) {
       return 'No meal data for this date'
@@ -141,14 +147,18 @@ export function useMeals (mealsData: ComputedRef<MealsData | undefined>): UseMea
     // Get total meal instances
     const totalMealInstances = breakdown.reduce((total, meal) => total + meal.count, 0)
     
-    // Show meal count and quality
-    const poorMeals = breakdown.filter(meal => meal.percentage === 25)
-    const partialMeals = breakdown.filter(meal => meal.percentage === 50)
-    const goodMeals = breakdown.filter(meal => meal.percentage >= 75)
+    // Show meal count and quality - only consider meals with data
+    const mealsWithData = breakdown.filter(meal => meal.hasData)
+    const poorMeals = mealsWithData.filter(meal => meal.percentage === 25)
+    const partialMeals = mealsWithData.filter(meal => meal.percentage === 50)
+    const goodMeals = mealsWithData.filter(meal => meal.percentage >= 75)
+    const refusedMeals = mealsWithData.filter(meal => meal.percentage === 0)
     
     // Generate smart status message
     if (totalMealInstances > 3) {
       return `${totalMealInstances} meals today`
+    } else if (refusedMeals.length >= 1) {
+      return `Refused ${refusedMeals.map(m => m.name).join(' and ')}`
     } else if (poorMeals.length >= 2) {
       return `Poor intake at ${poorMeals.map(m => m.name).join(' and ')}`
     } else if (goodMeals.length >= 2) {
@@ -171,10 +181,11 @@ export function useMeals (mealsData: ComputedRef<MealsData | undefined>): UseMea
       return 'status-negative'
     }
 
-    // Count meals by intake level
-    const refusedCount = breakdown.filter(meal => meal.percentage === 0).length
-    const poorCount = breakdown.filter(meal => meal.percentage === 25).length
-    const goodCount = breakdown.filter(meal => meal.percentage >= 75).length
+    // Only consider meals with actual data
+    const mealsWithData = breakdown.filter(meal => meal.hasData)
+    const refusedCount = mealsWithData.filter(meal => meal.percentage === 0).length
+    const poorCount = mealsWithData.filter(meal => meal.percentage === 25).length
+    const goodCount = mealsWithData.filter(meal => meal.percentage >= 75).length
     const totalMealInstances = breakdown.reduce((total, meal) => total + meal.count, 0)
 
     // Smart status based on meal instances and quality

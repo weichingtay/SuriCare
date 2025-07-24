@@ -71,24 +71,28 @@
             v-model="dialogs.meal"
             @close="dialogs.meal = false"
             @save="handleMealSaved"
+            :current-child="childrenStore.currentChild"
         />
 
         <SleepDialog
             v-model="dialogs.sleep"
             @close="dialogs.sleep = false"
             @save="handleSleepSaved"
+            :current-child="childrenStore.currentChild"
         />
 
         <PoopDialog
             v-model="dialogs.poop"
             @close="dialogs.poop = false"
             @save="handlePoopSaved"
+            :current-child="childrenStore.currentChild"
         />
 
         <SymptomDialog
             v-model="dialogs.health"
             @close="dialogs.health = false"
             @save="handleHealthSaved"
+            :current-child="childrenStore.currentChild"
         />
     </v-app>
 </template>

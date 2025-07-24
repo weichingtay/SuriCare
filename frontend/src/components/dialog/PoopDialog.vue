@@ -1,12 +1,12 @@
 <template>
     <BaseCheckInDialog
         icon="mdi-emoticon-poop"
-        icon-color="#000000"
+        icon-color="#D87179"
         :loading="loading"
         max-width="600px"
         :model-value="modelValue"
         :notes="notes"
-        subtitle="Poop check for Jennie"
+        :subtitle="`Stool check for ${currentChild.name}`"
         title="Poop"
         @close="handleClose"
         @save="handleSave"
@@ -116,6 +116,10 @@
             type: Boolean,
             default: false,
         },
+        currentChild: {
+    type: Object,
+    default: () => ({ name: 'Child' })
+  },
         color: {
             type: String,
             default: '',

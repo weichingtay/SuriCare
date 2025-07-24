@@ -157,6 +157,7 @@
         :custom-meal="mealEditData.customMeal"
         :notes="mealEditData.notes"
         :is-editing="true"
+        :current-child="childrenStore.currentChild"
         @update:consumption-level="mealEditData.consumptionLevel = $event"
         @update:meal-category="mealEditData.mealCategory = $event"
         @update:sub-category="mealEditData.subCategory = $event"
@@ -174,6 +175,7 @@
   :texture="poopEditData.texture"
   :notes="poopEditData.notes"
   :is-editing="true"
+  :current-child="childrenStore.currentChild"
   @update:color="poopEditData.color = $event"
   @update:texture="poopEditData.texture = $event"
   @update:notes="poopEditData.notes = $event"
@@ -190,6 +192,7 @@
         :awake-time="sleepEditData.awakeTime"
         :notes="sleepEditData.notes"
         :is-editing="true"
+        :current-child="childrenStore.currentChild"
         @update:bed-time="sleepEditData.bedTime = $event"
         @update:awake-time="sleepEditData.awakeTime = $event"
         @update:notes="sleepEditData.notes = $event"
@@ -206,6 +209,7 @@
         :head-circumference="growthEditData.headCircumference"
         :notes="growthEditData.notes"
         :is-editing="true"
+        :current-child="childrenStore.currentChild"
         @update:weight="growthEditData.weight = $event"
         @update:height="growthEditData.height = $event"
         @update:head-circumference="growthEditData.headCircumference = $event"
@@ -224,6 +228,7 @@
         :photo="healthEditData.photo"
         :notes="healthEditData.notes"
         :is-editing="true"
+        :current-child="childrenStore.currentChild"
         @update:symptoms="healthEditData.symptoms = $event"
         @update:other-symptom="healthEditData.otherSymptom = $event"
         @update:photo="healthEditData.photo = $event"
@@ -630,7 +635,13 @@ const deleteConfirmDialog = ref({
     if (sleep.start_time && sleep.end_time) {
       const startTime = new Date(sleep.start_time)
       const endTime = new Date(sleep.end_time)
-      const duration = endTime.getTime() - startTime.getTime()
+
+let duration = endTime.getTime() - startTime.getTime()
+    
+    // ⬅️ ADD THIS: Handle overnight sleep (same logic as your store)
+    if (duration < 0) {
+      duration = duration + (24 * 60 * 60 * 1000) // Add 24 hours in milliseconds
+    }      
       const hours = Math.floor(duration / (1000 * 60 * 60))
       const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60))
       

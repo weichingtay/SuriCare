@@ -7,7 +7,7 @@
     max-width="1000px"
     :model-value="modelValue"
     :notes="notes"
-    subtitle="What did Jennie eat?"
+    :subtitle="`What did ${currentChild.name} eat?`"
     title="Log Meal"
     @close="handleClose"
     @save="handleSave"
@@ -219,10 +219,15 @@
       type: String,
       default: '800px',
     },
+    currentChild: {
+    type: Object,
+    default: () => ({ name: 'Child' })
+  },
     modelValue: {
       type: Boolean,
       default: false,
     },
+    
     mealTime: {
       type: String,
       default: '',
@@ -255,6 +260,10 @@
       type: Boolean,
       default: false
     },
+    currentChild: {
+    type: Object,
+    default: () => ({ name: 'Child' })
+  },
   })
 
   const emit = defineEmits([
