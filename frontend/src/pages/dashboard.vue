@@ -1776,9 +1776,32 @@ onMounted(async () => {
 }
 
 .dashboard-container {
-  max-width: 1200px;
+  // max-width: 1200px;  <- Comment out or delete this line
   margin: 0 auto;
   padding: $spacing-xl $spacing-lg;
+}
+
+.chart-container {
+  margin-bottom: $spacing-lg;
+  overflow: hidden;
+
+  // ADD THESE LINES:
+  :deep(.apexcharts-canvas) {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  :deep(.apexcharts-svg) {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  :deep(.apexcharts-inner) {
+    width: 100% !important;
+  }
+  // END OF NEW LINES
+
+  // Keep your existing responsive styles...
 }
 
 /* Dashboard Header - Enhanced */
