@@ -2,49 +2,56 @@
 <template>
     <!-- Main application container with light theme -->
     <v-app theme="light">
-        <v-row>
-            <v-col cols="4">
-                <!-- Welcome text -->
-                <div class="welcome-content">
-                    <h1 class="welcome-text mb-1">Welcome, Wei Ching</h1>
-                    <p class="welcome-subtitle">
-                        Let's check on your little one today
-                    </p>
-                </div>
-            </v-col>
+        <!-- Show alert if needed -->
+        <v-alert
+            v-if="alert.show"
+            :type="alert.type"
+            :text="alert.message"
+            class="mb-4 centered-alert"
+            closable
+        ></v-alert>
 
-            <v-col cols="4">
-                <!-- Show alert if needed -->
-                <v-alert
-                    v-if="alert.show"
-                    :type="alert.type"
-                    :text="alert.message"
-                    class="mb-4 centered-alert"
-                    closable
-                ></v-alert>
-            </v-col>
-        </v-row>
+        <!-- Welcome text -->
+        <div class="welcome-content">
+            <div
+                class="welcome-header"
+                style="display: flex; align-items: center; gap: 8px"
+            >
+                <h1 class="welcome-text mt-1 mb-1">Welcome, Wei Ching</h1>
+                <v-chip
+                    :color="
+                        userProfile.role === 'Guardian' ? '#D87179' : '#FFC107'
+                    "
+                    size="small"
+                    variant="flat"
+                    style="display: flex; align-items: center; height: 28px"
+                    ><span
+                        :class="
+                            userProfile.role === 'Guardian'
+                                ? 'mdi mdi-human-male-female-child'
+                                : 'mdi mdi-mother-heart'
+                        "
+                        style="font-size: 18px; line-height: 1"
+                    ></span
+                    >&nbsp {{ userProfile.role }}</v-chip
+                >
+            </div>
+            <p class="welcome-subtitle">Let's check on your little one today</p>
+        </div>
+
         <!-- Main content area -->
         <v-main style="background-color: #faf7f2">
             <v-container
                 class="pa-1 pt-2"
                 fluid
             >
-                <!-- Welcome section -->
-                <!-- <div class="mb-6">
-          <h1 class="text-h5 font-weight-medium mb-1 text-warm">
-            Welcome, {{ caregiverName }}
-          </h1>
-        </div> -->
-
-        <!-- Health Issue Alert -->
-        <!-- Health Issue Alert -->
-<HealthAlert
-  :key="`health-alert-${childrenStore.currentChild?.id}`"
-  :current-child="childrenStore.currentChild"
-  :current-date="selectedDate"
-  @view-more="handleHealthAlert"
-/>
+                <!-- Health Issue Alert -->
+                <HealthAlert
+                    :key="`health-alert-${childrenStore.currentChild?.id}`"
+                    :current-child="childrenStore.currentChild"
+                    :current-date="selectedDate"
+                    @view-more="handleHealthAlert"
+                />
 
                 <!-- Check-ins History section -->
                 <CheckInsHistory
@@ -98,15 +105,15 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, reactive, ref } from 'vue'
-  import { useChildrenStore } from '@/stores/children'
-  import { useSummaryStore } from '@/stores/summary'
-  import { useCheckinStore } from '@/stores/checkin'
-  import { useMealsStore } from '@/stores/meals'
-  import { useSleepStore } from '@/stores/sleep'
-  import { usePoopStore } from '@/stores/poop'
-  import { useHealthStore } from '@/stores/health'
-  import { useRouter } from 'vue-router'
+    import { onMounted, reactive, ref } from 'vue'
+    import { useChildrenStore } from '@/stores/children'
+    import { useSummaryStore } from '@/stores/summary'
+    import { useCheckinStore } from '@/stores/checkin'
+    import { useMealsStore } from '@/stores/meals'
+    import { useSleepStore } from '@/stores/sleep'
+    import { usePoopStore } from '@/stores/poop'
+    import { useHealthStore } from '@/stores/health'
+    import { useRouter } from 'vue-router'
 
     // Import components
     import AIAssistant from '@/components/chatbot/AIAssistant.vue'
@@ -157,38 +164,8 @@
             alert.show = false
         }, 3000)
     }
-  const selectedDate = ref(new Date())
-
 
     // ===== SAVE HANDLERS =====
-
-    const handleMealSave = (mealData) => {
-        console.log('Saving meal data:', mealData)
-        // TODO: Save to store
-        dialogs.meal = false
-        showAlert('Meal data saved successfully!', 'success')
-    }
-
-    const handleSleepSave = (sleepData) => {
-        console.log('Saving sleep data:', sleepData)
-        // TODO: Save to store
-        dialogs.sleep = false
-        showAlert('Sleep data saved successfully!', 'success')
-    }
-
-    const handlePoopSave = (poopData) => {
-        console.log('Saving poop data:', poopData)
-        // TODO: Save to store
-        dialogs.poop = false
-        showAlert('Poop data saved successfully!', 'success')
-    }
-
-    const handleHealthSave = (healthData) => {
-        console.log('Saving health data:', healthData)
-        // TODO: Save to store
-        dialogs.health = false
-        showAlert('Health data saved successfully!', 'success')
-    }
 
     const handleMealSaved = async () => {
         console.log('🍽️ handleMealSaved called - Reloading meal data...')
@@ -200,6 +177,7 @@
             if (mealsStore.refreshMealsForDate) {
                 await mealsStore.refreshMealsForDate(dateStr)
                 console.log('✅ Meal data reload completed successfully!')
+                showAlert('Meal data saved successfully!', 'success')
             } else {
                 console.error('❌ refreshMealsForDate method not available')
             }
@@ -218,6 +196,7 @@
             if (sleepStore.refreshSleepForDate) {
                 await sleepStore.refreshSleepForDate(dateStr)
                 console.log('✅ Sleep data reload completed successfully!')
+                showAlert('Sleep data saved successfully!', 'success')
             }
         } catch (error) {
             console.error('❌ Error reloading sleep data:', error)
@@ -234,6 +213,7 @@
             if (poopStore.refreshPoopForDate) {
                 await poopStore.refreshPoopForDate(dateStr)
                 console.log('✅ Poop data reload completed successfully!')
+                showAlert('Poop data saved successfully!', 'success')
             } else {
                 console.error('❌ refreshPoopForDate method not available')
             }
@@ -252,6 +232,7 @@
             if (healthStore.refreshHealthForDate) {
                 await healthStore.refreshHealthForDate(dateStr)
                 console.log('✅ Health data reload completed successfully!')
+                showAlert('Health data saved successfully!', 'success')
             } else {
                 console.error('❌ refreshHealthForDate method not available')
             }
@@ -259,6 +240,9 @@
             console.error('❌ Error reloading health data:', error)
         }
     }
+
+
+    const selectedDate = ref(new Date())
 
     // ===== METHODS =====
 
@@ -280,7 +264,7 @@
 
     // Load data for a specific date and current child
     const loadDataForDate = async (date: Date) => {
-      selectedDate.value = date
+        selectedDate.value = date
 
         const dateStr = date.toISOString().split('T')[0]
         console.log('🔄 loadDataForDate called for:', dateStr)
@@ -338,7 +322,7 @@
     }
 
     // Handle health alert view more
-    const handleHealthAlert = (alert) => {
+    const handleHealthAlert = (alert: any) => {
         console.log('Health alert clicked:', alert)
         router.push({
             path: '/guidance',
@@ -347,11 +331,15 @@
     }
 
     // Handle view history
-    const handleViewHistory = (child) => {
+    const handleViewHistory = (child: any) => {
         console.log('View history clicked:', child)
         router.push('/checkin')
-        // Handle view history navigation
     }
+
+    // User profile data (you may want to get this from a store)
+    const userProfile = reactive({
+        role: 'Guardian' // or 'Parent'
+    })
 
     // ===== LIFECYCLE =====
 
