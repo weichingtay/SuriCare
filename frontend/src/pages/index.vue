@@ -17,7 +17,9 @@
         class="welcome-header"
         style="display: flex; align-items: center; gap: 8px"
       >
-        <h1 class="welcome-text mt-1 mb-1">Welcome, Wei Ching</h1>
+        <h1 class="welcome-text mt-1 mb-1">
+          Welcome, {{ userProfile.role === 'Guardian' ? 'Yoshi' : 'Wei Ching' }}
+        </h1>
         <v-chip
           :color="userProfile.role === 'Guardian' ? '#D87179' : '#FFC107'"
           size="small"
