@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { Ref } from 'vue'
 import { useSavedArticles } from '@/composables/useSavedArticles'
+import { createAlternateGuidanceService, VITE_USE_ALTERNATE_GUIDANCE, VITE_USE_FALLBACK_GUIDANCE } from '@/services/alternateGuidance'
 
 export interface Article {
   id: string
@@ -50,6 +51,11 @@ export const useGuidanceStore = defineStore('guidance', () => {
   // AI-powered article discovery configuration
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
   const AI_GUIDANCE_ENDPOINT = `${API_BASE_URL}`
+  
+  // Alternate guidance configuration
+  const USE_ALTERNATE_GUIDANCE = VITE_USE_ALTERNATE_GUIDANCE
+  const USE_FALLBACK_GUIDANCE = VITE_USE_FALLBACK_GUIDANCE
+  const alternateGuidanceService = createAlternateGuidanceService()
 
   // Helper: Calculate age in months for more precise search queries
   const calculateAgeInMonths = (ageString: string): number => {
@@ -159,7 +165,23 @@ export const useGuidanceStore = defineStore('guidance', () => {
         ageInMonths: calculateAgeInMonths(child.age)
       }
 
-      const articles = await fetchArticlesFromAI(childContext, authStore.userId)
+      let articles: Article[]
+      
+      if (USE_ALTERNATE_GUIDANCE) {
+        try {
+          // Use alternate guidance service for fast presentation mode
+          console.log('Using alternate guidance for child:', child.name, child.age)
+          articles = alternateGuidanceService.getArticlesForChild(child.name, child.age)
+          console.log('Alternate guidance returned', articles.length, 'articles')
+        } catch (altErr) {
+          console.error('Error with alternate guidance:', altErr)
+          // Fallback to default articles if alternate guidance fails
+          articles = getDefaultArticles(child.age)
+        }
+      } else {
+        // Use AI-powered article discovery
+        articles = await fetchArticlesFromAI(childContext, authStore.userId)
+      }
 
       // Cache the results
       articleCache.value[childId] = {
@@ -172,7 +194,7 @@ export const useGuidanceStore = defineStore('guidance', () => {
       error.value = err instanceof Error ? err.message : 'Failed to load articles'
       console.error('Error loading articles:', err)
 
-      // Fallback to default articles if AI fails
+      // Always provide some fallback articles to prevent empty state
       articleCache.value[childId] = {
         articles: getDefaultArticles(child.age),
         lastFetched: now,
@@ -249,24 +271,43 @@ export const useGuidanceStore = defineStore('guidance', () => {
     error.value = null
 
     try {
-      // Force refresh using AI agent
-      const articles = await refreshAIArticles(childId, authStore.userId)
-
-      // Update cache with fresh articles
+      // Get child information first
       const { useChildrenStore } = await import('./children')
       const childrenStore = useChildrenStore()
       const child = childrenStore.children.find(c => c.id === childId)
 
-      if (child) {
-        articleCache.value[childId] = {
-          articles,
-          lastFetched: Date.now(),
-          childContext: {
-            id: child.id,
-            name: child.name,
-            age: child.age,
-            ageInMonths: calculateAgeInMonths(child.age)
-          }
+      if (!child) {
+        error.value = 'Child not found'
+        return
+      }
+
+      let articles: Article[]
+      
+      if (USE_ALTERNATE_GUIDANCE) {
+        try {
+          // Use alternate guidance service for fast presentation mode
+          console.log('Refreshing alternate guidance for child:', child.name, child.age)
+          articles = alternateGuidanceService.refreshArticlesForChild(child.name, child.age)
+          console.log('Alternate guidance refresh returned', articles.length, 'articles')
+        } catch (altErr) {
+          console.error('Error refreshing alternate guidance:', altErr)
+          // Fallback to default articles if alternate guidance fails
+          articles = getDefaultArticles(child.age)
+        }
+      } else {
+        // Force refresh using AI agent
+        articles = await refreshAIArticles(childId, authStore.userId)
+      }
+
+      // Update cache with fresh articles
+      articleCache.value[childId] = {
+        articles,
+        lastFetched: Date.now(),
+        childContext: {
+          id: child.id,
+          name: child.name,
+          age: child.age,
+          ageInMonths: calculateAgeInMonths(child.age)
         }
       }
     } catch (err) {
