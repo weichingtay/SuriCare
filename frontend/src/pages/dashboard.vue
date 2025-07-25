@@ -371,8 +371,8 @@ const weightSeries = ref([
   },
 ])
 
-// Chart options for Weight
-const weightOptions = ref({
+// Chart options for Weight (SIMPLIFIED)
+const weightOptions = computed(() => ({
   chart: {
     type: 'line',
     toolbar: { show: false },
@@ -381,44 +381,70 @@ const weightOptions = ref({
     mode: 'light',
     palette: 'palette5',
   },
-  colors: ['#81c5f7', '#fb9bec'],
+  colors: ['#3b82f6', '#94a3b8'], // Blue for actual, Gray for benchmark
   xaxis: {
     type: 'datetime',
     labels: {
       show: true,
       rotate: -45,
       datetimeUTC: false,
-      formatter (_, timestamp, opts) {
-        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+      formatter: function(val) {
+        const date = new Date(val)
+        if (growthViewMode.value === 'weekly') {
+          return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+        } else {
+          return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+        }
       },
     },
+    tickAmount: undefined,
     tickPlacement: 'on',
-    tickAmount: 'dataPoints',
   },
   yaxis: {
     title: {
       text: 'Weight, kg',
     },
-    min: () => chart.weight.y_min,
-    max: () => chart.weight.y_max,
-  },
-  title: {
-    text: '',
-    style: {
-      fontSize: '16px',
-      fontWeight: 'bold',
-      color: '#2c1810',
-    },
+    forceNiceScale: true,
+    labels: {
+      formatter: function(val) {
+        return val.toFixed(1) + ' kg'
+      }
+    }
   },
   stroke: {
-    curve: 'straight',
-    width: 3,
+    curve: 'smooth',
+    width: [3, 2],
+    dashArray: [0, 5] // Solid for actual, dashed for benchmark
+  },
+  markers: {
+    size: [5, 0], // Show markers on actual measurements only
+    colors: ['#3b82f6', '#94a3b8'],
+    strokeColors: '#fff',
+    strokeWidth: 2,
   },
   legend: {
     show: true,
     position: 'bottom',
   },
-})
+  tooltip: {
+    shared: false,
+    intersect: true,
+    custom: function({ series, seriesIndex, dataPointIndex, w }) {
+      const value = series[seriesIndex][dataPointIndex]
+      const date = new Date(w.globals.seriesX[seriesIndex][dataPointIndex])
+      const seriesName = w.globals.seriesNames[seriesIndex]
+      
+      return `
+        <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; font-family: Inter, sans-serif;">
+          <div style="font-weight: 600; margin-bottom: 6px; color: #374151;">${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          <div style="color: ${seriesIndex === 0 ? '#3b82f6' : '#94a3b8'};">
+            ${seriesName}: <strong>${value.toFixed(2)} kg</strong>
+          </div>
+        </div>
+      `
+    }
+  }
+}))
 
 // Chart series for meal distribution (pie chart showing Milk, Solid, Mixed, Others)
 const mealDistributionSeries = ref([])
@@ -468,7 +494,8 @@ const heightSeries = ref([
 ])
 
 // Chart options for Height
-const heightOptions = ref({
+// Chart options for Height (SIMPLIFIED)
+const heightOptions = computed(() => ({
   chart: {
     type: 'line',
     toolbar: { show: false },
@@ -477,39 +504,70 @@ const heightOptions = ref({
     mode: 'light',
     palette: 'palette5',
   },
-  colors: ['#81c5f7', '#fb9bec'],
+  colors: ['#10b981', '#94a3b8'], // Green for actual, Gray for benchmark
   xaxis: {
     type: 'datetime',
     labels: {
       show: true,
       rotate: -45,
       datetimeUTC: false,
-      formatter (_, timestamp, opts) {
-        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+      formatter: function(val) {
+        const date = new Date(val)
+        if (heightViewMode.value === 'weekly') {
+          return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+        } else {
+          return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+        }
       },
     },
+    tickAmount: undefined,
     tickPlacement: 'on',
-    tickAmount: 'dataPoints',
   },
   yaxis: {
     title: {
       text: 'Height, cm',
     },
-    min: () => chart.height.y_min,
-    max: () => chart.height.y_max,
-  },
-  title: {
-    text: '',
+    forceNiceScale: true,
+    labels: {
+      formatter: function(val) {
+        return val.toFixed(0) + ' cm'
+      }
+    }
   },
   stroke: {
-    curve: 'straight',
-    width: 3,
+    curve: 'smooth',
+    width: [3, 2],
+    dashArray: [0, 5]
+  },
+  markers: {
+    size: [5, 0],
+    colors: ['#10b981', '#94a3b8'],
+    strokeColors: '#fff',
+    strokeWidth: 2,
   },
   legend: {
     show: true,
     position: 'bottom',
   },
-})
+  tooltip: {
+    shared: false,
+    intersect: true,
+    custom: function({ series, seriesIndex, dataPointIndex, w }) {
+      const value = series[seriesIndex][dataPointIndex]
+      const date = new Date(w.globals.seriesX[seriesIndex][dataPointIndex])
+      const seriesName = w.globals.seriesNames[seriesIndex]
+      
+      return `
+        <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; font-family: Inter, sans-serif;">
+          <div style="font-weight: 600; margin-bottom: 6px; color: #374151;">${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          <div style="color: ${seriesIndex === 0 ? '#10b981' : '#94a3b8'};">
+            ${seriesName}: <strong>${value.toFixed(1)} cm</strong>
+          </div>
+        </div>
+      `
+    }
+  }
+}))
 
 // Chart data for Head Circumference
 const headSeries = ref([
@@ -524,7 +582,8 @@ const headSeries = ref([
 ])
 
 // Chart options for Head Circumference
-const headOptions = ref({
+// Chart options for Head Circumference (SIMPLIFIED)
+const headOptions = computed(() => ({
   chart: {
     type: 'line',
     toolbar: { show: false },
@@ -533,33 +592,46 @@ const headOptions = ref({
     mode: 'light',
     palette: 'palette5',
   },
-  colors: ['#81c5f7', '#fb9bec'],
+  colors: ['#8b5cf6', '#94a3b8'], // Purple for actual, Gray for benchmark
   xaxis: {
     type: 'datetime',
     labels: {
       show: true,
       rotate: -45,
       datetimeUTC: false,
-      formatter (_, timestamp, opts) {
-        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+      formatter: function(val) {
+        const date = new Date(val)
+        if (headViewMode.value === 'weekly') {
+          return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+        } else {
+          return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+        }
       },
     },
+    tickAmount: undefined,
     tickPlacement: 'on',
-    tickAmount: 'dataPoints',
   },
   yaxis: {
     title: {
       text: 'Head circumference, cm',
     },
-    min: () => chart.head_circumference.y_min,
-    max: () => chart.head_circumference.y_max,
-  },
-  title: {
-    text: '',
+    forceNiceScale: true,
+    labels: {
+      formatter: function(val) {
+        return val.toFixed(1) + ' cm'
+      }
+    }
   },
   stroke: {
-    curve: 'straight',
-    width: 3,
+    curve: 'smooth',
+    width: [3, 2],
+    dashArray: [0, 5]
+  },
+  markers: {
+    size: [5, 0],
+    colors: ['#8b5cf6', '#94a3b8'],
+    strokeColors: '#fff',
+    strokeWidth: 2,
   },
   dataLabels: {
     enabled: false,
@@ -568,7 +640,25 @@ const headOptions = ref({
     show: true,
     position: 'bottom',
   },
-})
+  tooltip: {
+    shared: false,
+    intersect: true,
+    custom: function({ series, seriesIndex, dataPointIndex, w }) {
+      const value = series[seriesIndex][dataPointIndex]
+      const date = new Date(w.globals.seriesX[seriesIndex][dataPointIndex])
+      const seriesName = w.globals.seriesNames[seriesIndex]
+      
+      return `
+        <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; font-family: Inter, sans-serif;">
+          <div style="font-weight: 600; margin-bottom: 6px; color: #374151;">${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          <div style="color: ${seriesIndex === 0 ? '#8b5cf6' : '#94a3b8'};">
+            ${seriesName}: <strong>${value.toFixed(1)} cm</strong>
+          </div>
+        </div>
+      `
+    }
+  }
+}))
 
 // Chart data for Sleep
 const sleepSeries = ref([
@@ -779,13 +869,16 @@ const fetchGrowth = async (selectedDateParam) => {
     if (!childId) return
 
     isLoadingData.value = true
+    dataError.value = null
     
-    // BEST PRACTICE: Use with-benchmarks endpoint for comprehensive growth data
+    console.log(`🔄 Fetching growth data with benchmarks for child ${childId}`)
+    
+    // Call your correct endpoint
     const response = await axios.get(`http://127.0.0.1:8000/growth/child/${childId}/with-benchmarks`)
     const growth_data = response.data
 
     if (!growth_data || growth_data.length === 0) {
-      console.log('No growth data available for child:', childId)
+      console.log('❌ No growth data available for child:', childId)
       // Clear charts when no data
       weightSeries.value = [{ name: 'Actual', data: [] }, { name: 'Benchmark', data: [] }]
       heightSeries.value = [{ name: 'Actual', data: [] }, { name: 'Benchmark', data: [] }]
@@ -793,77 +886,71 @@ const fetchGrowth = async (selectedDateParam) => {
       return
     }
 
-    // Convert the backend data to chart format
-    // MEDICAL STANDARD: Show chronological progression (oldest to newest)
-    const actual_weight = growth_data.map(item => ({
-      x: new Date(item.check_in),
-      y: item.actual_weight
-    })).reverse() // Reverse to show chronological order
+    console.log('📊 Growth data received:', growth_data.length, 'records')
 
-    const benchmark_weight = growth_data.map(item => ({
-      x: new Date(item.check_in),
-      y: item.benchmark_weight
-    })).reverse()
+    // SIMPLE: Convert backend data to chart format (sort by date - oldest first)
+    const sortedData = growth_data.sort((a, b) => new Date(a.check_in) - new Date(b.check_in))
 
-    const actual_height = growth_data.map(item => ({
-      x: new Date(item.check_in),
-      y: item.actual_height
-    })).reverse()
+    // Weight data
+    const actualWeight = sortedData
+      .filter(item => item.actual_weight !== null)
+      .map(item => ({
+        x: new Date(item.check_in).getTime(),
+        y: parseFloat(item.actual_weight)
+      }))
 
-    const benchmark_height = growth_data.map(item => ({
-      x: new Date(item.check_in),
-      y: item.benchmark_height
-    })).reverse()
+    const benchmarkWeight = sortedData
+      .filter(item => item.benchmark_weight !== null)
+      .map(item => ({
+        x: new Date(item.check_in).getTime(),
+        y: parseFloat(item.benchmark_weight)
+      }))
 
-    const actual_hc = growth_data.map(item => ({
-      x: new Date(item.check_in),
-      y: item.actual_head_circumference
-    })).reverse()
+    // Height data
+    const actualHeight = sortedData
+      .filter(item => item.actual_height !== null)
+      .map(item => ({
+        x: new Date(item.check_in).getTime(),
+        y: parseFloat(item.actual_height)
+      }))
 
-    const benchmark_hc = growth_data.map(item => ({
-      x: new Date(item.check_in),
-      y: item.benchmark_head_circumference
-    })).reverse()
+    const benchmarkHeight = sortedData
+      .filter(item => item.benchmark_height !== null)
+      .map(item => ({
+        x: new Date(item.check_in).getTime(),
+        y: parseFloat(item.benchmark_height)
+      }))
 
-    // Store all data for filtering
-    actual.weight = actual_weight
-    benchmark.weight = benchmark_weight
-    actual.height = actual_height
-    benchmark.height = benchmark_height
-    actual.head_circumference = actual_hc
-    benchmark.head_circumference = benchmark_hc
+    // Head circumference data
+    const actualHC = sortedData
+      .filter(item => item.actual_head_circumference !== null)
+      .map(item => ({
+        x: new Date(item.check_in).getTime(),
+        y: parseFloat(item.actual_head_circumference)
+      }))
 
-    // Calculate appropriate Y-axis ranges for each metric
-    if (actual_weight.length > 0) {
-      const actualWeightValues = actual_weight.map(item => item.y)
-      const benchmarkWeightValues = benchmark_weight.map(item => item.y)
-      setY_min_max(actualWeightValues, benchmarkWeightValues, 'weight')
-    }
+    const benchmarkHC = sortedData
+      .filter(item => item.benchmark_head_circumference !== null)
+      .map(item => ({
+        x: new Date(item.check_in).getTime(),
+        y: parseFloat(item.benchmark_head_circumference)
+      }))
 
-    if (actual_height.length > 0) {
-      const actualHeightValues = actual_height.map(item => item.y)
-      const benchmarkHeightValues = benchmark_height.map(item => item.y)
-      setY_min_max(actualHeightValues, benchmarkHeightValues, 'height')
-    }
+    // Store the data (no complex filtering, just store it)
+    actual.weight = actualWeight
+    benchmark.weight = benchmarkWeight
+    actual.height = actualHeight
+    benchmark.height = benchmarkHeight
+    actual.head_circumference = actualHC
+    benchmark.head_circumference = benchmarkHC
 
-    if (actual_hc.length > 0) {
-      const actualHcValues = actual_hc.map(item => item.y)
-      const benchmarkHcValues = benchmark_hc.map(item => item.y)
-      setY_min_max(actualHcValues, benchmarkHcValues, 'head_circumference')
-    }
-
-    // Apply date filtering based on view mode
+    // SIMPLE: Apply view mode filtering and update charts
     updateChartsForDate()
     
-    console.log(`✅ Growth data with benchmarks loaded for child ${childId}:`, {
-      weight_points: actual_weight.length,
-      height_points: actual_height.length,
-      hc_points: actual_hc.length,
-      latest_measurements: {
-        weight: actual_weight[actual_weight.length - 1]?.y,
-        height: actual_height[actual_height.length - 1]?.y,
-        head_circumference: actual_hc[actual_hc.length - 1]?.y
-      }
+    console.log(`✅ Growth data processed:`, {
+      weight_points: actualWeight.length,
+      height_points: actualHeight.length,
+      hc_points: actualHC.length,
     })
 
   } catch (error) {
@@ -1636,72 +1723,45 @@ const updateHealthSymptomsForDate = async (targetDate) => {
   }
 }
 
-// New function to update all charts when date changes
+// CORRECTED updateChartsForDate function - Only show actual check-in data with steplines
 const updateChartsForDate = () => {
-  const targetDate = selectedDate.value
+  const filterByViewMode = (data, viewMode) => {
+    if (viewMode === 'weekly') {
+      // Show only actual check-ins within the last 7 days from selected date
+      const weekStart = new Date(selectedDate.value)
+      weekStart.setDate(selectedDate.value.getDate() - 6)
+      weekStart.setHours(0, 0, 0, 0)
+      
+      const weekEnd = new Date(selectedDate.value)
+      weekEnd.setHours(23, 59, 59, 999)
+      
+      return data.filter(item => {
+        const itemDate = new Date(item.x)
+        return itemDate >= weekStart && itemDate <= weekEnd && item.y !== null
+      })
+    }
+    // Monthly: show all actual data points
+    return data.filter(item => item.y !== null)
+  }
+
+  // Update charts with only actual check-in data
+  weightSeries.value = [
+    { name: 'Actual', data: filterByViewMode(actual.weight, growthViewMode.value) },
+    { name: 'Benchmark', data: filterByViewMode(benchmark.weight, growthViewMode.value) }
+  ]
   
-  // Filter data based on selected date and view modes
-  if (growthViewMode.value === 'weekly') {
-    const weekStart = new Date(targetDate)
-    weekStart.setDate(targetDate.getDate() - 7)
-    
-    const filterDataByWeek = (data) => data.filter(item => 
-      new Date(item.x) >= weekStart && new Date(item.x) <= targetDate
-    )
+  heightSeries.value = [
+    { name: 'Actual', data: filterByViewMode(actual.height, heightViewMode.value) },
+    { name: 'Benchmark', data: filterByViewMode(benchmark.height, heightViewMode.value) }
+  ]
+  
+  headSeries.value = [
+    { name: 'Actual', data: filterByViewMode(actual.head_circumference, headViewMode.value) },
+    { name: 'Benchmark', data: filterByViewMode(benchmark.head_circumference, headViewMode.value) }
+  ]
 
-    weightSeries.value = [
-      { name: 'Actual', data: filterDataByWeek(actual.weight) },
-      { name: 'Benchmark', data: filterDataByWeek(benchmark.weight) }
-    ]
-    
-    heightSeries.value = [
-      { name: 'Actual', data: filterDataByWeek(actual.height) },
-      { name: 'Benchmark', data: filterDataByWeek(benchmark.height) }
-    ]
-    
-    headSeries.value = [
-      { name: 'Actual', data: filterDataByWeek(actual.head_circumference) },
-      { name: 'Benchmark', data: filterDataByWeek(benchmark.head_circumference) }
-    ]
-  } else {
-    // Monthly view - show all data
-    weightSeries.value = [
-      { name: 'Actual', data: actual.weight },
-      { name: 'Benchmark', data: benchmark.weight }
-    ]
-    
-    heightSeries.value = [
-      { name: 'Actual', data: actual.height },
-      { name: 'Benchmark', data: benchmark.height }
-    ]
-    
-    headSeries.value = [
-      { name: 'Actual', data: actual.head_circumference },
-      { name: 'Benchmark', data: benchmark.head_circumference }
-    ]
-  }
-
-  // Update sleep data
-  if (sleepViewMode.value === 'weekly') {
-    const weekStart = new Date(targetDate)
-    weekStart.setDate(targetDate.getDate() - 7)
-    
-    const filterSleepByWeek = (data) => data.filter(item => 
-      new Date(item.x) >= weekStart && new Date(item.x) <= targetDate
-    )
-
-    sleepSeries.value = [
-      { name: 'Nap', data: filterSleepByWeek(actual.sleep_time.nap) },
-      { name: 'Night', data: filterSleepByWeek(actual.sleep_time.night) }
-    ]
-  } else {
-    sleepSeries.value = [
-      { name: 'Nap', data: actual.sleep_time.nap },
-      { name: 'Night', data: actual.sleep_time.night }
-    ]
-  }
+  console.log('📊 Charts updated with actual check-in data only')
 }
-
 // Watch for date changes and refresh data
 watch(selectedDate, async (newDate) => {
   console.log('Date changed to:', newDate)
