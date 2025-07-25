@@ -7,7 +7,13 @@
     >
         <!-- Article Image -->
         <div class="article-image">
-            <div class="image-placeholder">
+            <img 
+                v-if="article.image" 
+                :src="article.image" 
+                :alt="article.title"
+                class="article-img"
+            />
+            <div v-else class="image-placeholder">
                 <v-icon
                     size="48"
                     color="white"
@@ -128,6 +134,12 @@
         align-items: center;
         justify-content: center;
         opacity: 0.7;
+    }
+
+    .article-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .article-title {

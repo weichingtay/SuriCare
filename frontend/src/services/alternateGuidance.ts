@@ -14,6 +14,7 @@ interface ArticleData {
   description: string
   url: string
   tags: string[]
+  image?: string
 }
 
 // Helper function to determine which article set to use based on child profile
@@ -60,6 +61,7 @@ const createArticleFromData = (articleData: ArticleData, index: number): Article
     description: articleData.description,
     tags: articleData.tags,
     url: articleData.url,
+    image: articleData.image,
     domain,
     source: domain,
     publishedDate: new Date().toISOString().split('T')[0],
