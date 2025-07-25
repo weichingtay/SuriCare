@@ -1620,7 +1620,7 @@ let duration = endTime.getTime() - startTime.getTime()
 }
 
 .timeline-container {
-  max-width: 800px;
+  max-width: 950px;
   margin: 0 auto;
   padding: $spacing-xl $spacing-lg;
 }
@@ -1806,7 +1806,7 @@ let duration = endTime.getTime() - startTime.getTime()
 .timeline-row {
   display: flex;
   align-items: flex-start;
-  gap: $spacing-md;
+  gap: 32px;
 }
 
 .timeline-icon-container {

@@ -780,8 +780,8 @@ const fetchGrowth = async (selectedDateParam) => {
 
     isLoadingData.value = true
     
-    // Use the actual growth endpoint that returns growth with benchmarks
-    const response = await axios.get(`http://127.0.0.1:8000/growth/${childId}`)
+    // BEST PRACTICE: Use with-benchmarks endpoint for comprehensive growth data
+    const response = await axios.get(`http://127.0.0.1:8000/growth/child/${childId}/with-benchmarks`)
     const growth_data = response.data
 
     if (!growth_data || growth_data.length === 0) {
@@ -793,7 +793,8 @@ const fetchGrowth = async (selectedDateParam) => {
       return
     }
 
-    // Convert the backend data to the format expected by charts
+    // Convert the backend data to chart format
+    // MEDICAL STANDARD: Show chronological progression (oldest to newest)
     const actual_weight = growth_data.map(item => ({
       x: new Date(item.check_in),
       y: item.actual_weight
@@ -824,7 +825,7 @@ const fetchGrowth = async (selectedDateParam) => {
       y: item.benchmark_head_circumference
     })).reverse()
 
-    // Store all data
+    // Store all data for filtering
     actual.weight = actual_weight
     benchmark.weight = benchmark_weight
     actual.height = actual_height
@@ -832,7 +833,7 @@ const fetchGrowth = async (selectedDateParam) => {
     actual.head_circumference = actual_hc
     benchmark.head_circumference = benchmark_hc
 
-    // Calculate Y-axis ranges for all growth metrics
+    // Calculate appropriate Y-axis ranges for each metric
     if (actual_weight.length > 0) {
       const actualWeightValues = actual_weight.map(item => item.y)
       const benchmarkWeightValues = benchmark_weight.map(item => item.y)
@@ -851,13 +852,18 @@ const fetchGrowth = async (selectedDateParam) => {
       setY_min_max(actualHcValues, benchmarkHcValues, 'head_circumference')
     }
 
-    // Apply date filtering based on selected date and view mode
+    // Apply date filtering based on view mode
     updateChartsForDate()
     
-    console.log(`✅ Growth data loaded for child ${childId}:`, {
+    console.log(`✅ Growth data with benchmarks loaded for child ${childId}:`, {
       weight_points: actual_weight.length,
       height_points: actual_height.length,
-      hc_points: actual_hc.length
+      hc_points: actual_hc.length,
+      latest_measurements: {
+        weight: actual_weight[actual_weight.length - 1]?.y,
+        height: actual_height[actual_height.length - 1]?.y,
+        head_circumference: actual_hc[actual_hc.length - 1]?.y
+      }
     })
 
   } catch (error) {
@@ -867,6 +873,108 @@ const fetchGrowth = async (selectedDateParam) => {
     isLoadingData.value = false
   }
 }
+
+// Enhanced chart options following medical charting standards
+const enhanceGrowthChartOptions = () => {
+  // Weight Chart Options (Medical Standard)
+  weightOptions.value = {
+    ...weightOptions.value,
+    title: {
+      text: 'Weight Progress',
+      style: {
+        fontSize: '16px',
+        fontWeight: 'bold',
+        color: '#2c1810',
+      },
+    },
+    colors: ['#3b82f6', '#94a3b8'], // Blue for actual, Gray for benchmark
+    stroke: {
+      curve: 'smooth', // Medical charts use smooth curves
+      width: [3, 2], // Actual line thicker than benchmark
+      dashArray: [0, 5] // Solid for actual, dashed for benchmark
+    },
+    markers: {
+      size: [5, 0], // Show markers on actual measurements only
+      colors: ['#3b82f6', '#94a3b8'],
+      strokeColors: '#fff',
+      strokeWidth: 2,
+      hover: {
+        sizeOffset: 3
+      }
+    },
+    tooltip: {
+      shared: false,
+      intersect: true,
+      custom: function({ series, seriesIndex, dataPointIndex, w }) {
+        const value = series[seriesIndex][dataPointIndex]
+        const date = new Date(w.globals.categoryLabels[dataPointIndex])
+        const seriesName = w.globals.seriesNames[seriesIndex]
+        
+        return `
+          <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div style="font-weight: 600; margin-bottom: 6px;">${date.toLocaleDateString()}</div>
+            <div style="color: ${seriesIndex === 0 ? '#3b82f6' : '#94a3b8'};">
+              ${seriesName}: <strong>${value}kg</strong>
+            </div>
+          </div>
+        `
+      }
+    }
+  }
+
+  // Height Chart Options
+  heightOptions.value = {
+    ...heightOptions.value,
+    title: {
+      text: 'Height Progress',
+      style: {
+        fontSize: '16px',
+        fontWeight: 'bold',
+        color: '#2c1810',
+      },
+    },
+    colors: ['#10b981', '#94a3b8'], // Green for actual, Gray for benchmark
+    stroke: {
+      curve: 'smooth',
+      width: [3, 2],
+      dashArray: [0, 5]
+    },
+    markers: {
+      size: [5, 0],
+      colors: ['#10b981', '#94a3b8'],
+      strokeColors: '#fff',
+      strokeWidth: 2
+    }
+  }
+
+  // Head Circumference Chart Options
+  headOptions.value = {
+    ...headOptions.value,
+    title: {
+      text: 'Head Circumference Progress',
+      style: {
+        fontSize: '16px',
+        fontWeight: 'bold',
+        color: '#2c1810',
+      },
+    },
+    colors: ['#8b5cf6', '#94a3b8'], // Purple for actual, Gray for benchmark
+    stroke: {
+      curve: 'smooth',
+      width: [3, 2],
+      dashArray: [0, 5]
+    },
+    markers: {
+      size: [5, 0],
+      colors: ['#8b5cf6', '#94a3b8'],
+      strokeColors: '#fff',
+      strokeWidth: 2
+    }
+  }
+}
+
+// Call this after setting up the options
+enhanceGrowthChartOptions()
 
 const fetchSleep = async (selectedDateParam) => {
   try {
@@ -1118,14 +1226,15 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
     const childId = getCurrentChildId()
     if (!childId) return
 
-    // SINGLE SOURCE OF TRUTH: Use poop store instead of direct API calls
+    // SINGLE SOURCE OF TRUTH: Use poop store
     const { usePoopStore } = await import('@/stores/poop')
     const poopStore = usePoopStore()
 
     // Create baseline date range
     const days = poopViewMode.value === 'weekly' ? 7 : 30
-    const chartData = []
-    const chartColors = [] // Separate array for colors
+    const normalData = []
+    const unusualData = []
+    const dateLabels = []
     const unusualDays = []
     
     for (let i = days - 1; i >= 0; i--) {
@@ -1136,72 +1245,107 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
       // Force refresh to get latest data
       await poopStore.refreshPoopForDate(dateString)
       
-      // Get processed poop data from store
+      // Get processed poop data from store (same as summary card!)
       const poopData = poopStore.getPoopForDate(dateString)
       
-      const x = date.getTime()
-      const count = poopData.count || 0
+      const normal = poopData.normal || 0
       const unusual = poopData.unusual || 0
+      const total = poopData.count || 0
       
-      // Determine color based on pattern
-      let barColor
-      if (count === 0) {
-        barColor = '#ef4444' // Red for no movement
-      } else if (count >= 5) {
-        barColor = '#dc2626' // Dark red for too many movements  
-      } else if (unusual > 0) {
-        barColor = '#f97316' // Orange for unusual characteristics
-      } else {
-        barColor = '#22c55e' // Green for normal/healthy
-      }
-      
-      chartData.push({
-        x: x,
-        y: count,
-        // Store metadata for tooltips
-        fillColor: barColor,
-        strokeColor: barColor
+      // Build stacked data
+      normalData.push({
+        x: date.getTime(),
+        y: normal,
+        total: total,
+        unusual: unusual
       })
       
-      chartColors.push(barColor)
+      unusualData.push({
+        x: date.getTime(), 
+        y: unusual,
+        total: total,
+        normal: normal
+      })
       
-      // Track unusual days
-      const isUnusualDay = count === 0 || count >= 5 || unusual > 0
+      dateLabels.push(date.getTime())
+      
+      // Track concerning patterns
+      const isUnusualDay = total === 0 || total >= 5 || unusual > 0
       if (isUnusualDay) {
         unusualDays.push({
           date: dateString,
-          count: count,
+          total: total,
+          normal: normal,
           unusual: unusual,
-          reason: getUnusualReason(count, unusual)
+          reason: getDetailedUnusualReason(total, normal, unusual)
         })
       }
     }
 
-    // Update chart series
-    poopFrequencySeries.value = [{
-      name: 'Daily Frequency',
-      data: chartData
-    }]
+    // STACKED BAR SERIES
+    poopFrequencySeries.value = [
+      {
+        name: 'Normal',
+        data: normalData,
+        color: '#22c55e' // Green for normal
+      },
+      {
+        name: 'Unusual',
+        data: unusualData, 
+        color: '#f97316' // Orange for unusual
+      }
+    ]
 
-    // FIXED: Update chart options with proper color handling
+    // ENHANCED STACKED BAR OPTIONS
     poopFrequencyOptions.value = {
       chart: {
         type: 'bar',
+        stacked: true, // Enable stacking
         toolbar: { show: false },
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 800
+        }
       },
       theme: {
         mode: 'light',
         palette: 'palette5',
       },
-      // FIXED: Use the colors array directly
-      colors: chartColors,
-      fill: {
-        colors: chartColors,
-        type: 'solid'
-      },
-      stroke: {
-        colors: chartColors,
-        width: 1
+      colors: ['#22c55e', '#f97316'], // Green for normal, Orange for unusual
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          columnWidth: '60%',
+          borderRadius: 4,
+          borderRadiusApplication: 'end', // Only round the top
+          dataLabels: {
+            total: {
+              enabled: true,
+              offsetX: 0,
+              offsetY: -5,
+              style: {
+                fontSize: '11px',
+                fontWeight: 600,
+                color: '#374151'
+              },
+              formatter: function (val, opts) {
+                // Show total count on top of stacked bars
+                const seriesIndex = opts.seriesIndex
+                const dataPointIndex = opts.dataPointIndex
+                const normalValue = normalData[dataPointIndex]?.y || 0
+                const unusualValue = unusualData[dataPointIndex]?.y || 0
+                const total = normalValue + unusualValue
+                
+                // Only show total on the last (top) series
+                if (seriesIndex === 1 && total > 0) {
+                  return total.toString()
+                }
+                return ''
+              }
+            }
+          }
+        }
       },
       xaxis: {
         type: 'datetime',
@@ -1227,7 +1371,7 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
       },
       yaxis: {
         title: {
-          text: 'Times per Day'
+          text: 'Movements per Day'
         },
         min: 0,
         max: 6,
@@ -1241,65 +1385,109 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
       title: {
         text: '',
       },
-      plotOptions: {
-        bar: {
-          borderRadius: 4,
-          horizontal: false,
-          columnWidth: '60%',
-          distributed: true, // This allows individual bar colors
+      legend: {
+        show: true,
+        position: 'bottom',
+        horizontalAlign: 'center',
+        markers: {
+          width: 12,
+          height: 12,
+          radius: 2
+        },
+        itemMargin: {
+          horizontal: 15,
+          vertical: 5
         }
       },
-      legend: {
-        show: false,
-      },
-      // ENHANCED: Simple but informative tooltips
+      // ENHANCED TOOLTIPS for stacked bars
       tooltip: {
-        shared: false,
-        intersect: true,
+        shared: true,
+        intersect: false,
         custom: function({ series, seriesIndex, dataPointIndex, w }) {
-          const dataPoint = chartData[dataPointIndex]
-          if (!dataPoint) return ''
+          const normalCount = normalData[dataPointIndex]?.y || 0
+          const unusualCount = unusualData[dataPointIndex]?.y || 0
+          const totalCount = normalCount + unusualCount
           
-          const date = new Date(dataPoint.x).toLocaleDateString('en-US', { 
+          const date = new Date(normalData[dataPointIndex]?.x).toLocaleDateString('en-US', { 
             weekday: 'short', 
             month: 'short', 
             day: 'numeric' 
           })
           
-          const count = dataPoint.y
           let statusIcon = ''
           let statusText = ''
+          let statusColor = ''
           
-          if (count === 0) {
+          if (totalCount === 0) {
             statusIcon = '🔴'
             statusText = 'No movements - possible constipation'
-          } else if (count >= 5) {
+            statusColor = '#fee2e2'
+          } else if (totalCount >= 5) {
             statusIcon = '🔴'
             statusText = 'High frequency - monitor for diarrhea'
-          } else if (dataPoint.fillColor === '#f97316') {
+            statusColor = '#fee2e2'
+          } else if (unusualCount > 0) {
             statusIcon = '🟡'
-            statusText = 'Some unusual characteristics detected'
+            statusText = `${unusualCount} with concerning characteristics`
+            statusColor = '#fef3c7'
           } else {
             statusIcon = '🟢'
-            statusText = 'Normal healthy pattern'
+            statusText = 'All movements have normal characteristics'
+            statusColor = '#dcfce7'
           }
           
           return `
-            <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;">
-              <div style="font-weight: 600; color: #374151; margin-bottom: 6px;">${date}</div>
-              <div style="font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">
-                ${count} movement${count !== 1 ? 's' : ''}
+            <div style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; min-width: 200px;">
+              <div style="font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 14px;">${date}</div>
+              
+              <div style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">
+                ${totalCount} total movement${totalCount !== 1 ? 's' : ''}
               </div>
-              <div style="font-size: 12px; color: #6b7280;">
+              
+              ${totalCount > 0 ? `
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; font-size: 13px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 12px; height: 12px; background: #22c55e; border-radius: 2px;"></div>
+                    <span><strong>${normalCount}</strong> normal characteristics</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 12px; height: 12px; background: #f97316; border-radius: 2px;"></div>
+                    <span><strong>${unusualCount}</strong> unusual characteristics</span>
+                  </div>
+                </div>
+              ` : ''}
+              
+              <div style="background: ${statusColor}; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: 500; text-align: center;">
                 ${statusIcon} ${statusText}
               </div>
             </div>
           `
         }
       },
+      // Add subtle grid
+      grid: {
+        show: true,
+        borderColor: '#f3f4f6',
+        strokeDashArray: 2,
+        xaxis: {
+          lines: {
+            show: false
+          }
+        },
+        yaxis: {
+          lines: {
+            show: true
+          }
+        }
+      },
       responsive: [{
         breakpoint: 768,
         options: {
+          plotOptions: {
+            bar: {
+              columnWidth: '80%'
+            }
+          },
           xaxis: {
             labels: {
               rotate: -90,
@@ -1307,32 +1495,27 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
                 return opts.dateFormatter(new Date(timestamp), 'dd')
               }
             }
-          },
-          plotOptions: {
-            bar: {
-              columnWidth: '80%'
-            }
           }
         }
       }]
     }
 
-    console.log(`✅ Poop data from store loaded:`, {
-      total_days: chartData.length,
+    console.log(`✅ Stacked poop data from store loaded:`, {
+      total_days: normalData.length,
       unusual_days: unusualDays.length,
-      color_breakdown: {
-        red_days: chartColors.filter(c => c.includes('#ef4444') || c.includes('#dc2626')).length,
-        orange_days: chartColors.filter(c => c.includes('#f97316')).length,
-        green_days: chartColors.filter(c => c.includes('#22c55e')).length
+      breakdown: {
+        days_with_normal_only: normalData.filter((d, i) => d.y > 0 && unusualData[i].y === 0).length,
+        days_with_unusual: unusualData.filter(d => d.y > 0).length,
+        days_with_no_movements: normalData.filter((d, i) => d.y === 0 && unusualData[i].y === 0).length
       }
     })
 
     if (unusualDays.length > 0) {
-      console.log(`🚨 Unusual poop patterns detected:`, unusualDays)
+      console.log(`🚨 Days with concerning patterns:`, unusualDays)
     }
 
   } catch (error) {
-    console.error('❌ Error fetching poop data from store:', error)
+    console.error('❌ Error fetching stacked poop data:', error)
     
     // Simple fallback
     const days = poopViewMode.value === 'weekly' ? 7 : 30
@@ -1341,22 +1524,29 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
       date.setDate(date.getDate() - (days - 1 - i))
       return {
         x: date.getTime(),
-        y: 0,
-        fillColor: '#9ca3af' // Gray for no data
+        y: 0
       }
     })
 
-    poopFrequencySeries.value = [{
-      name: 'Daily Frequency',
-      data: fallbackData
-    }]
-    
-    // Reset options to default
-    poopFrequencyOptions.value = {
-      ...poopFrequencyOptions.value,
-      colors: ['#9ca3af']
-    }
+    poopFrequencySeries.value = [
+      { name: 'Normal', data: fallbackData },
+      { name: 'Unusual', data: fallbackData }
+    ]
   }
+}
+
+// Enhanced helper function for detailed unusual reasons
+const getDetailedUnusualReason = (total, normal, unusual) => {
+  if (total === 0) {
+    return 'No bowel movements - constipation concern'
+  } else if (total >= 5) {
+    return `${total} movements - high frequency concern`
+  } else if (unusual === total) {
+    return `All ${total} movements have concerning characteristics`
+  } else if (unusual > 0) {
+    return `${unusual} of ${total} movements have concerning characteristics`
+  }
+  return 'Unusual pattern detected'
 }
 
 // Helper function to determine why a day is unusual
@@ -1586,9 +1776,32 @@ onMounted(async () => {
 }
 
 .dashboard-container {
-  max-width: 1200px;
+  // max-width: 1200px;  <- Comment out or delete this line
   margin: 0 auto;
   padding: $spacing-xl $spacing-lg;
+}
+
+.chart-container {
+  margin-bottom: $spacing-lg;
+  overflow: hidden;
+
+  // ADD THESE LINES:
+  :deep(.apexcharts-canvas) {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  :deep(.apexcharts-svg) {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  :deep(.apexcharts-inner) {
+    width: 100% !important;
+  }
+  // END OF NEW LINES
+
+  // Keep your existing responsive styles...
 }
 
 /* Dashboard Header - Enhanced */
