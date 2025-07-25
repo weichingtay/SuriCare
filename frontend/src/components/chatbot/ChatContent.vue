@@ -318,8 +318,7 @@
 
 
   .user-card {
-    background-color: #FFF0F0;
-    border: 1px solid #E0E0E0;
+    background-color: rgb(235, 235, 235);
     padding: 12px 18px !important;
     box-shadow: none !important;
   }
