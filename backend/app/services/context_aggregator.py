@@ -72,8 +72,21 @@ class ChildContextAggregator:
     def format_context_for_prompt(self, context: Dict) -> str:
         """Format context into readable string for AI prompts"""
         profile = context["profile"]
+        
+        # Format age in years and months for better readability
+        age_months = profile['age_months']
+        if age_months >= 12:
+            years = age_months // 12
+            remaining_months = age_months % 12
+            if remaining_months == 0:
+                age_display = f"{years} year{'s' if years != 1 else ''} old"
+            else:
+                age_display = f"{years} year{'s' if years != 1 else ''} and {remaining_months} month{'s' if remaining_months != 1 else ''} old"
+        else:
+            age_display = f"{age_months} month{'s' if age_months != 1 else ''} old"
+        
         parts = [
-            f"Child: {profile['name']}, {profile['age_months']} months old ({profile['developmental_stage']}), {profile['gender']}"
+            f"Child: {profile['name']}, {age_display} ({profile['developmental_stage']}), {profile['gender']}"
         ]
         
         # Growth information
