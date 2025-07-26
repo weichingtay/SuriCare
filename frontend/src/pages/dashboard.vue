@@ -381,7 +381,7 @@ const weightOptions = computed(() => ({
     mode: 'light',
     palette: 'palette5',
   },
-  colors: ['#3b82f6', '#94a3b8'], // Blue for actual, Gray for benchmark
+  colors: ['#9C7FF7', '#94a3b8'], // Purple for actual, Gray for benchmark
   xaxis: {
     type: 'datetime',
     labels: {
@@ -397,12 +397,20 @@ const weightOptions = computed(() => ({
         }
       },
     },
-    tickAmount: undefined,
-    tickPlacement: 'on',
+    tickAmount: 7, // FIXED: Exactly 7 ticks for 7 days
+    tickPlacement: 'between', // CHANGED: From 'on' to 'between' for better alignment
+
   },
   yaxis: {
     title: {
       text: 'Weight, kg',
+    },
+    // ADD: Same logic as height - force a better range
+    min: function(min) {
+      return min - 1 // 0.5kg breathing room below
+    },
+    max: function(max) {
+      return max + 1 // 0.5kg breathing room above
     },
     forceNiceScale: true,
     labels: {
@@ -417,10 +425,10 @@ const weightOptions = computed(() => ({
     dashArray: [0, 5] // Solid for actual, dashed for benchmark
   },
   markers: {
-    size: [5, 0], // Show markers on actual measurements only
-    colors: ['#3b82f6', '#94a3b8'],
-    strokeColors: '#fff',
-    strokeWidth: 2,
+    size: [2, 0], // Show markers on actual measurements only
+    colors: ['#9C7FF7', '#9ca3af'], // Purple for actual, Grey for benchmark
+    strokeColors: '#9ca3af',
+    strokeWidth: 1,
   },
   legend: {
     show: true,
@@ -428,6 +436,10 @@ const weightOptions = computed(() => ({
   },
   tooltip: {
     shared: false,
+    intersect: true,
+     enabled: true,
+    shared: false,
+    followCursor: true, // ADD: Makes tooltip follow mouse
     intersect: true,
     custom: function({ series, seriesIndex, dataPointIndex, w }) {
       const value = series[seriesIndex][dataPointIndex]
@@ -505,7 +517,7 @@ const heightOptions = computed(() => ({
     mode: 'light',
     palette: 'palette5',
   },
-  colors: ['#10b981', '#94a3b8'], // Green for actual, Gray for benchmark
+  colors: ['#81c5f7', '#94a3b8'], // Blue for actual, Gray for benchmark
   xaxis: {
     type: 'datetime',
     labels: {
@@ -521,13 +533,22 @@ const heightOptions = computed(() => ({
         }
       },
     },
-    tickAmount: undefined,
-    tickPlacement: 'on',
+   tickAmount: 7, // FIXED: Exactly 7 ticks for 7 days
+    tickPlacement: 'between', // CHANGED: From 'on' to 'between' for better alignment
+
   },
   yaxis: {
     title: {
       text: 'Height, cm',
     },
+      // Remove forceNiceScale for height
+  min: function(min) {
+    return min - 2 // Add 2cm breathing room below
+  },
+  max: function(max) {
+    return max + 2 // Add 2cm breathing room above
+  },
+  tickAmount: 5, // Use 5 ticks instead of 6
     forceNiceScale: true,
     labels: {
       formatter: function(val) {
@@ -541,10 +562,10 @@ const heightOptions = computed(() => ({
     dashArray: [0, 5]
   },
   markers: {
-    size: [5, 0],
-    colors: ['#10b981', '#94a3b8'],
-    strokeColors: '#fff',
-    strokeWidth: 2,
+    size: [2, 0], // Show markers on actual measurements only
+    colors: ['#9C7FF7', '#9ca3af'], // Purple for actual, Grey for benchmark
+    strokeColors: '#9ca3af',
+    strokeWidth: 1,
   },
   legend: {
     show: true,
@@ -552,6 +573,10 @@ const heightOptions = computed(() => ({
   },
   tooltip: {
     shared: false,
+    intersect: true,
+     enabled: true,
+    shared: false,
+    followCursor: true, // ADD: Makes tooltip follow mouse
     intersect: true,
     custom: function({ series, seriesIndex, dataPointIndex, w }) {
       const value = series[seriesIndex][dataPointIndex]
@@ -592,7 +617,7 @@ const headOptions = computed(() => ({
     mode: 'light',
     palette: 'palette5',
   },
-  colors: ['#8b5cf6', '#94a3b8'], // Purple for actual, Gray for benchmark
+  colors: ['#fb9bec', '#94a3b8'], // Pink for actual, Gray for benchmark
   xaxis: {
     type: 'datetime',
     labels: {
@@ -608,12 +633,29 @@ const headOptions = computed(() => ({
         }
       },
     },
-    tickAmount: undefined,
-    tickPlacement: 'on',
+    tickAmount: 7, // FIXED: Exactly 7 ticks for 7 days
+    tickPlacement: 'between', // CHANGED: From 'on' to 'between' for better alignment
+
   },
   yaxis: {
     title: {
       text: 'Head circumference, cm',
+    },
+    // CUSTOM: Create consistent 0.5cm intervals
+    min: function(min) {
+      // Round down to nearest 0.5cm and subtract 1cm for breathing room
+      return Math.floor((min - 1) * 2) / 2
+    },
+    max: function(max) {
+      // Round up to nearest 0.5cm and add 1cm for breathing room
+      return Math.ceil((max + 1) * 2) / 2
+    },
+    tickAmount: undefined, // Let ApexCharts auto-calculate based on our 0.5cm intervals
+    decimalsInFloat: 1, // Show 1 decimal place
+    labels: {
+      formatter: function(val) {
+        return val.toFixed(1) + ' cm'
+      }
     },
     forceNiceScale: true,
     labels: {
@@ -628,10 +670,10 @@ const headOptions = computed(() => ({
     dashArray: [0, 5]
   },
   markers: {
-    size: [5, 0],
-    colors: ['#8b5cf6', '#94a3b8'],
-    strokeColors: '#fff',
-    strokeWidth: 2,
+    size: [2, 0], // Show markers on actual measurements only
+    colors: ['#9C7FF7', '#9ca3af'], // Purple for actual, Grey for benchmark
+    strokeColors: '#9ca3af',
+    strokeWidth: 1,
   },
   dataLabels: {
     enabled: false,
@@ -642,6 +684,10 @@ const headOptions = computed(() => ({
   },
   tooltip: {
     shared: false,
+    intersect: true,
+     enabled: true,
+    shared: false,
+    followCursor: true, // ADD: Makes tooltip follow mouse
     intersect: true,
     custom: function({ series, seriesIndex, dataPointIndex, w }) {
       const value = series[seriesIndex][dataPointIndex]
