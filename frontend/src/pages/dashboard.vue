@@ -495,6 +495,7 @@ const heightSeries = ref([
 
 // Chart options for Height
 // Chart options for Height (SIMPLIFIED)
+// Chart options for Height (SIMPLIFIED)
 const heightOptions = computed(() => ({
   chart: {
     type: 'line',
@@ -535,7 +536,7 @@ const heightOptions = computed(() => ({
     }
   },
   stroke: {
-    curve: 'smooth',
+    curve: 'stepline', // CHANGED: Use stepline for growth charts
     width: [3, 2],
     dashArray: [0, 5]
   },
@@ -581,7 +582,6 @@ const headSeries = ref([
   },
 ])
 
-// Chart options for Head Circumference
 // Chart options for Head Circumference (SIMPLIFIED)
 const headOptions = computed(() => ({
   chart: {
@@ -623,7 +623,7 @@ const headOptions = computed(() => ({
     }
   },
   stroke: {
-    curve: 'smooth',
+    curve: 'stepline', // CHANGED: Use stepline for growth charts
     width: [3, 2],
     dashArray: [0, 5]
   },
@@ -862,7 +862,7 @@ const getCurrentChildId = () => {
   return childrenStore.currentChild.id
 }
 
-// Enhanced fetch functions that use real backend data and respond to date changes
+// SIMPLIFIED fetchGrowth function - no complex calculations
 const fetchGrowth = async (selectedDateParam) => {
   try {
     const childId = getCurrentChildId()
@@ -1723,106 +1723,400 @@ const updateHealthSymptomsForDate = async (targetDate) => {
   }
 }
 
-// CORRECTED updateChartsForDate function - Only show actual check-in data with steplines
+// CORRECTED updateChartsForDate function - Medical growth chart with steplines and carry-forward
 const updateChartsForDate = () => {
-  const filterByViewMode = (data, viewMode) => {
+  const createMedicalGrowthTimeline = (actualData, benchmarkData, viewMode) => {
     if (viewMode === 'weekly') {
-      // Show only actual check-ins within the last 7 days from selected date
-      const weekStart = new Date(selectedDate.value)
-      weekStart.setDate(selectedDate.value.getDate() - 6)
-      weekStart.setHours(0, 0, 0, 0)
+      // Create 7-day timeline with carry-forward logic for actual measurements
+      const weeklyActual = []
+      const weeklyBenchmark = []
       
-      const weekEnd = new Date(selectedDate.value)
-      weekEnd.setHours(23, 59, 59, 999)
+      // Sort actual data by date (oldest first)
+      const sortedActual = [...actualData].sort((a, b) => new Date(a.x) - new Date(b.x))
+      const sortedBenchmark = [...benchmarkData].sort((a, b) => new Date(a.x) - new Date(b.x))
       
-      return data.filter(item => {
-        const itemDate = new Date(item.x)
-        return itemDate >= weekStart && itemDate <= weekEnd && item.y !== null
-      })
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(selectedDate.value)
+        date.setDate(selectedDate.value.getDate() - i)
+        date.setHours(12, 0, 0, 0) // Set to noon to avoid timezone issues
+        
+        // CARRY-FORWARD LOGIC: Find the most recent actual measurement up to this date
+        let carryForwardActual = null
+        for (const dataPoint of sortedActual) {
+          const dataDate = new Date(dataPoint.x)
+          if (dataDate <= date && dataPoint.y !== null && dataPoint.y !== undefined) {
+            carryForwardActual = dataPoint.y
+          }
+        }
+        
+        // BENCHMARK: Find the benchmark value for this specific date or closest
+        let benchmarkValue = null
+        for (const dataPoint of sortedBenchmark) {
+          const dataDate = new Date(dataPoint.x)
+          if (dataDate <= date && dataPoint.y !== null && dataPoint.y !== undefined) {
+            benchmarkValue = dataPoint.y
+          }
+        }
+        
+        // Add to timeline - actual uses carry-forward, benchmark is more continuous
+        weeklyActual.push({
+          x: date.getTime(),
+          y: carryForwardActual // Will be null if no measurements exist yet
+        })
+        
+        weeklyBenchmark.push({
+          x: date.getTime(),
+          y: benchmarkValue
+        })
+      }
+      
+      return {
+        actual: weeklyActual,
+        benchmark: weeklyBenchmark
+      }
     }
-    // Monthly: show all actual data points
-    return data.filter(item => item.y !== null)
+    
+    // Monthly view: show only actual check-in dates (no carry-forward for monthly)
+    return {
+      actual: actualData.filter(item => item.y !== null && item.y !== undefined),
+      benchmark: benchmarkData.filter(item => item.y !== null && item.y !== undefined)
+    }
   }
 
-  // Update charts with only actual check-in data
+  // Update weight chart with medical growth behavior
+  const weightTimeline = createMedicalGrowthTimeline(actual.weight, benchmark.weight, growthViewMode.value)
   weightSeries.value = [
-    { name: 'Actual', data: filterByViewMode(actual.weight, growthViewMode.value) },
-    { name: 'Benchmark', data: filterByViewMode(benchmark.weight, growthViewMode.value) }
+    { name: 'Actual', data: weightTimeline.actual },
+    { name: 'Benchmark', data: weightTimeline.benchmark }
   ]
   
+  // Update height chart with medical growth behavior  
+  const heightTimeline = createMedicalGrowthTimeline(actual.height, benchmark.height, heightViewMode.value)
   heightSeries.value = [
-    { name: 'Actual', data: filterByViewMode(actual.height, heightViewMode.value) },
-    { name: 'Benchmark', data: filterByViewMode(benchmark.height, heightViewMode.value) }
+    { name: 'Actual', data: heightTimeline.actual },
+    { name: 'Benchmark', data: heightTimeline.benchmark }
   ]
   
+  // Update head circumference chart with medical growth behavior
+  const headTimeline = createMedicalGrowthTimeline(actual.head_circumference, benchmark.head_circumference, headViewMode.value)
   headSeries.value = [
-    { name: 'Actual', data: filterByViewMode(actual.head_circumference, headViewMode.value) },
-    { name: 'Benchmark', data: filterByViewMode(benchmark.head_circumference, headViewMode.value) }
+    { name: 'Actual', data: headTimeline.actual },
+    { name: 'Benchmark', data: headTimeline.benchmark }
   ]
 
-  console.log('📊 Charts updated with actual check-in data only')
+  console.log('📊 Medical growth charts updated with stepline and carry-forward logic')
+  console.log('Weight points:', weightTimeline.actual.filter(d => d.y !== null).length)
+  console.log('Height points:', heightTimeline.actual.filter(d => d.y !== null).length)
+  console.log('Head points:', headTimeline.actual.filter(d => d.y !== null).length)
 }
-// Watch for date changes and refresh data
-watch(selectedDate, async (newDate) => {
-  console.log('Date changed to:', newDate)
-  // Refetch all data when date changes
-  await Promise.all([
-    fetchGrowth(newDate),
-    fetchSleep(newDate),
-    fetchMealAnalytics(newDate),
-    fetchPoopAnalytics(newDate)
-  ])
-  // Update the health symptoms based on new date
-  updateHealthSymptomsForDate(newDate)
-}, { immediate: false })
 
-// Enhanced view mode setters that work with real data
+// ENHANCED chart options for medical growth charts
+const updateGrowthChartOptions = () => {
+  // Weight Chart - Medical Standard with Steplines
+  const weightOptionsEnhanced = computed(() => ({
+    chart: {
+      type: 'line',
+      toolbar: { show: false },
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 600
+      }
+    },
+    theme: {
+      mode: 'light',
+      palette: 'palette5',
+    },
+    colors: ['#3b82f6', '#94a3b8'], // Blue for actual, Gray for benchmark
+    xaxis: {
+      type: 'datetime',
+      labels: {
+        show: true,
+        rotate: -45,
+        datetimeUTC: false,
+        formatter: function(val) {
+          const date = new Date(val)
+          if (growthViewMode.value === 'weekly') {
+            return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+          } else {
+            return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+          }
+        },
+      },
+      tickAmount: undefined,
+      tickPlacement: 'on',
+    },
+    yaxis: {
+      title: {
+        text: 'Weight, kg',
+        style: {
+          fontSize: '14px',
+          fontWeight: 600,
+          color: '#374151'
+        }
+      },
+      forceNiceScale: true,
+      labels: {
+        formatter: function(val) {
+          return val !== null ? val.toFixed(1) + ' kg' : ''
+        }
+      }
+    },
+    stroke: {
+      curve: 'stepline', // MEDICAL CHART: Use stepline for growth progression
+      width: [3, 2],
+      dashArray: [0, 5] // Solid for actual, dashed for benchmark
+    },
+    markers: {
+      size: [6, 0], // Show markers only on actual measurements
+      colors: ['#3b82f6', '#94a3b8'],
+      strokeColors: '#fff',
+      strokeWidth: 2,
+      hover: {
+        sizeOffset: 2
+      }
+    },
+    legend: {
+      show: true,
+      position: 'bottom',
+      labels: {
+        colors: ['#374151']
+      }
+    },
+    tooltip: {
+      shared: false,
+      intersect: true,
+      custom: function({ series, seriesIndex, dataPointIndex, w }) {
+        const value = series[seriesIndex][dataPointIndex]
+        const date = new Date(w.globals.seriesX[seriesIndex][dataPointIndex])
+        const seriesName = w.globals.seriesNames[seriesIndex]
+        
+        if (value === null || value === undefined) {
+          return `
+            <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #6b7280;">No measurement</div>
+            </div>
+          `
+        }
+        
+        return `
+          <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; font-family: Inter, sans-serif;">
+            <div style="font-weight: 600; margin-bottom: 6px; color: #374151;">${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
+            <div style="color: ${seriesIndex === 0 ? '#3b82f6' : '#94a3b8'};">
+              ${seriesName}: <strong>${value.toFixed(2)} kg</strong>
+            </div>
+          </div>
+        `
+      }
+    },
+    grid: {
+      show: true,
+      borderColor: '#f3f4f6',
+      strokeDashArray: 2
+    }
+  }))
+
+  // Height Chart - Medical Standard with Steplines
+  const heightOptionsEnhanced = computed(() => ({
+    ...weightOptionsEnhanced.value,
+    colors: ['#10b981', '#94a3b8'], // Green for actual, Gray for benchmark
+    yaxis: {
+      title: {
+        text: 'Height, cm',
+        style: {
+          fontSize: '14px',
+          fontWeight: 600,
+          color: '#374151'
+        }
+      },
+      forceNiceScale: true,
+      labels: {
+        formatter: function(val) {
+          return val !== null ? val.toFixed(0) + ' cm' : ''
+        }
+      }
+    },
+    stroke: {
+      curve: 'stepline', // MEDICAL CHART: Stepline for height growth
+      width: [3, 2],
+      dashArray: [0, 5]
+    },
+    markers: {
+      size: [6, 0],
+      colors: ['#10b981', '#94a3b8'],
+      strokeColors: '#fff',
+      strokeWidth: 2
+    },
+    tooltip: {
+      shared: false,
+      intersect: true,
+      custom: function({ series, seriesIndex, dataPointIndex, w }) {
+        const value = series[seriesIndex][dataPointIndex]
+        const date = new Date(w.globals.seriesX[seriesIndex][dataPointIndex])
+        const seriesName = w.globals.seriesNames[seriesIndex]
+        
+        if (value === null || value === undefined) {
+          return `
+            <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #6b7280;">No measurement</div>
+            </div>
+          `
+        }
+        
+        return `
+          <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; font-family: Inter, sans-serif;">
+            <div style="font-weight: 600; margin-bottom: 6px; color: #374151;">${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
+            <div style="color: ${seriesIndex === 0 ? '#10b981' : '#94a3b8'};">
+              ${seriesName}: <strong>${value.toFixed(1)} cm</strong>
+            </div>
+          </div>
+        `
+      }
+    }
+  }))
+
+  // Head Circumference Chart - Medical Standard with Steplines
+  const headOptionsEnhanced = computed(() => ({
+    ...weightOptionsEnhanced.value,
+    colors: ['#8b5cf6', '#94a3b8'], // Purple for actual, Gray for benchmark
+    yaxis: {
+      title: {
+        text: 'Head circumference, cm',
+        style: {
+          fontSize: '14px',
+          fontWeight: 600,
+          color: '#374151'
+        }
+      },
+      forceNiceScale: true,
+      labels: {
+        formatter: function(val) {
+          return val !== null ? val.toFixed(1) + ' cm' : ''
+        }
+      }
+    },
+    stroke: {
+      curve: 'stepline', // MEDICAL CHART: Stepline for head circumference
+      width: [3, 2],
+      dashArray: [0, 5]
+    },
+    markers: {
+      size: [6, 0],
+      colors: ['#8b5cf6', '#94a3b8'],
+      strokeColors: '#fff',
+      strokeWidth: 2
+    },
+    tooltip: {
+      shared: false,
+      intersect: true,
+      custom: function({ series, seriesIndex, dataPointIndex, w }) {
+        const value = series[seriesIndex][dataPointIndex]
+        const date = new Date(w.globals.seriesX[seriesIndex][dataPointIndex])
+        const seriesName = w.globals.seriesNames[seriesIndex]
+        
+        if (value === null || value === undefined) {
+          return `
+            <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #6b7280;">No measurement</div>
+            </div>
+          `
+        }
+        
+        return `
+          <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; font-family: Inter, sans-serif;">
+            <div style="font-weight: 600; margin-bottom: 6px; color: #374151;">${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
+            <div style="color: ${seriesIndex === 0 ? '#8b5cf6' : '#94a3b8'};">
+              ${seriesName}: <strong>${value.toFixed(1)} cm</strong>
+            </div>
+          </div>
+        `
+      }
+    }
+  }))
+
+  return {
+    weightOptions: weightOptionsEnhanced,
+    heightOptions: heightOptionsEnhanced,
+    headOptions: headOptionsEnhanced
+  }
+}
+
+// Call this to get the enhanced options
+const enhancedOptions = updateGrowthChartOptions()
+
+// Replace your existing computed options with these:
+// const weightOptions = enhancedOptions.weightOptions
+// const heightOptions = enhancedOptions.heightOptions  
+// const headOptions = enhancedOptions.headOptions
+
+// Add these functions to your <script setup> section in dashboard.vue
+
+// View mode setter functions
 const setGrowthView = (mode) => {
   growthViewMode.value = mode
-  updateChartsForDate() // Use the new function that filters existing data
-}
-
-const setMealView = (mode) => {
-  mealViewMode.value = mode
-  // Re-fetch meal data with different time range based on the selected mode
-  fetchMealAnalytics(selectedDate.value)
-}
-
-const setSleepView = (mode) => {
-  sleepViewMode.value = mode
-  updateChartsForDate() // Use the new function that filters existing data
-}
-
-const setPoopView = (mode) => {
-  poopViewMode.value = mode
-  // Re-fetch poop data with different time range based on the selected mode
-  fetchPoopAnalytics(selectedDate.value)
+  updateChartsForDate()
 }
 
 const setHeightView = (mode) => {
   heightViewMode.value = mode
-  updateChartsForDate() // Use the new function that filters existing data
+  updateChartsForDate()
 }
 
 const setHeadView = (mode) => {
   headViewMode.value = mode
-  updateChartsForDate() // Use the new function that filters existing data
+  updateChartsForDate()
 }
 
+const setSleepView = (mode) => {
+  sleepViewMode.value = mode
+  fetchSleep(selectedDate.value)
+}
+
+const setPoopView = (mode) => {
+  poopViewMode.value = mode
+  fetchPoopAnalytics(selectedDate.value)
+}
+
+// Watch for selectedDate changes to refresh all data
+watch(selectedDate, async (newDate) => {
+  console.log('📅 Date changed to:', newDate)
+  
+  // Refresh all data for the new date
+  await Promise.all([
+    fetchGrowth(newDate),
+    fetchSleep(newDate),
+    fetchMealAnalytics(newDate),
+    fetchPoopAnalytics(newDate),
+    updateHealthSymptomsForDate(newDate)
+  ])
+}, { deep: true })
+
+// Initialize data on component mount
 onMounted(async () => {
-  try {
-    // Fetch all data on component mount
-    await Promise.all([
-      fetchGrowth(selectedDate.value),
-      fetchSleep(selectedDate.value),
-      fetchMealAnalytics(selectedDate.value),
-      fetchPoopAnalytics(selectedDate.value)
-    ])
-    // Update health symptoms for initial date
-    await updateHealthSymptomsForDate(selectedDate.value)
-  } catch (error) {
-    console.error(`Error initializing dashboard: ${error}`)
+  console.log('🚀 Dashboard component mounted')
+  
+  // Wait for auth and children stores to be ready
+  if (!authStore.isAuthenticated) {
+    console.log('⚠️ User not authenticated, redirecting...')
+    return
   }
+  
+  if (!childrenStore.currentChild) {
+    console.log('⚠️ No current child selected')
+    dataError.value = 'Please select a child to view dashboard data'
+    return
+  }
+  
+  // Load initial data for today
+  await Promise.all([
+    fetchGrowth(selectedDate.value),
+    fetchSleep(selectedDate.value),
+    fetchMealAnalytics(selectedDate.value),
+    fetchPoopAnalytics(selectedDate.value),
+    updateHealthSymptomsForDate(selectedDate.value)
+  ])
+  
+  console.log('✅ Dashboard data initialized')
 })
 </script>
 
