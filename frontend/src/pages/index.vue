@@ -264,7 +264,7 @@
   // Load data for a specific date and current child
   const loadDataForDate = async (date: Date) => {
     selectedDate.value = date
-    
+
     const dateStr = date.toISOString().split('T')[0]
     console.log('🔄 loadDataForDate called for:', dateStr)
 
@@ -338,9 +338,9 @@
   }
 
   // User profile data (you may want to get this from a store)
-  const userProfile = reactive({
-    role: 'Guardian' // or 'Parent'
-  })
+  // const userProfile = reactive({
+  //   role: 'Guardian' // or 'Parent'
+  // })
 
   // ===== LIFECYCLE =====
 
