@@ -75,6 +75,28 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <!-- Loading Snackbar -->
+      <v-snackbar
+        v-model="showLoadingAlert"
+        :timeout="-1"
+        color="primary"
+        location="top"
+        class="loading-snackbar"
+      >
+        <div class="d-flex align-center">
+          <v-progress-circular
+            indeterminate
+            size="20"
+            width="2"
+            class="mr-3"
+          ></v-progress-circular>
+          <div>
+            <div class="font-weight-medium">SuriAI is working...</div>
+            <div class="text-caption">Analyzing your child's info and generating personalized articles</div>
+          </div>
+        </div>
+      </v-snackbar>
     </v-main>
   </v-app>
 </template>
@@ -93,6 +115,7 @@
   const route = useRoute()
   const currentTab = ref('guidance')
   const guidanceStore = useGuidanceStore()
+  const showLoadingAlert = ref(false)
 
   // Get reactive references from guidance store
   const { isArticleSaved, savedArticles, isLoading, refreshPromptVisible, refreshPromptChild } = storeToRefs(guidanceStore)
@@ -114,7 +137,15 @@
     const childrenStore = useChildrenStore()
     
     if (childrenStore.currentChild) {
-      await guidanceStore.refreshArticles(childrenStore.currentChild.id, true)
+      // Show loading alert
+      showLoadingAlert.value = true
+      
+      try {
+        await guidanceStore.refreshArticles(childrenStore.currentChild.id, true)
+      } finally {
+        // Hide loading alert when done
+        showLoadingAlert.value = false
+      }
     }
   }
 

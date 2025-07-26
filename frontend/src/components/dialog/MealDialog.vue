@@ -199,7 +199,6 @@
           </div>
         </div>
       </div>
-      </div>
     </template>
   </BaseCheckInDialog>
 </template>
@@ -216,14 +215,13 @@
       default: '800px',
     },
     currentChild: {
-    type: Object,
-    default: () => ({ name: 'Child' })
-  },
+      type: Object,
+      default: () => ({ name: 'Child' })
+    },
     modelValue: {
       type: Boolean,
       default: false,
     },
-    
     mealTime: {
       type: String,
       default: '',
@@ -256,10 +254,6 @@
       type: Boolean,
       default: false
     },
-    currentChild: {
-    type: Object,
-    default: () => ({ name: 'Child' })
-  },
   })
 
   const emit = defineEmits([
