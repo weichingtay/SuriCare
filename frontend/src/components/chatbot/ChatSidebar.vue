@@ -39,7 +39,7 @@
         
         <!-- New Chat Button -->
         <v-btn
-          class="new-chat-btn"
+          class="new-chat-btn btn-light-blue"
           color="primary"
           prepend-icon="mdi-plus"
           variant="outlined"
@@ -259,6 +259,10 @@
 .new-chat-btn {
   text-transform: none;
   font-weight: 500;
+  background-color: #6cfc89;
+  border: none !important;
+  box-shadow: none;
+  color: #ffffff !important;
 }
 
 .delete-btn {
