@@ -17,31 +17,6 @@
       <div class="growth-content">
         <!-- Growth Measurements Row -->
         <div class="growth-measurements">
-          <!-- Weight Input -->
-          <div class="measurement-field">
-            <label class="section-label">Weight</label>
-            <v-text-field
-              v-model="localWeight"
-              class="measurement-input"
-              :disabled="loading"
-              :error="!!errors.weight"
-              hide-details
-              placeholder="Input weight here"
-              suffix="kg"
-              variant="outlined"
-              @focus="clearError('weight')"
-              @input="clearError('weight')"
-            >
-              <template #prepend-inner>
-                <v-icon color="grey-darken-1" size="20">
-                  mdi-weight-kilogram
-                </v-icon>
-              </template>
-            </v-text-field>
-            <div v-if="errors.weight" class="error-message">
-              {{ errors.weight }}
-            </div>
-          </div>
 
           <!-- Height Input -->
           <div class="measurement-field">
@@ -66,6 +41,31 @@
             </v-text-field>
             <div v-if="errors.height" class="error-message">
               {{ errors.height }}
+            </div>
+          </div>
+          <!-- Weight Input -->
+          <div class="measurement-field">
+            <label class="section-label">Weight</label>
+            <v-text-field
+              v-model="localWeight"
+              class="measurement-input"
+              :disabled="loading"
+              :error="!!errors.weight"
+              hide-details
+              placeholder="Input weight here"
+              suffix="kg"
+              variant="outlined"
+              @focus="clearError('weight')"
+              @input="clearError('weight')"
+            >
+              <template #prepend-inner>
+                <v-icon color="grey-darken-1" size="20">
+                  mdi-weight-kilogram
+                </v-icon>
+              </template>
+            </v-text-field>
+            <div v-if="errors.weight" class="error-message">
+              {{ errors.weight }}
             </div>
           </div>
 
@@ -177,13 +177,13 @@ currentChild: {
         headCircumference: props.headCircumference,
         notes: props.notes
       })
-      
+
       // Reset form when opening dialog
       localWeight.value = props.weight?.toString() || ''
       localHeight.value = props.height?.toString() || ''
       localHeadCircumference.value = props.headCircumference?.toString() || ''
       localNotes.value = props.notes || ''
-      
+
       // Clear all errors when opening
       errors.value = {}
     }
@@ -349,7 +349,7 @@ currentChild: {
   const handleSave = async () => {
     console.log('📏 Growth dialog handleSave clicked!')
     console.log('🔍 isEditing:', props.isEditing)
-    
+
     if (!validateForm()) {
       console.log('❌ Growth validation failed')
       return
@@ -372,11 +372,11 @@ currentChild: {
     } else {
       // ➕ CREATE MODE: Call store to create new entry (normal check-in)
       console.log('➕ Create mode: calling checkinStore.saveGrowth for new entry')
-      
+
       try {
         await checkinStore.saveGrowth(growthData)
         console.log('✅ Growth save completed successfully!')
-        
+
         // Dialog will close automatically on success
         emit('close')
       } catch (error) {
