@@ -38,15 +38,18 @@ class ChatResponse(BaseModel):
 # Initialize RAG service (singleton pattern)
 rag_service = None
 
-def get_rag_service():
+def get_rag_service(session: Session = None):
     global rag_service
     if rag_service is None:
         try:
-            rag_service = RAGService()
+            rag_service = RAGService(session)
             knowledge_base_path = os.path.join(os.path.dirname(__file__), '..', '..', 'knowledge_base.json')
             rag_service.initialize_knowledge_base(knowledge_base_path)
         except Exception as e:
             print(f"Error initializing RAG service: {e}")
+    elif session and not rag_service.session:
+        # Update session if not set
+        rag_service.session = session
     return rag_service
 
 @router.post('/chat/', response_model=ChatResponse)
@@ -113,11 +116,11 @@ def contextual_chat_endpoint(payload: ContextualChatRequest, session: Session = 
             raise HTTPException(status_code=404, detail=f"Child {payload.child_id} not found or access denied")
         
         # Get RAG response with child context
-        rag = get_rag_service()
+        rag = get_rag_service(session)
         if not rag:
             return ChatResponse(reply="AI service is currently unavailable. Please try again later.")
         
-        result = rag.get_contextual_response(payload.message, child_context)
+        result = rag.get_contextual_response(payload.message, child_context, payload.child_id)
         
         return ChatResponse(
             reply=result["response"],
@@ -158,7 +161,7 @@ def contextual_chat_stream_endpoint(payload: ContextualChatRequest, session: Ses
             return StreamingResponse(error_stream(), media_type="text/plain")
         
         # Get RAG service
-        rag = get_rag_service()
+        rag = get_rag_service(session)
         if not rag:
             def error_stream():
                 yield f"data: {json.dumps({'content': 'AI service is currently unavailable. Please try again later.', 'done': True, 'error': True})}\n\n"
@@ -166,7 +169,7 @@ def contextual_chat_stream_endpoint(payload: ContextualChatRequest, session: Ses
         
         def generate_response():
             try:
-                for chunk in rag.stream_contextual_response(payload.message, child_context):
+                for chunk in rag.stream_contextual_response(payload.message, child_context, payload.child_id):
                     yield f"data: {json.dumps(chunk)}\n\n"
             except Exception as e:
                 yield f"data: {json.dumps({'content': 'Error generating response', 'done': True, 'error': True})}\n\n"

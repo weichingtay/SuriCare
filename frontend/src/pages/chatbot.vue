@@ -150,29 +150,13 @@
   };
 
   // Methods
-  const handleNewChat = async () => {
-    try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      const response = await axios.post(`${baseUrl}/chats?owner_id=${ownerId.value}`, {
-        title: 'New Chat',
-        child_id: selectedChildForChat.value
-      });
-      const newChat = response.data;
-
-      // Reload chat history to ensure we have the latest data and proper filtering
-      await loadChatHistory();
-
-      // Set the new chat as current
-      currentChatId.value = newChat.id;
-
-      // Clear any previous errors
-      error.value = null;
-      showError.value = false;
-    } catch (err: any) {
-      console.error('Error creating new chat:', err);
-      error.value = getErrorMessage(err);
-      showError.value = true;
-    }
+  const handleNewChat = () => {
+    // Simply clear the current chat selection - actual chat will be created when user sends first message
+    currentChatId.value = null;
+    
+    // Clear any previous errors
+    error.value = null;
+    showError.value = false;
   };
 
   const handleSelectChat = async (chatId: string) => {
@@ -270,39 +254,10 @@
       }
 
       const response = await axios.get(url);
-      chatHistory.value = await Promise.all(response.data.map(async (chat: any) => {
-        let title = chat.title;
-
-        // If the title is still "New Chat", try to get the first message to use as title
-        if (title === 'New Chat') {
-          try {
-            const messagesResponse = await axios.get(`${baseUrl}/chats/${chat.id}/messages`);
-            const messages = messagesResponse.data;
-            if (messages.length > 0) {
-              const firstUserMessage = messages.find((msg: any) => msg.sender === 'user');
-              if (firstUserMessage) {
-                const messageText = firstUserMessage.message || firstUserMessage.text;
-                title = messageText.slice(0, 30) + (messageText.length > 30 ? '...' : '');
-
-                // Update the title in the backend
-                try {
-                  await axios.put(`${baseUrl}/chats/${chat.id}`, { title });
-                } catch (error) {
-                  console.error('Error updating chat title:', error);
-                }
-              }
-            }
-          } catch (error) {
-            console.error('Error fetching messages for title update:', error);
-          }
-        }
-
-        return {
-          ...chat,
-          title,
-          messages: [],
-          date: formatDateForGrouping(chat.created_at || chat.updated_at || new Date().toISOString())
-        };
+      chatHistory.value = response.data.map((chat: any) => ({
+        ...chat,
+        messages: [],
+        date: formatDateForGrouping(chat.created_at || chat.updated_at || new Date().toISOString())
       }));
 
       if (chatHistory.value.length > 0) {
@@ -350,13 +305,37 @@
       chat => chat.id === currentChatId.value
     );
 
-    // If no current chat exists, create a new one first
+    // If no current chat exists, create a new one with the first message
     if (currentChatIndex === -1) {
-      await handleNewChat();
-      // After creating new chat, find it again
-      currentChatIndex = chatHistory.value.findIndex(
-        chat => chat.id === currentChatId.value
-      );
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        const chatTitle = message.slice(0, 30) + (message.length > 30 ? '...' : '');
+        
+        const response = await axios.post(`${baseUrl}/chats?owner_id=${ownerId.value}`, {
+          title: chatTitle,
+          child_id: selectedChildForChat.value
+        });
+        const newChat = {
+          ...response.data,
+          title: chatTitle,
+          messages: [],
+          date: formatDateForGrouping(response.data.created_at || new Date().toISOString())
+        };
+
+        // Add to chat history
+        chatHistory.value.unshift(newChat);
+        currentChatId.value = newChat.id;
+        currentChatIndex = 0;
+
+        // Clear any previous errors
+        error.value = null;
+        showError.value = false;
+      } catch (err: any) {
+        console.error('Error creating new chat:', err);
+        error.value = getErrorMessage(err);
+        showError.value = true;
+        return; // Exit early if chat creation fails
+      }
     }
 
     if (currentChatIndex !== -1) {
@@ -367,21 +346,7 @@
       };
       chatHistory.value[currentChatIndex].messages.push(newMessage);
 
-      // Update chat title if it's the first message
-      if (chatHistory.value[currentChatIndex].messages.length === 1) {
-        const newTitle = message.slice(0, 30) + (message.length > 30 ? '...' : '');
-        chatHistory.value[currentChatIndex].title = newTitle;
-
-        // Update the title in the backend
-        try {
-          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-          await axios.put(`${baseUrl}/chats/${currentChatId.value}`, {
-            title: newTitle
-          });
-        } catch (error) {
-          console.error('Error updating chat title:', error);
-        }
-      }
+      // Title is already set when creating the chat, no need to update it again
 
       try {
         const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';

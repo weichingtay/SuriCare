@@ -100,6 +100,8 @@
     id: string
     title: string
     date: string
+    created_at?: string
+    updated_at?: string
   }
 
   const props = defineProps<{
@@ -129,20 +131,45 @@
       groups[chat.date].push(chat)
     })
 
-    // Sort each group's chats by most recent first (if needed)
+    // Sort each group's chats by most recent first
     Object.keys(groups).forEach(date => {
       groups[date] = groups[date].sort((a, b) => {
-        // Assuming you might want to sort by time within the same date
-        // If you have timestamp info, you can sort by that
-        return b.id.localeCompare(a.id) // Simple fallback sort
+        // Sort by updated_at or created_at timestamp (most recent first)
+        const timestampA = new Date(a.updated_at || a.created_at || 0).getTime()
+        const timestampB = new Date(b.updated_at || b.created_at || 0).getTime()
+        return timestampB - timestampA // Most recent first
       })
     })
 
-    // Convert to array, sort dates in descending order, then back to object
+    // Convert to array, sort dates with proper priority for Today/Yesterday
     const sortedEntries = Object.entries(groups).sort((a, b) => {
-      const dateA = new Date(a[0])
-      const dateB = new Date(b[0])
-      return dateB.getTime() - dateA.getTime() // Most recent date first
+      const dateA = a[0]
+      const dateB = b[0]
+      
+      // Define priority order: Today = 0, Yesterday = 1, others = 2+
+      const getPriority = (dateStr: string): number => {
+        if (dateStr === 'Today') return 0
+        if (dateStr === 'Yesterday') return 1
+        return 2
+      }
+      
+      const priorityA = getPriority(dateA)
+      const priorityB = getPriority(dateB)
+      
+      // If priorities are different, sort by priority
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB
+      }
+      
+      // If both are regular dates (priority 2), sort chronologically (most recent first)
+      if (priorityA === 2 && priorityB === 2) {
+        const realDateA = new Date(dateA)
+        const realDateB = new Date(dateB)
+        return realDateB.getTime() - realDateA.getTime()
+      }
+      
+      // Otherwise maintain current order
+      return 0
     })
 
     // Convert back to object while maintaining order
