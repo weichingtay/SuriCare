@@ -6,6 +6,10 @@ from langchain.chains import RetrievalQA
 from langchain.schema import Document
 from typing import List, Dict, Optional
 import json
+from datetime import datetime, timedelta
+from sqlmodel import Session, select
+from app.models import Symptom, Sleep_Time, Meal, Growth
+import statistics
 
 GEMINI_MODEL = "gemini-2.0-flash"
 AI_TEMPERATURE = 0.3
@@ -14,7 +18,7 @@ AI_TEMPERATURE = 0.3
 class RAGService:
     """RAG service using LangChain + FAISS + Google Gemini"""
 
-    def __init__(self):
+    def __init__(self, session: Optional[Session] = None):
         self.api_key = os.getenv("GEMINI_API_KEY")
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY not found in environment variables")
@@ -30,6 +34,7 @@ class RAGService:
 
         self.vectorstore = None
         self.qa_chain = None
+        self.session = session
 
     def initialize_knowledge_base(self, knowledge_file_path: str):
         """
@@ -106,13 +111,274 @@ class RAGService:
 
         return documents
 
+    def get_weekly_patterns(self, child_id: int) -> Dict:
+        """Analyze child's patterns from the last week"""
+        if not self.session:
+            return {"status": "no_database_access"}
+        
+        one_week_ago = datetime.now() - timedelta(days=7)
+        
+        patterns = {
+            "sleep_patterns": self._analyze_sleep_patterns(child_id, one_week_ago),
+            "nutrition_patterns": self._analyze_nutrition_patterns(child_id, one_week_ago),
+            "symptom_patterns": self._analyze_symptom_patterns(child_id, one_week_ago),
+            "growth_trends": self._analyze_recent_growth(child_id, one_week_ago)
+        }
+        
+        return patterns
+
+    def _analyze_sleep_patterns(self, child_id: int, since_date: datetime) -> Dict:
+        """Analyze sleep patterns from the last week"""
+        sleep_records = self.session.exec(
+            select(Sleep_Time)
+            .where(Sleep_Time.child_id == child_id, Sleep_Time.check_in >= since_date)
+            .order_by(Sleep_Time.check_in.desc())
+        ).all()
+        
+        if not sleep_records:
+            return {"status": "no_data"}
+        
+        # Calculate daily sleep durations
+        daily_sleep = []
+        sleep_quality_scores = []
+        
+        for record in sleep_records:
+            if record.start_time and record.end_time:
+                duration = (record.end_time - record.start_time).total_seconds() / 3600
+                if 0 < duration < 24:  # Valid duration
+                    daily_sleep.append(duration)
+                    # Simple quality score based on duration
+                    if 8 <= duration <= 12:
+                        sleep_quality_scores.append("good")
+                    elif 6 <= duration < 8 or 12 < duration <= 14:
+                        sleep_quality_scores.append("fair")
+                    else:
+                        sleep_quality_scores.append("poor")
+        
+        if not daily_sleep:
+            return {"status": "incomplete_data"}
+        
+        avg_sleep = statistics.mean(daily_sleep)
+        sleep_consistency = statistics.stdev(daily_sleep) if len(daily_sleep) > 1 else 0
+        
+        # Determine pattern
+        pattern = "consistent" if sleep_consistency < 1.5 else "inconsistent"
+        trend = self._calculate_trend(daily_sleep)
+        
+        return {
+            "status": "available",
+            "average_hours": round(avg_sleep, 1),
+            "consistency": pattern,
+            "trend": trend,
+            "quality_distribution": {
+                "good": sleep_quality_scores.count("good"),
+                "fair": sleep_quality_scores.count("fair"),
+                "poor": sleep_quality_scores.count("poor")
+            },
+            "records_count": len(sleep_records)
+        }
+
+    def _analyze_nutrition_patterns(self, child_id: int, since_date: datetime) -> Dict:
+        """Analyze nutrition patterns from the last week"""
+        meals = self.session.exec(
+            select(Meal)
+            .where(Meal.child_id == child_id, Meal.check_in >= since_date)
+            .order_by(Meal.check_in.desc())
+        ).all()
+        
+        if not meals:
+            return {"status": "no_data"}
+        
+        consumption_levels = [m.consumption_level for m in meals if m.consumption_level is not None]
+        
+        if not consumption_levels:
+            return {"status": "incomplete_data"}
+        
+        avg_consumption = statistics.mean(consumption_levels)
+        consistency = statistics.stdev(consumption_levels) if len(consumption_levels) > 1 else 0
+        trend = self._calculate_trend(consumption_levels)
+        
+        # Analyze meal frequency
+        daily_meals = {}
+        for meal in meals:
+            date_key = meal.check_in.date()
+            daily_meals[date_key] = daily_meals.get(date_key, 0) + 1
+        
+        avg_meals_per_day = statistics.mean(daily_meals.values()) if daily_meals else 0
+        
+        return {
+            "status": "available",
+            "average_consumption": round(avg_consumption, 1),
+            "consistency": "consistent" if consistency < 20 else "inconsistent",
+            "trend": trend,
+            "average_meals_per_day": round(avg_meals_per_day, 1),
+            "total_meals": len(meals)
+        }
+
+    def _analyze_symptom_patterns(self, child_id: int, since_date: datetime) -> Dict:
+        """Analyze symptom patterns from the last week"""
+        symptoms = self.session.exec(
+            select(Symptom)
+            .where(Symptom.child_id == child_id, Symptom.check_in >= since_date)
+            .order_by(Symptom.check_in.desc())
+        ).all()
+        
+        if not symptoms:
+            return {"status": "no_symptoms"}
+        
+        # Group symptoms by type
+        symptom_frequency = {}
+        daily_symptoms = {}
+        
+        for symptom in symptoms:
+            # Count symptom types
+            symptom_type = symptom.symptom.lower()
+            symptom_frequency[symptom_type] = symptom_frequency.get(symptom_type, 0) + 1
+            
+            # Count daily occurrences
+            date_key = symptom.check_in.date()
+            daily_symptoms[date_key] = daily_symptoms.get(date_key, 0) + 1
+        
+        most_common_symptom = max(symptom_frequency, key=symptom_frequency.get)
+        avg_symptoms_per_day = statistics.mean(daily_symptoms.values()) if daily_symptoms else 0
+        
+        # Determine if symptoms are increasing, decreasing, or stable
+        symptom_counts = list(daily_symptoms.values())
+        trend = self._calculate_trend(symptom_counts) if len(symptom_counts) > 1 else "stable"
+        
+        return {
+            "status": "has_symptoms",
+            "total_count": len(symptoms),
+            "most_common": most_common_symptom,
+            "frequency_distribution": symptom_frequency,
+            "average_per_day": round(avg_symptoms_per_day, 1),
+            "trend": trend,
+            "days_with_symptoms": len(daily_symptoms)
+        }
+
+    def _analyze_recent_growth(self, child_id: int, since_date: datetime) -> Dict:
+        """Analyze growth trends from recent data"""
+        growth_records = self.session.exec(
+            select(Growth)
+            .where(Growth.child_id == child_id, Growth.check_in >= since_date)
+            .order_by(Growth.check_in.desc())
+        ).all()
+        
+        if len(growth_records) < 2:
+            return {"status": "insufficient_data"}
+        
+        # Sort by date for trend analysis
+        sorted_records = sorted(growth_records, key=lambda r: r.check_in)
+        
+        weight_values = [r.weight for r in sorted_records if r.weight]
+        height_values = [r.height for r in sorted_records if r.height]
+        
+        result = {"status": "available", "records_count": len(growth_records)}
+        
+        if len(weight_values) >= 2:
+            weight_trend = self._calculate_trend(weight_values)
+            weight_change = weight_values[-1] - weight_values[0]
+            result["weight_trend"] = weight_trend
+            result["weight_change_kg"] = round(weight_change, 2)
+        
+        if len(height_values) >= 2:
+            height_trend = self._calculate_trend(height_values)
+            height_change = height_values[-1] - height_values[0]
+            result["height_trend"] = height_trend
+            result["height_change_cm"] = round(height_change, 1)
+        
+        return result
+
+    def _calculate_trend(self, values: List[float]) -> str:
+        """Calculate trend direction from a list of values"""
+        if len(values) < 2:
+            return "stable"
+        
+        # Simple linear trend calculation
+        first_half = values[:len(values)//2]
+        second_half = values[len(values)//2:]
+        
+        first_avg = statistics.mean(first_half)
+        second_avg = statistics.mean(second_half)
+        
+        change_percentage = ((second_avg - first_avg) / first_avg) * 100 if first_avg != 0 else 0
+        
+        if change_percentage > 5:
+            return "increasing"
+        elif change_percentage < -5:
+            return "decreasing"
+        else:
+            return "stable"
+
+    def format_weekly_patterns_for_context(self, patterns: Dict) -> str:
+        """Format weekly patterns into readable context for AI"""
+        if patterns.get("status") == "no_database_access":
+            return ""
+        
+        context_parts = []
+        
+        # Sleep patterns
+        sleep = patterns.get("sleep_patterns", {})
+        if sleep.get("status") == "available":
+            context_parts.append(
+                f"Sleep Pattern (Last Week): {sleep['average_hours']}h average, "
+                f"{sleep['consistency']} pattern, {sleep['trend']} trend"
+            )
+        
+        # Nutrition patterns
+        nutrition = patterns.get("nutrition_patterns", {})
+        if nutrition.get("status") == "available":
+            context_parts.append(
+                f"Nutrition Pattern: {nutrition['average_consumption']}% consumption, "
+                f"{nutrition['consistency']}, {nutrition['average_meals_per_day']} meals/day, {nutrition['trend']} trend"
+            )
+        
+        # Symptom patterns
+        symptoms = patterns.get("symptom_patterns", {})
+        if symptoms.get("status") == "has_symptoms":
+            context_parts.append(
+                f"Symptom Pattern: {symptoms['total_count']} symptoms over {symptoms['days_with_symptoms']} days, "
+                f"most common: {symptoms['most_common']}, {symptoms['trend']} trend"
+            )
+        elif symptoms.get("status") == "no_symptoms":
+            context_parts.append("No symptoms reported in the last week")
+        
+        # Growth trends
+        growth = patterns.get("growth_trends", {})
+        if growth.get("status") == "available":
+            growth_info = []
+            if "weight_trend" in growth:
+                growth_info.append(f"weight {growth['weight_trend']} ({growth['weight_change_kg']:+.2f}kg)")
+            if "height_trend" in growth:
+                growth_info.append(f"height {growth['height_trend']} ({growth['height_change_cm']:+.1f}cm)")
+            if growth_info:
+                context_parts.append(f"Growth Trends: {', '.join(growth_info)}")
+        
+        return "\n".join(context_parts)
+
+    def _get_enhanced_context_with_patterns(self, child_context: str, child_id: Optional[int]) -> str:
+        """Get enhanced context that includes weekly patterns"""
+        weekly_patterns_context = ""
+        if child_id and self.session:
+            patterns = self.get_weekly_patterns(child_id)
+            weekly_patterns_context = self.format_weekly_patterns_for_context(patterns)
+        
+        enhanced_context = child_context
+        if weekly_patterns_context:
+            enhanced_context += f"\n\nWeekly Patterns & Trends:\n{weekly_patterns_context}"
+        
+        return enhanced_context
+
     # NOTE: THere are 2 ways to get repsonses, 1 is contextual from
-    def get_contextual_response(self, query: str, child_context: str) -> Dict:
+    def get_contextual_response(self, query: str, child_context: str, child_id: Optional[int] = None) -> Dict:
         """Get AI response with child context and knowledge retrieval, with fallback to general AI"""
         try:
+            # Get enhanced context with weekly patterns
+            enhanced_context = self._get_enhanced_context_with_patterns(child_context, child_id)
+            
             # First, try to get a knowledge-based response
             knowledge_response = self._get_knowledge_based_response(
-                query, child_context
+                query, enhanced_context
             )
 
             # Check if the knowledge response is relevant/useful
@@ -120,7 +386,7 @@ class RAGService:
                 return knowledge_response
 
             # If knowledge base doesn't have relevant info, use general AI
-            return self._get_general_ai_response(query, child_context)
+            return self._get_general_ai_response(query, enhanced_context)
 
         except Exception as e:
             print(f"Error getting contextual response: {e}")
@@ -143,7 +409,8 @@ class RAGService:
 
                         Please answer this question: {query}
 
-                        Provide advice specific to this child's age, developmental stage, and current health status.
+                        Provide advice specific to this child's age, developmental stage, current health status, and recent patterns/trends.
+                        Pay special attention to any patterns or trends mentioned in the weekly data.
                         Always include a disclaimer to consult healthcare professionals for serious concerns.
 
                         FORMATTING INSTRUCTIONS: 
@@ -218,9 +485,12 @@ class RAGService:
                 "error": str(e),
             }
 
-    def stream_contextual_response(self, query: str, child_context: str):
+    def stream_contextual_response(self, query: str, child_context: str, child_id: Optional[int] = None):
         """Stream AI response with child context and knowledge retrieval"""
         try:
+            # Get enhanced context with weekly patterns
+            enhanced_context = self._get_enhanced_context_with_patterns(child_context, child_id)
+            
             # First, try to get knowledge-based sources
             sources = []
             response_type = "general_ai"
@@ -260,7 +530,7 @@ class RAGService:
                             {context_info}
 
                             Child Context:
-                            {child_context}
+                            {enhanced_context}
 
                             User Question: {query}
 
@@ -274,13 +544,13 @@ class RAGService:
                             Response:
                             """
                         else:
-                            prompt = self._create_general_prompt(query, child_context)
+                            prompt = self._create_general_prompt(query, enhanced_context)
                     else:
-                        prompt = self._create_general_prompt(query, child_context)
+                        prompt = self._create_general_prompt(query, enhanced_context)
                 except:
-                    prompt = self._create_general_prompt(query, child_context)
+                    prompt = self._create_general_prompt(query, enhanced_context)
             else:
-                prompt = self._create_general_prompt(query, child_context)
+                prompt = self._create_general_prompt(query, enhanced_context)
 
             # Stream the response
             for chunk in self.llm.stream(prompt):
@@ -288,7 +558,7 @@ class RAGService:
                     "content": chunk,
                     "sources": sources if sources else [],
                     "response_type": response_type,
-                    "context_used": child_context,
+                    "context_used": enhanced_context,
                     "done": False,
                 }
 
@@ -297,7 +567,7 @@ class RAGService:
                 "content": "",
                 "sources": sources,
                 "response_type": response_type,
-                "context_used": child_context,
+                "context_used": enhanced_context,
                 "done": True,
             }
 
@@ -307,7 +577,7 @@ class RAGService:
                 "content": "I apologize, but I'm having trouble processing your request right now. Please try again later.",
                 "sources": [],
                 "response_type": "error",
-                "context_used": child_context,
+                "context_used": enhanced_context if 'enhanced_context' in locals() else child_context,
                 "done": True,
                 "error": str(e),
             }
@@ -323,11 +593,12 @@ Child Context:
 User Question: {query}
 
 Please provide a helpful response based on general pediatric knowledge. Be sure to:
-1. Consider the child's age and any provided context
-2. Provide practical, safe advice
-3. Always recommend consulting a healthcare professional for medical concerns
-4. Be empathetic and supportive
-5. If the question is outside medical/childcare topics, politely acknowledge and try to help if appropriate
+1. Consider the child's age, current context, and any weekly patterns/trends mentioned
+2. Reference specific patterns or trends when relevant to the question
+3. Provide practical, safe advice that takes recent patterns into account
+4. Always recommend consulting a healthcare professional for medical concerns
+5. Be empathetic and supportive
+6. If the question is outside medical/childcare topics, politely acknowledge and try to help if appropriate
 
 FORMATTING INSTRUCTIONS:
 - Use clear paragraph breaks (double line breaks) between different topics or ideas
