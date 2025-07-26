@@ -112,182 +112,219 @@ class RAGService:
         return documents
 
     def get_weekly_patterns(self, child_id: int) -> Dict:
-        """Analyze child's patterns from the last week"""
+        """Analyze child's patterns from the last week (or available recent data)"""
         if not self.session:
             return {"status": "no_database_access"}
         
-        one_week_ago = datetime.now() - timedelta(days=7)
-        
-        patterns = {
-            "sleep_patterns": self._analyze_sleep_patterns(child_id, one_week_ago),
-            "nutrition_patterns": self._analyze_nutrition_patterns(child_id, one_week_ago),
-            "symptom_patterns": self._analyze_symptom_patterns(child_id, one_week_ago),
-            "growth_trends": self._analyze_recent_growth(child_id, one_week_ago)
-        }
-        
-        return patterns
+        try:
+            one_week_ago = datetime.now() - timedelta(days=7)
+            
+            patterns = {
+                "sleep_patterns": self._analyze_sleep_patterns(child_id, one_week_ago),
+                "nutrition_patterns": self._analyze_nutrition_patterns(child_id, one_week_ago),
+                "symptom_patterns": self._analyze_symptom_patterns(child_id, one_week_ago),
+                "growth_trends": self._analyze_recent_growth(child_id, one_week_ago)
+            }
+            
+            return patterns
+        except Exception as e:
+            print(f"Error getting weekly patterns: {e}")
+            return {"status": "error", "message": str(e)}
 
     def _analyze_sleep_patterns(self, child_id: int, since_date: datetime) -> Dict:
-        """Analyze sleep patterns from the last week"""
-        sleep_records = self.session.exec(
-            select(Sleep_Time)
-            .where(Sleep_Time.child_id == child_id, Sleep_Time.check_in >= since_date)
-            .order_by(Sleep_Time.check_in.desc())
-        ).all()
-        
-        if not sleep_records:
-            return {"status": "no_data"}
-        
-        # Calculate daily sleep durations
-        daily_sleep = []
-        sleep_quality_scores = []
-        
-        for record in sleep_records:
-            if record.start_time and record.end_time:
-                duration = (record.end_time - record.start_time).total_seconds() / 3600
-                if 0 < duration < 24:  # Valid duration
-                    daily_sleep.append(duration)
-                    # Simple quality score based on duration
-                    if 8 <= duration <= 12:
-                        sleep_quality_scores.append("good")
-                    elif 6 <= duration < 8 or 12 < duration <= 14:
-                        sleep_quality_scores.append("fair")
-                    else:
-                        sleep_quality_scores.append("poor")
-        
-        if not daily_sleep:
-            return {"status": "incomplete_data"}
-        
-        avg_sleep = statistics.mean(daily_sleep)
-        sleep_consistency = statistics.stdev(daily_sleep) if len(daily_sleep) > 1 else 0
-        
-        # Determine pattern
-        pattern = "consistent" if sleep_consistency < 1.5 else "inconsistent"
-        trend = self._calculate_trend(daily_sleep)
-        
-        return {
-            "status": "available",
-            "average_hours": round(avg_sleep, 1),
-            "consistency": pattern,
-            "trend": trend,
-            "quality_distribution": {
-                "good": sleep_quality_scores.count("good"),
-                "fair": sleep_quality_scores.count("fair"),
-                "poor": sleep_quality_scores.count("poor")
-            },
-            "records_count": len(sleep_records)
-        }
+        """Analyze sleep patterns from recent data"""
+        try:
+            sleep_records = self.session.exec(
+                select(Sleep_Time)
+                .where(Sleep_Time.child_id == child_id, Sleep_Time.check_in >= since_date)
+                .order_by(Sleep_Time.check_in.desc())
+            ).all()
+            
+            if not sleep_records:
+                return {"status": "no_data"}
+            
+            # Calculate daily sleep durations
+            daily_sleep = []
+            sleep_quality_scores = []
+            
+            for record in sleep_records:
+                if record.start_time and record.end_time:
+                    try:
+                        duration = (record.end_time - record.start_time).total_seconds() / 3600
+                        if 0 < duration < 24:  # Valid duration
+                            daily_sleep.append(duration)
+                            # Simple quality score based on duration
+                            if 8 <= duration <= 12:
+                                sleep_quality_scores.append("good")
+                            elif 6 <= duration < 8 or 12 < duration <= 14:
+                                sleep_quality_scores.append("fair")
+                            else:
+                                sleep_quality_scores.append("poor")
+                    except:
+                        continue  # Skip invalid records
+            
+            if not daily_sleep:
+                return {"status": "incomplete_data"}
+            
+            avg_sleep = statistics.mean(daily_sleep)
+            sleep_consistency = statistics.stdev(daily_sleep) if len(daily_sleep) > 1 else 0
+            
+            # Determine pattern
+            pattern = "consistent" if sleep_consistency < 1.5 else "inconsistent"
+            trend = self._calculate_trend(daily_sleep) if len(daily_sleep) > 1 else "stable"
+            
+            days_analyzed = len(set(record.check_in.date() for record in sleep_records))
+            
+            return {
+                "status": "available",
+                "average_hours": round(avg_sleep, 1),
+                "consistency": pattern,
+                "trend": trend,
+                "quality_distribution": {
+                    "good": sleep_quality_scores.count("good"),
+                    "fair": sleep_quality_scores.count("fair"),
+                    "poor": sleep_quality_scores.count("poor")
+                },
+                "records_count": len(sleep_records),
+                "days_analyzed": days_analyzed
+            }
+        except Exception as e:
+            print(f"Error analyzing sleep patterns: {e}")
+            return {"status": "error"}
 
     def _analyze_nutrition_patterns(self, child_id: int, since_date: datetime) -> Dict:
-        """Analyze nutrition patterns from the last week"""
-        meals = self.session.exec(
-            select(Meal)
-            .where(Meal.child_id == child_id, Meal.check_in >= since_date)
-            .order_by(Meal.check_in.desc())
-        ).all()
-        
-        if not meals:
-            return {"status": "no_data"}
-        
-        consumption_levels = [m.consumption_level for m in meals if m.consumption_level is not None]
-        
-        if not consumption_levels:
-            return {"status": "incomplete_data"}
-        
-        avg_consumption = statistics.mean(consumption_levels)
-        consistency = statistics.stdev(consumption_levels) if len(consumption_levels) > 1 else 0
-        trend = self._calculate_trend(consumption_levels)
-        
-        # Analyze meal frequency
-        daily_meals = {}
-        for meal in meals:
-            date_key = meal.check_in.date()
-            daily_meals[date_key] = daily_meals.get(date_key, 0) + 1
-        
-        avg_meals_per_day = statistics.mean(daily_meals.values()) if daily_meals else 0
-        
-        return {
-            "status": "available",
-            "average_consumption": round(avg_consumption, 1),
-            "consistency": "consistent" if consistency < 20 else "inconsistent",
-            "trend": trend,
-            "average_meals_per_day": round(avg_meals_per_day, 1),
-            "total_meals": len(meals)
-        }
+        """Analyze nutrition patterns from recent data"""
+        try:
+            meals = self.session.exec(
+                select(Meal)
+                .where(Meal.child_id == child_id, Meal.check_in >= since_date)
+                .order_by(Meal.check_in.desc())
+            ).all()
+            
+            if not meals:
+                return {"status": "no_data"}
+            
+            consumption_levels = [m.consumption_level for m in meals if m.consumption_level is not None]
+            
+            if not consumption_levels:
+                return {"status": "incomplete_data"}
+            
+            avg_consumption = statistics.mean(consumption_levels)
+            consistency = statistics.stdev(consumption_levels) if len(consumption_levels) > 1 else 0
+            trend = self._calculate_trend(consumption_levels) if len(consumption_levels) > 1 else "stable"
+            
+            # Analyze meal frequency
+            daily_meals = {}
+            for meal in meals:
+                try:
+                    date_key = meal.check_in.date()
+                    daily_meals[date_key] = daily_meals.get(date_key, 0) + 1
+                except:
+                    continue
+            
+            avg_meals_per_day = statistics.mean(daily_meals.values()) if daily_meals else 0
+            days_analyzed = len(daily_meals)
+            
+            return {
+                "status": "available",
+                "average_consumption": round(avg_consumption, 1),
+                "consistency": "consistent" if consistency < 20 else "inconsistent",
+                "trend": trend,
+                "average_meals_per_day": round(avg_meals_per_day, 1),
+                "total_meals": len(meals),
+                "days_analyzed": days_analyzed
+            }
+        except Exception as e:
+            print(f"Error analyzing nutrition patterns: {e}")
+            return {"status": "error"}
 
     def _analyze_symptom_patterns(self, child_id: int, since_date: datetime) -> Dict:
-        """Analyze symptom patterns from the last week"""
-        symptoms = self.session.exec(
-            select(Symptom)
-            .where(Symptom.child_id == child_id, Symptom.check_in >= since_date)
-            .order_by(Symptom.check_in.desc())
-        ).all()
-        
-        if not symptoms:
-            return {"status": "no_symptoms"}
-        
-        # Group symptoms by type
-        symptom_frequency = {}
-        daily_symptoms = {}
-        
-        for symptom in symptoms:
-            # Count symptom types
-            symptom_type = symptom.symptom.lower()
-            symptom_frequency[symptom_type] = symptom_frequency.get(symptom_type, 0) + 1
+        """Analyze symptom patterns from recent data"""
+        try:
+            symptoms = self.session.exec(
+                select(Symptom)
+                .where(Symptom.child_id == child_id, Symptom.check_in >= since_date)
+                .order_by(Symptom.check_in.desc())
+            ).all()
             
-            # Count daily occurrences
-            date_key = symptom.check_in.date()
-            daily_symptoms[date_key] = daily_symptoms.get(date_key, 0) + 1
-        
-        most_common_symptom = max(symptom_frequency, key=symptom_frequency.get)
-        avg_symptoms_per_day = statistics.mean(daily_symptoms.values()) if daily_symptoms else 0
-        
-        # Determine if symptoms are increasing, decreasing, or stable
-        symptom_counts = list(daily_symptoms.values())
-        trend = self._calculate_trend(symptom_counts) if len(symptom_counts) > 1 else "stable"
-        
-        return {
-            "status": "has_symptoms",
-            "total_count": len(symptoms),
-            "most_common": most_common_symptom,
-            "frequency_distribution": symptom_frequency,
-            "average_per_day": round(avg_symptoms_per_day, 1),
-            "trend": trend,
-            "days_with_symptoms": len(daily_symptoms)
-        }
+            if not symptoms:
+                return {"status": "no_symptoms"}
+            
+            # Group symptoms by type
+            symptom_frequency = {}
+            daily_symptoms = {}
+            
+            for symptom in symptoms:
+                try:
+                    # Count symptom types
+                    symptom_type = symptom.symptom.lower() if symptom.symptom else "unknown"
+                    symptom_frequency[symptom_type] = symptom_frequency.get(symptom_type, 0) + 1
+                    
+                    # Count daily occurrences
+                    date_key = symptom.check_in.date()
+                    daily_symptoms[date_key] = daily_symptoms.get(date_key, 0) + 1
+                except:
+                    continue
+            
+            if not symptom_frequency:
+                return {"status": "no_symptoms"}
+            
+            most_common_symptom = max(symptom_frequency, key=symptom_frequency.get)
+            avg_symptoms_per_day = statistics.mean(daily_symptoms.values()) if daily_symptoms else 0
+            
+            # Determine if symptoms are increasing, decreasing, or stable
+            symptom_counts = list(daily_symptoms.values())
+            trend = self._calculate_trend(symptom_counts) if len(symptom_counts) > 1 else "stable"
+            
+            return {
+                "status": "has_symptoms",
+                "total_count": len(symptoms),
+                "most_common": most_common_symptom,
+                "frequency_distribution": symptom_frequency,
+                "average_per_day": round(avg_symptoms_per_day, 1),
+                "trend": trend,
+                "days_with_symptoms": len(daily_symptoms)
+            }
+        except Exception as e:
+            print(f"Error analyzing symptom patterns: {e}")
+            return {"status": "error"}
 
     def _analyze_recent_growth(self, child_id: int, since_date: datetime) -> Dict:
         """Analyze growth trends from recent data"""
-        growth_records = self.session.exec(
-            select(Growth)
-            .where(Growth.child_id == child_id, Growth.check_in >= since_date)
-            .order_by(Growth.check_in.desc())
-        ).all()
-        
-        if len(growth_records) < 2:
-            return {"status": "insufficient_data"}
-        
-        # Sort by date for trend analysis
-        sorted_records = sorted(growth_records, key=lambda r: r.check_in)
-        
-        weight_values = [r.weight for r in sorted_records if r.weight]
-        height_values = [r.height for r in sorted_records if r.height]
-        
-        result = {"status": "available", "records_count": len(growth_records)}
-        
-        if len(weight_values) >= 2:
-            weight_trend = self._calculate_trend(weight_values)
-            weight_change = weight_values[-1] - weight_values[0]
-            result["weight_trend"] = weight_trend
-            result["weight_change_kg"] = round(weight_change, 2)
-        
-        if len(height_values) >= 2:
-            height_trend = self._calculate_trend(height_values)
-            height_change = height_values[-1] - height_values[0]
-            result["height_trend"] = height_trend
-            result["height_change_cm"] = round(height_change, 1)
-        
-        return result
+        try:
+            growth_records = self.session.exec(
+                select(Growth)
+                .where(Growth.child_id == child_id, Growth.check_in >= since_date)
+                .order_by(Growth.check_in.desc())
+            ).all()
+            
+            if len(growth_records) < 2:
+                return {"status": "insufficient_data"}
+            
+            # Sort by date for trend analysis
+            sorted_records = sorted(growth_records, key=lambda r: r.check_in)
+            
+            weight_values = [r.weight for r in sorted_records if r.weight is not None]
+            height_values = [r.height for r in sorted_records if r.height is not None]
+            
+            result = {"status": "available", "records_count": len(growth_records)}
+            
+            if len(weight_values) >= 2:
+                weight_trend = self._calculate_trend(weight_values)
+                weight_change = weight_values[-1] - weight_values[0]
+                result["weight_trend"] = weight_trend
+                result["weight_change_kg"] = round(weight_change, 2)
+            
+            if len(height_values) >= 2:
+                height_trend = self._calculate_trend(height_values)
+                height_change = height_values[-1] - height_values[0]
+                result["height_trend"] = height_trend
+                result["height_change_cm"] = round(height_change, 1)
+            
+            return result
+        except Exception as e:
+            print(f"Error analyzing growth trends: {e}")
+            return {"status": "error"}
 
     def _calculate_trend(self, values: List[float]) -> str:
         """Calculate trend direction from a list of values"""
@@ -312,49 +349,55 @@ class RAGService:
 
     def format_weekly_patterns_for_context(self, patterns: Dict) -> str:
         """Format weekly patterns into readable context for AI"""
-        if patterns.get("status") == "no_database_access":
+        if patterns.get("status") in ["no_database_access", "error"]:
             return ""
         
         context_parts = []
         
-        # Sleep patterns
-        sleep = patterns.get("sleep_patterns", {})
-        if sleep.get("status") == "available":
-            context_parts.append(
-                f"Sleep Pattern (Last Week): {sleep['average_hours']}h average, "
-                f"{sleep['consistency']} pattern, {sleep['trend']} trend"
-            )
-        
-        # Nutrition patterns
-        nutrition = patterns.get("nutrition_patterns", {})
-        if nutrition.get("status") == "available":
-            context_parts.append(
-                f"Nutrition Pattern: {nutrition['average_consumption']}% consumption, "
-                f"{nutrition['consistency']}, {nutrition['average_meals_per_day']} meals/day, {nutrition['trend']} trend"
-            )
-        
-        # Symptom patterns
-        symptoms = patterns.get("symptom_patterns", {})
-        if symptoms.get("status") == "has_symptoms":
-            context_parts.append(
-                f"Symptom Pattern: {symptoms['total_count']} symptoms over {symptoms['days_with_symptoms']} days, "
-                f"most common: {symptoms['most_common']}, {symptoms['trend']} trend"
-            )
-        elif symptoms.get("status") == "no_symptoms":
-            context_parts.append("No symptoms reported in the last week")
-        
-        # Growth trends
-        growth = patterns.get("growth_trends", {})
-        if growth.get("status") == "available":
-            growth_info = []
-            if "weight_trend" in growth:
-                growth_info.append(f"weight {growth['weight_trend']} ({growth['weight_change_kg']:+.2f}kg)")
-            if "height_trend" in growth:
-                growth_info.append(f"height {growth['height_trend']} ({growth['height_change_cm']:+.1f}cm)")
-            if growth_info:
-                context_parts.append(f"Growth Trends: {', '.join(growth_info)}")
-        
-        return "\n".join(context_parts)
+        try:
+            # Sleep patterns
+            sleep = patterns.get("sleep_patterns", {})
+            if sleep.get("status") == "available":
+                days_info = f" over {sleep.get('days_analyzed', 'recent')} days" if sleep.get('days_analyzed') else ""
+                context_parts.append(
+                    f"Sleep Pattern{days_info}: {sleep['average_hours']}h average, "
+                    f"{sleep['consistency']} pattern, {sleep['trend']} trend"
+                )
+            
+            # Nutrition patterns
+            nutrition = patterns.get("nutrition_patterns", {})
+            if nutrition.get("status") == "available":
+                days_info = f" over {nutrition.get('days_analyzed', 'recent')} days" if nutrition.get('days_analyzed') else ""
+                context_parts.append(
+                    f"Nutrition Pattern{days_info}: {nutrition['average_consumption']}% consumption, "
+                    f"{nutrition['consistency']}, {nutrition['average_meals_per_day']} meals/day, {nutrition['trend']} trend"
+                )
+            
+            # Symptom patterns
+            symptoms = patterns.get("symptom_patterns", {})
+            if symptoms.get("status") == "has_symptoms":
+                context_parts.append(
+                    f"Symptom Pattern: {symptoms['total_count']} symptoms over {symptoms['days_with_symptoms']} days, "
+                    f"most common: {symptoms['most_common']}, {symptoms['trend']} trend"
+                )
+            elif symptoms.get("status") == "no_symptoms":
+                context_parts.append("No symptoms reported in recent days")
+            
+            # Growth trends
+            growth = patterns.get("growth_trends", {})
+            if growth.get("status") == "available":
+                growth_info = []
+                if "weight_trend" in growth:
+                    growth_info.append(f"weight {growth['weight_trend']} ({growth['weight_change_kg']:+.2f}kg)")
+                if "height_trend" in growth:
+                    growth_info.append(f"height {growth['height_trend']} ({growth['height_change_cm']:+.1f}cm)")
+                if growth_info:
+                    context_parts.append(f"Growth Trends: {', '.join(growth_info)}")
+            
+            return "\n".join(context_parts)
+        except Exception as e:
+            print(f"Error formatting weekly patterns: {e}")
+            return ""
 
     def _get_enhanced_context_with_patterns(self, child_context: str, child_id: Optional[int]) -> str:
         """Get enhanced context that includes weekly patterns"""
