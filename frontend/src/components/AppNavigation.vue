@@ -130,7 +130,7 @@
     },
     {
       value: 'chatbot',
-      label: 'Chatbot',
+      label: 'SuriAI',
       icon: 'mdi-chat',
       route: '/chatbot',
     },
