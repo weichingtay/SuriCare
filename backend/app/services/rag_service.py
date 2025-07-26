@@ -399,16 +399,83 @@ class RAGService:
             print(f"Error formatting weekly patterns: {e}")
             return ""
 
-    def _get_enhanced_context_with_patterns(self, child_context: str, child_id: Optional[int]) -> str:
-        """Get enhanced context that includes weekly patterns"""
-        weekly_patterns_context = ""
-        if child_id and self.session:
-            patterns = self.get_weekly_patterns(child_id)
-            weekly_patterns_context = self.format_weekly_patterns_for_context(patterns)
+    def _analyze_query_for_needed_patterns(self, query: str) -> Dict[str, bool]:
+        """Analyze the user's query to determine which patterns are needed"""
+        query_lower = query.lower()
         
+        return {
+            "sleep": any(keyword in query_lower for keyword in [
+                'sleep', 'sleeping', 'tired', 'nap', 'bedtime', 'night', 'wake', 'insomnia', 'rest'
+            ]),
+            "nutrition": any(keyword in query_lower for keyword in [
+                'eat', 'eating', 'food', 'meal', 'hungry', 'appetite', 'nutrition', 'feeding', 'drink', 'milk', 'formula'
+            ]),
+            "symptoms": any(keyword in query_lower for keyword in [
+                'symptom', 'sick', 'fever', 'cough', 'rash', 'pain', 'hurt', 'ache', 'illness', 'doctor', 'medical'
+            ]),
+            "growth": any(keyword in query_lower for keyword in [
+                'growth', 'weight', 'height', 'tall', 'heavy', 'size', 'develop', 'milestone', 'benchmark'
+            ])
+        }
+
+    def _get_enhanced_context_with_patterns(self, child_context: str, child_id: Optional[int], query: str = "") -> str:
+        """Get enhanced context that includes only relevant weekly patterns based on query"""
         enhanced_context = child_context
-        if weekly_patterns_context:
-            enhanced_context += f"\n\nWeekly Patterns & Trends:\n{weekly_patterns_context}"
+        
+        if child_id and self.session and query:
+            try:
+                # Analyze what patterns are needed for this specific query
+                needed_patterns = self._analyze_query_for_needed_patterns(query)
+                
+                if any(needed_patterns.values()):  # Only if we need any patterns
+                    one_week_ago = datetime.now() - timedelta(days=7)
+                    pattern_context_parts = []
+                    
+                    # Only fetch the patterns that are relevant to the query
+                    if needed_patterns["sleep"]:
+                        sleep_data = self._analyze_sleep_patterns(child_id, one_week_ago)
+                        if sleep_data.get("status") == "available":
+                            days_info = f" over {sleep_data.get('days_analyzed', 'recent')} days" if sleep_data.get('days_analyzed') else ""
+                            pattern_context_parts.append(
+                                f"Sleep Pattern{days_info}: {sleep_data['average_hours']}h average, "
+                                f"{sleep_data['consistency']} pattern, {sleep_data['trend']} trend"
+                            )
+                    
+                    if needed_patterns["nutrition"]:
+                        nutrition_data = self._analyze_nutrition_patterns(child_id, one_week_ago)
+                        if nutrition_data.get("status") == "available":
+                            days_info = f" over {nutrition_data.get('days_analyzed', 'recent')} days" if nutrition_data.get('days_analyzed') else ""
+                            pattern_context_parts.append(
+                                f"Nutrition Pattern{days_info}: {nutrition_data['average_consumption']}% consumption, "
+                                f"{nutrition_data['consistency']}, {nutrition_data['average_meals_per_day']} meals/day, {nutrition_data['trend']} trend"
+                            )
+                    
+                    if needed_patterns["symptoms"]:
+                        symptom_data = self._analyze_symptom_patterns(child_id, one_week_ago)
+                        if symptom_data.get("status") == "has_symptoms":
+                            pattern_context_parts.append(
+                                f"Symptom Pattern: {symptom_data['total_count']} symptoms over {symptom_data['days_with_symptoms']} days, "
+                                f"most common: {symptom_data['most_common']}, {symptom_data['trend']} trend"
+                            )
+                        elif symptom_data.get("status") == "no_symptoms":
+                            pattern_context_parts.append("No symptoms reported in recent days")
+                    
+                    if needed_patterns["growth"]:
+                        growth_data = self._analyze_recent_growth(child_id, one_week_ago)
+                        if growth_data.get("status") == "available":
+                            growth_info = []
+                            if "weight_trend" in growth_data:
+                                growth_info.append(f"weight {growth_data['weight_trend']} ({growth_data['weight_change_kg']:+.2f}kg)")
+                            if "height_trend" in growth_data:
+                                growth_info.append(f"height {growth_data['height_trend']} ({growth_data['height_change_cm']:+.1f}cm)")
+                            if growth_info:
+                                pattern_context_parts.append(f"Growth Trends: {', '.join(growth_info)}")
+                    
+                    if pattern_context_parts:
+                        enhanced_context += f"\n\nRelevant Weekly Patterns:\n" + "\n".join(pattern_context_parts)
+                    
+            except Exception as e:
+                print(f"Error getting contextual patterns: {e}")
         
         return enhanced_context
 
@@ -416,8 +483,8 @@ class RAGService:
     def get_contextual_response(self, query: str, child_context: str, child_id: Optional[int] = None) -> Dict:
         """Get AI response with child context and knowledge retrieval, with fallback to general AI"""
         try:
-            # Get enhanced context with weekly patterns
-            enhanced_context = self._get_enhanced_context_with_patterns(child_context, child_id)
+            # Get enhanced context with relevant weekly patterns based on query
+            enhanced_context = self._get_enhanced_context_with_patterns(child_context, child_id, query)
             
             # First, try to get a knowledge-based response
             knowledge_response = self._get_knowledge_based_response(
@@ -531,8 +598,8 @@ class RAGService:
     def stream_contextual_response(self, query: str, child_context: str, child_id: Optional[int] = None):
         """Stream AI response with child context and knowledge retrieval"""
         try:
-            # Get enhanced context with weekly patterns
-            enhanced_context = self._get_enhanced_context_with_patterns(child_context, child_id)
+            # Get enhanced context with relevant weekly patterns based on query
+            enhanced_context = self._get_enhanced_context_with_patterns(child_context, child_id, query)
             
             # First, try to get knowledge-based sources
             sources = []
