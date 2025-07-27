@@ -92,6 +92,7 @@
 
 <script setup lang="ts">
   import { computed, onMounted, ref, watch } from 'vue';
+  import { useRoute } from 'vue-router';
   import axios from 'axios';
   import ChatSidebar from '../components/chatbot/ChatSidebar.vue';
   import ChatContent from '../components/chatbot/ChatContent.vue';
@@ -100,6 +101,7 @@
   // State
   const ownerId = ref(1); // Placeholder for the current user's ID
   const childrenStore = useChildrenStore();
+  const route = useRoute();
 
   // Single child selection for chat context
   const selectedChildForChat = ref<number | null>(null);
@@ -273,9 +275,14 @@
     }
   };
 
+  // Track if we have a pending message from route
+  const pendingMessage = ref<string | null>(null);
+
   onMounted(async () => {
-    // The watcher will handle loading chat history and setting selectedChildForChat
-    // when childrenStore.currentChild changes (including initial load)
+    // Check for incoming query parameter
+    if (route.query.message && typeof route.query.message === 'string') {
+      pendingMessage.value = route.query.message;
+    }
   });
 
   // Watch for changes in global child selection and sync to chat selection
@@ -297,6 +304,16 @@
       selectedChildForChat.value = null;
       await loadChatHistory();
       currentChatId.value = null;
+    }
+
+    // Handle pending message after chat system is ready
+    if (pendingMessage.value) {
+      const messageToSend = pendingMessage.value;
+      pendingMessage.value = null; // Clear it immediately to prevent duplicate sends
+      
+      // Start a new chat and send the message
+      handleNewChat(); // This clears currentChatId
+      await handleSendMessage(messageToSend);
     }
   }, { immediate: true });
 

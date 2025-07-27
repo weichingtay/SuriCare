@@ -63,36 +63,66 @@
             </div>
 
             <div class="profile-field">
-              <label class="field-label">Role</label>
-              <div
-                class="field-display"
-                style="justify-content: space-between; height: 51.6px"
-              >
-                <div style="display: flex; align-items: center; gap: 8px">
-                  <v-icon
-                    class="field-icon"
-                    size="18"
-                    >mdi-shield-account</v-icon
-                  >
-                  <v-chip
-                    :color="
-                      userProfile.role === 'Guardian' ? '#D87179' : '#FFC107'
-                    "
-                    size="small"
-                    variant="flat"
-                    >{{ userProfile.role }}</v-chip
-                  >
-                </div>
-                <v-switch
-                  v-model="isGuardian"
-                  color="#D87179"
-                  base-color="#FFC107"
-                  thumb-size="24"
-                  style="transform: scale(0.8)"
+              <label class="field-label">Account</label>
+              <div class="field-display">
+                <v-icon
+                  class="field-icon"
+                  size="18"
+                  >mdi-shield-account</v-icon
+                >
+                <v-select
+                  v-model="dropdownSelection"
+                  :items="availableAccounts"
+                  item-title="name"
+                  item-value="id"
+                  variant="plain"
+                  density="compact"
                   hide-details
-                  inset
-                  @update:modelValue="handleRoleChange"
-                ></v-switch>
+                  class="account-selector"
+                  placeholder="Switch to..."
+                  @update:modelValue="handleAccountChange"
+                >
+                  <template #selection="{ item }">
+                    <div style="display: flex; align-items: center; gap: 8px">
+                      <span>{{ currentAccount.name }}</span>
+                      <v-chip
+                        :color="currentAccount.role === 'Guardian' ? '#D87179' : '#FFC107'"
+                        size="small"
+                        variant="flat"
+                        style="display: flex; align-items: center; height: 24px"
+                      >
+                        <span
+                          :class="currentAccount.role === 'Guardian' 
+                            ? 'mdi mdi-human-male-female-child' 
+                            : 'mdi mdi-mother-heart'"
+                          style="font-size: 14px; line-height: 1"
+                        ></span>
+                        &nbsp;{{ currentAccount.role }}
+                      </v-chip>
+                    </div>
+                  </template>
+                  <template #item="{ item, props }">
+                    <v-list-item v-bind="props" :title="null">
+                      <div style="display: flex; align-items: center; gap: 8px; width: 100%">
+                        <span>{{ item.raw.name }}</span>
+                        <v-chip
+                          :color="item.raw.role === 'Guardian' ? '#D87179' : '#FFC107'"
+                          size="small"
+                          variant="flat"
+                          style="display: flex; align-items: center; height: 24px"
+                        >
+                          <span
+                            :class="item.raw.role === 'Guardian' 
+                              ? 'mdi mdi-human-male-female-child' 
+                              : 'mdi mdi-mother-heart'"
+                            style="font-size: 14px; line-height: 1"
+                          ></span>
+                          &nbsp;{{ item.raw.role }}
+                        </v-chip>
+                      </div>
+                    </v-list-item>
+                  </template>
+                </v-select>
               </div>
             </div>
           </div>
@@ -180,31 +210,24 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, ref, watch } from 'vue'
+  import { computed, ref } from 'vue'
   import { useUserProfile } from '@/composables/useUserProfile'
 
-  const { userProfile } = useUserProfile()
+  const { userProfile, availableAccounts, setAccount, currentAccount } = useUserProfile()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
   })
 
-  // Initialize switch state based on current role
-  const isGuardian = ref(userProfile.role === 'Guardian')
+  // Separate reactive value for dropdown selection
+  const dropdownSelection = ref('')
 
-  const handleRoleChange = (newValue: boolean) => {
-    userProfile.role = newValue ? 'Guardian' : 'Caregiver'
-    console.log('Role changed to:', userProfile.role) // For debugging
-  }
-
-  // Watch for external role changes
-  watch(
-    () => userProfile.role,
-    (newRole) => {
-      isGuardian.value = newRole === 'Guardian'
-      console.log('Role updated from external:', newRole) // For debugging
+  const handleAccountChange = (accountId: string) => {
+    if (accountId) {
+      setAccount(accountId)
+      dropdownSelection.value = '' // Reset dropdown after selection
     }
-  )
+  }
 
   const emit = defineEmits(['update:modelValue'])
 
@@ -470,5 +493,25 @@
 
   :deep(.v-btn--variant-flat .v-icon) {
     color: white !important;
+  }
+
+  .account-selector {
+    flex: 1;
+  }
+
+  :deep(.account-selector .v-field) {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  :deep(.account-selector .v-field__input) {
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+
+  :deep(.account-selector .v-field__append-inner) {
+    padding-top: 0 !important;
+    align-items: center !important;
   }
 </style>

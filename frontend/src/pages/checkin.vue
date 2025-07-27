@@ -277,6 +277,7 @@
   import { useSymptomOptions } from '@/composables/useSymptomOptions'
   import { timestampToDateString } from '@/utils/dateUtils'
   import { useGrowthDialog } from '@/composables/useGrowthDialog'
+  import { useUserProfile } from '@/composables/useUserProfile'
   import MealDialog from '@/components/dialog/MealDialog.vue'
   import PoopDialog from '@/components/dialog/PoopDialog.vue'
   ////______________NEW
@@ -299,7 +300,18 @@
   const { colorOptions, textureOptions } = usePoopOptions()
   ////______________NEW
   const { symptomOptions } = useSymptomOptions()
+  const { currentAccount } = useUserProfile()
 
+  // ================================
+  // TEMPORARY HARDCODED SECTION - MVP PHASE
+  // TODO: Replace with real user/caregiver system after MVP
+  // ================================
+  const getCurrentCarerName = () => {
+    return currentAccount.value.name
+  }
+  // ================================
+  // END TEMPORARY HARDCODED SECTION
+  // ================================
 
   // Local state for UI controls
   const selectedDate = ref(new Date())
@@ -459,7 +471,7 @@ const deleteConfirmDialog = ref({
       timestamp: new Date(meal.check_in),
       childId: meal.child_id,
       carerId: 2, // Default carer ID for meals
-      carerName: 'Sarah', // Default carer name
+      carerName: getCurrentCarerName(), // TEMPORARY: Use current account name
       data: {
         status: formatMealStatus(meal),
         details: formatMealDetails(meal)
@@ -476,7 +488,7 @@ const deleteConfirmDialog = ref({
       timestamp: new Date(poop.check_in),
       childId: poop.child_id,
       carerId: 2, // Default carer ID for poop
-      carerName: 'Sarah', // Default carer name
+      carerName: getCurrentCarerName(), // TEMPORARY: Use current account name
       data: {
         status: 'Had bowel movement',
         details: formatPoopDetails(poop)
@@ -493,7 +505,7 @@ const deleteConfirmDialog = ref({
       timestamp: new Date(sleep.check_in),
       childId: sleep.child_id,
       carerId: 2,
-      carerName: 'Sarah',
+      carerName: getCurrentCarerName(), // TEMPORARY: Use current account name
       data: {
         status: formatSleepStatus(sleep),
         details: formatSleepDetails(sleep)
@@ -510,7 +522,7 @@ const deleteConfirmDialog = ref({
       timestamp: new Date(growth.check_in),
       childId: growth.child_id,
       carerId: 1,
-      carerName: 'Dr. Smith',
+      carerName: getCurrentCarerName(), // TEMPORARY: Use current account name
       data: {
         status: 'Growth measurement',
         details: formatGrowthDetails(growth)
@@ -528,7 +540,7 @@ const deleteConfirmDialog = ref({
       timestamp: new Date(health.check_in),
       childId: health.child_id,
       carerId: 3,
-      carerName: 'Nurse Jenny',
+      carerName: getCurrentCarerName(), // TEMPORARY: Use current account name
       data: {
         status: formatHealthStatus(health),
         details: formatHealthDetails(health)

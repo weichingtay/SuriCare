@@ -52,21 +52,23 @@
 
 <script setup lang="ts">
   import { ref } from 'vue'
+  import { useRouter } from 'vue-router'
   import { useChatbotStore } from '@/stores/chatbot'
 
   const message = ref('')
+  const router = useRouter()
   const chatbotStore = useChatbotStore()
 
   const sendMessage = async () => {
     if (message.value.trim()) {
-      // If no current chat, create one first
-      if (!chatbotStore.currentChatId) {
-        await chatbotStore.handleNewChat()
-      }
-      
-      // Send the message through the store
-      await chatbotStore.sendMessage(message.value)
+      const query = message.value
       message.value = ''
+      
+      // Navigate to chatbot page with the query
+      await router.push({
+        path: '/chatbot',
+        query: { message: query }
+      })
     }
   }
 </script>
