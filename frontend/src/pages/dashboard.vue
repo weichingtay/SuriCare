@@ -1454,9 +1454,7 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
           borderRadiusApplication: 'end', // Only round the top
           dataLabels: {
             total: {
-              enabled: true,
-              offsetX: 0,
-              offsetY: -5,
+              
               style: {
                 fontSize: '11px',
                 fontWeight: 600,
@@ -1600,7 +1598,7 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
       // Add subtle grid
       grid: {
         show: true,
-        borderColor: '#f3f4f6',
+        borderColor: '#bdbdbd',
         strokeDashArray: 2,
         xaxis: {
           lines: {
