@@ -18,87 +18,23 @@
       <div class="sleep-content">
         <!-- Sleep Time Inputs -->
         <div class="sleep-times">
-          <!-- Bed Time -->
-          <div class="time-field">
-            <label class="section-label">
-              Bed Time
-            </label>
-            <VueDatePicker
-              v-model="localBedTime"
-              class="custom-date-picker"
-              :clearable="true"
-              :disabled="checkinStore.isLoading"
-              format="HH:mm"
-              :is-24="true"
-              placeholder="Bed Time"
-              time-picker
-              :enable-time-picker="true"
-              auto-apply
-            >
-              <template #trigger>
-                <v-text-field
-                  :disabled="checkinStore.isLoading"
-                  :error="!!errors.bedTime"
-                  hide-details
-                  placeholder="Bed time"
-                  readonly
-                  :model-value="formatTime(localBedTime)"
-                  variant="outlined"
-                  @click="clearError('bedTime')"
-                >
-                  <template #prepend-inner>
-                    <v-icon color="black" size="20">
-                      mdi-clock-outline
-                    </v-icon>
-                  </template>
-                </v-text-field>
-              </template>
-            </VueDatePicker>
-            <div v-if="errors.bedTime" class="error-message">
-              {{ errors.bedTime }}
-            </div>
-          </div>
-
-          <!-- Awake Time -->
-          <div class="time-field">
-            <label class="section-label">
-              Awake Time
-            </label>
-            <VueDatePicker
-              v-model="localAwakeTime"
-              class="custom-date-picker"
-              :clearable="true"
-              :disabled="checkinStore.isLoading"
-              format="HH:mm"
-              :is-24="true"
-              placeholder="Awake time"
-              time-picker
-              :enable-time-picker="true"
-              auto-apply
-            >
-              <template #trigger>
-                <v-text-field
-                  :disabled="checkinStore.isLoading"
-                  :error="!!errors.awakeTime"
-                  hide-details
-                  :model-value="formatTime(localAwakeTime)"
-                  placeholder="Awake Time"
-                  readonly
-                  variant="outlined"
-                  @click="clearError('awakeTime')"
-                >
-                  <template #prepend-inner>
-                    <v-icon color="black" size="20">
-                      mdi-clock-outline
-                    </v-icon>
-                  </template>
-                </v-text-field>
-              </template>
-            </VueDatePicker>
-            <div v-if="errors.awakeTime" class="error-message">
-              {{ errors.awakeTime }}
-            </div>
-          </div>
+          <TimePickerField
+            v-model="localBedTime"
+            label="Bed Time"
+            placeholder="Bed time"
+            :disabled="checkinStore.isLoading"
+            :error-message="errors.bedTime"
+            @clear-error="clearError('bedTime')"
+          />
+          
+          <TimePickerField
+            v-model="localAwakeTime"
+            label="Awake Time"
+            placeholder="Awake time"
+            :disabled="checkinStore.isLoading"
+            :error-message="errors.awakeTime"
+            @clear-error="clearError('awakeTime')"
+          />
         </div>
 
         <!-- Sleep Duration Display - Always visible -->
@@ -128,8 +64,7 @@
 <script setup lang="ts">
   import { computed, nextTick, ref, watch } from 'vue'
   import BaseCheckInDialog from '@/components/dialog/BaseCheckInDialog.vue'
-  import VueDatePicker from '@vuepic/vue-datepicker'
-  import '@vuepic/vue-datepicker/dist/main.css'
+  import TimePickerField from '@/components/common/TimePickerField.vue'
   import { useCheckinStore } from '@/stores/checkin'
   import { useSleepStore } from '@/stores/sleep'
 
@@ -186,41 +121,12 @@
   let bedTimeTimeout: ReturnType<typeof setTimeout> | null = null
   let awakeTimeTimeout: ReturnType<typeof setTimeout> | null = null
 
-  // Improved format time function
-  const formatTime = (time: string | Date | null) => {
-    if (!time) return ''
-    
-    // Handle string format (HH:mm)
-    if (typeof time === 'string') {
-      return time
-    }
-    
-    // Handle Date object
-    if (time instanceof Date) {
-      // Make sure it's a valid date
-      if (isNaN(time.getTime())) return ''
-      
-      // Format as HH:mm
-      const hours = time.getHours().toString().padStart(2, '0')
-      const minutes = time.getMinutes().toString().padStart(2, '0')
-      return `${hours}:${minutes}`
-    }
-    
-    // Handle object with hours/minutes (some date pickers return this format)
-    if (typeof time === 'object' && time !== null) {
-      if ('hours' in time && 'minutes' in time) {
-        const hours = String(time.hours).padStart(2, '0')
-        const minutes = String(time.minutes).padStart(2, '0')
-        return `${hours}:${minutes}`
-      }
-    }
-    
-    return ''
-  }
-
   // Convert time to string format for store
-  const timeToString = (time: string | Date | null) => {
-    return formatTime(time)
+  const timeToString = (time: Date | null) => {
+    if (!time || !(time instanceof Date) || isNaN(time.getTime())) return ''
+    const hours = time.getHours().toString().padStart(2, '0')
+    const minutes = time.getMinutes().toString().padStart(2, '0')
+    return `${hours}:${minutes}`
   }
 
   // Convert string time to Date object for picker
@@ -490,34 +396,11 @@
     gap: 24px;
 }
 
-.time-field {
-    flex: 1;
-    width: 288px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
 .section-label {
     font-size: 12px;
     font-weight: 500;
     color: #333;
     margin-bottom: 8px;
-}
-
-.custom-date-picker {
-    width: 100%;
-    z-index: 9999;
-}
-
-:deep(.dp__menu) {
-    z-index: 9999 !important;
-}
-
-.error-message {
-    color: #d32f2f;
-    font-size: 12px;
-    margin-top: 8px;
 }
 
 .sleep-duration {

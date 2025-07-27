@@ -52,6 +52,7 @@ declare module 'vue' {
     SleepSummaryCard: typeof import('./components/summaryCard/SleepSummaryCard.vue')['default']
     SubmitButton: typeof import('./components/addChild/SubmitButton.vue')['default']
     SymptomDialog: typeof import('./components/dialog/SymptomDialog.vue')['default']
+    TimePickerField: typeof import('./components/common/TimePickerField.vue')['default']
     TodaysSummary: typeof import('./components/summaryCard/TodaysSummary.vue')['default']
     WelcomeSection: typeof import('./components/login/WelcomeSection.vue')['default']
   }
