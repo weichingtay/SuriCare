@@ -26,11 +26,13 @@ def get_symptoms_by_child(child_id: int, days: Optional[int] = 30):
     with engine.connect() as conn, conn.begin():
         sql_text_symptom = f"""
                             SELECT 
-                                *
-                            FROM symptom
-                            WHERE child_id = {child_id} AND
-                                  check_in >= NOW() - INTERVAL '{days} DAY'
-                            ORDER BY check_in DESC
+                                s.*,
+                                COALESCE(a.name, 'Unknown') as account_name
+                            FROM symptom s
+                            LEFT JOIN accounts a ON s.account_id = a.id
+                            WHERE s.child_id = {child_id} AND
+                                  s.check_in >= NOW() - INTERVAL '{days} DAY'
+                            ORDER BY s.check_in DESC
                         """
         symptoms = pd.read_sql_query(sql_text_symptom, parse_dates=['check_in'], con=conn)
         

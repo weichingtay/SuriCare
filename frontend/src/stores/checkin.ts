@@ -79,6 +79,17 @@ interface CheckinState {
 export const useCheckinStore = defineStore('checkin', () => {
   const authStore = useAuthStore()
 
+  // Helper function to get account ID from account frontend ID
+  const getAccountId = (accountFrontendId: string): number => {
+    // Map frontend IDs to database IDs (based on our migration script order)
+    const accountMap: Record<string, number> = {
+      'wei-ching': 1, // wei ching was inserted first
+      'yoshi': 2,     // yoshi was inserted second  
+      'aunty-anne': 3 // aunty anne was inserted third
+    }
+    return accountMap[accountFrontendId] || 1 // Default to wei ching
+  }
+
   // State (keeping your existing structure)
   const symptomsData = ref<SymptomsData>({
     symptoms: [],
@@ -270,12 +281,18 @@ export const useCheckinStore = defineStore('checkin', () => {
         symptomString = symptomString.replace('other', data.otherSymptom)
       }
 
+      // Get current account ID
+      const { useUserProfile } = await import('@/composables/useUserProfile')
+      const { currentAccount } = useUserProfile()
+      const accountId = getAccountId(currentAccount.value.id)
+
       const payload = {
         child_id: childrenStore.currentChild.id,
         check_in: new Date().toISOString(),
         symptom: symptomString, // Combined symptoms string
         photo_url: photoUrl || '', // Empty string if no photo
         note: data.notes || null, // Note can be null
+        account_id: accountId, // Add current account ID
       }
 
       console.log('📦 Symptom payload:', payload)
@@ -315,6 +332,11 @@ export const useCheckinStore = defineStore('checkin', () => {
     try {
       clearError()
 
+      // Get current account ID
+      const { useUserProfile } = await import('@/composables/useUserProfile')
+      const { currentAccount } = useUserProfile()
+      const accountId = getAccountId(currentAccount.value.id)
+
       const payload = {
         child_id: childrenStore.currentChild.id,
         weight: parseFloat(data.weight),
@@ -322,6 +344,7 @@ export const useCheckinStore = defineStore('checkin', () => {
         head_circumference: parseFloat(data.headCircumference),
         check_in: new Date().toISOString(),
         note: data.notes || null, // 'note' not 'notes'
+        account_id: accountId, // Add current account ID
       }
 
       console.log('📦 Growth payload:', payload)
@@ -404,6 +427,13 @@ export const useCheckinStore = defineStore('checkin', () => {
         console.log('Available meal categories:', mealCategories.value.map(item => item.value))
       }
 
+      // Get current account ID
+      const { useUserProfile } = await import('@/composables/useUserProfile')
+      const { currentAccount } = useUserProfile()
+      
+      // Map frontend account ID to database ID
+      const accountId = getAccountId(currentAccount.value.id)
+
       const payload = {
         child_id: childrenStore.currentChild.id,
         meal_time_category: mealTimeId || null,
@@ -412,6 +442,7 @@ export const useCheckinStore = defineStore('checkin', () => {
         others: data.mealCategory === 'others' ? data.customMeal : null, // 'others' field for custom meals
         check_in: new Date().toISOString(),
         note: data.notes || null, // 'note' not 'notes'
+        account_id: accountId, // Add current account ID
       }
 
       console.log('📦 Meal payload:', payload)
@@ -495,12 +526,18 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
       const colorId = poopColors.value.find(item => item.value === data.color)?.id || null
       const textureId = poopTextures.value.find(item => item.value === data.texture)?.id || null
 
+      // Get current account ID
+      const { useUserProfile } = await import('@/composables/useUserProfile')
+      const { currentAccount } = useUserProfile()
+      const accountId = getAccountId(currentAccount.value.id)
+
       const payload = {
         child_id: childrenStore.currentChild.id,
         color: colorId, // Foreign key to poop_color table
         texture: textureId, // Foreign key to poop_texture table
         check_in: new Date().toISOString(),
         note: data.notes || '', // Note is NOT NULL in your schema
+        account_id: accountId, // Add current account ID
       }
 
       console.log('📦 Poop payload:', payload)
@@ -544,12 +581,18 @@ const savePoopToBackend = async (data: PoopData): Promise<{ success: boolean; id
       const startTime = `${today}T${data.bedTime}:00.000Z`
       const endTime = `${today}T${data.awakeTime}:00.000Z`
 
+      // Get current account ID
+      const { useUserProfile } = await import('@/composables/useUserProfile')
+      const { currentAccount } = useUserProfile()
+      const accountId = getAccountId(currentAccount.value.id)
+
       const payload = {
         child_id: childrenStore.currentChild.id,
         start_time: startTime, // Your DB uses start_time/end_time, not bed_time/awake_time
         end_time: endTime,
         check_in: new Date().toISOString(),
         note: data.notes || null, // 'note' not 'notes'
+        account_id: accountId, // Add current account ID
       }
 
       console.log('📦 Sleep payload:', payload)

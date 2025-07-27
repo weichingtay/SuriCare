@@ -40,8 +40,8 @@ export const useSleepStore = defineStore('sleep', (): SleepStoreInterface => {
 
   // Process sleep data into your format
   const processSleepData = (sleepRecords: any[]): SleepData => {
-    console.log(`🔄 Processing ${sleepRecords.length} sleep records...`)
-    
+    // console.log(`🔄 Processing ${sleepRecords.length} sleep records...`)
+
     if (sleepRecords.length === 0) {
       return {
         nightHours: 0,
@@ -59,28 +59,28 @@ export const useSleepStore = defineStore('sleep', (): SleepStoreInterface => {
     sleepRecords.forEach((sleep, index) => {
   const startTime = new Date(sleep.start_time)
   const endTime = new Date(sleep.end_time)
-  
+
   // FIXED: Handle overnight sleep properly
   let duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60) // hours
-  
+
   // If duration is negative, it means sleep crossed midnight - add 24 hours
   if (duration < 0) {
     duration = duration + 24
     console.log(`  🌙 Overnight sleep detected: adding 24h to duration`)
   }
-  
+
   // Ensure duration is positive and reasonable (max 24 hours)
   duration = Math.max(0, Math.min(duration, 24))
-  
+
   const startHour = startTime.getHours()
-  
+
   // Simple classification: afternoon (12-18) = nap, otherwise = night sleep
   if (startHour >= 12 && startHour <= 18) {
     totalNapHours += duration
-    console.log(`  😴 Sleep ${index + 1}: NAP = ${duration.toFixed(1)}h (${startHour}:00)`)
+    // console.log(`  😴 Sleep ${index + 1}: NAP = ${duration.toFixed(1)}h (${startHour}:00)`)
   } else {
     totalNightHours += duration
-    console.log(`  🌙 Sleep ${index + 1}: NIGHT = ${duration.toFixed(1)}h (${startHour}:00)`)
+    // console.log(`  🌙 Sleep ${index + 1}: NIGHT = ${duration.toFixed(1)}h (${startHour}:00)`)
   }
 })
 
@@ -92,8 +92,8 @@ export const useSleepStore = defineStore('sleep', (): SleepStoreInterface => {
       totalHours: Math.round((totalNightHours + totalNapHours) * 10) / 10,
       sleepSessions: sleepRecords.length
     }
-    
-    console.log(`🎯 Final sleep data:`, result)
+
+    // console.log(`🎯 Final sleep data:`, result)
     return result
   }
 
@@ -118,7 +118,7 @@ export const useSleepStore = defineStore('sleep', (): SleepStoreInterface => {
   // Main fetch function
   const fetchSleepForDate = async (targetDate: string): Promise<void> => {
     console.log(`🚀 Fetching sleep for date: ${targetDate}`)
-    
+
     // Don't fetch if already cached
     if (sleepCache.value[targetDate]) {
       console.log(`📋 Already cached for ${targetDate}`)
@@ -130,20 +130,20 @@ export const useSleepStore = defineStore('sleep', (): SleepStoreInterface => {
 
     try {
       const childrenStore = useChildrenStore()
-      
+
       if (!childrenStore.currentChild) {
         console.warn('⚠️ No current child selected')
         return
       }
 
       console.log(`🌐 Calling API for child ${childrenStore.currentChild.id}`)
-      
+
       // Fetch all sleep records for the child (last 60 days to match your pattern)
-const response = await axios.get(`http://127.0.0.1:8000/sleep/child/${childrenStore.currentChild.id}?days=60`)      
+const response = await axios.get(`http://127.0.0.1:8000/sleep/child/${childrenStore.currentChild.id}?days=60`)
 const allSleepRecords = response.data || []
-      
+
       console.log(`📊 API returned ${allSleepRecords.length} total sleep records`)
-      
+
       // Debug: Show sample of sleep dates
       const sampleSleep = allSleepRecords.slice(0, 3).map((sleep: any) => ({
         id: sleep.id,
@@ -151,18 +151,18 @@ const allSleepRecords = response.data || []
         converted_date: timestampToDateString(sleep.check_in)
       }))
       console.log(`🔍 Sample sleep dates:`, sampleSleep)
-      
+
       // Filter sleep records for target date
       const sleepForDate = allSleepRecords.filter((sleep: any) => {
         const sleepDate = timestampToDateString(sleep.check_in)
         const matches = sleepDate === targetDate
-        
+
         if (!matches) {
-          console.log(`❌ Sleep ${sleep.id}: ${sleep.check_in} → ${sleepDate} ≠ ${targetDate}`)
+          // console.log(`❌ Sleep ${sleep.id}: ${sleep.check_in} → ${sleepDate} ≠ ${targetDate}`)
         } else {
-          console.log(`✅ Sleep ${sleep.id}: ${sleep.check_in} → ${sleepDate} = ${targetDate}`)
+          // console.log(`✅ Sleep ${sleep.id}: ${sleep.check_in} → ${sleepDate} = ${targetDate}`)
         }
-        
+
         return matches
       })
 
@@ -174,15 +174,15 @@ const allSleepRecords = response.data || []
       // Cache the result
       sleepCache.value[targetDate] = processedData
 
-      console.log(`✅ Cached sleep data for ${targetDate}:`, sleepCache.value[targetDate])
-      
+      // console.log(`✅ Cached sleep data for ${targetDate}:`, sleepCache.value[targetDate])
+
       // Force reactivity update
       sleepCache.value = { ...sleepCache.value }
 
     } catch (error) {
       console.error(`❌ Error fetching sleep data:`, error)
       errorMessage.value = error instanceof Error ? error.message : 'Unknown error'
-      
+
       // Set empty data on error
       sleepCache.value[targetDate] = {
         nightHours: 0,
@@ -200,21 +200,21 @@ const allSleepRecords = response.data || []
   // Get sleep for a specific date
   const getSleepForDate = computed(() => (dateInput: string | Date): SleepData => {
     const dateString = dateInput instanceof Date ? dateToString(dateInput) : dateInput
-    
+
     console.log(`🔍 Getting sleep for ${dateString}`)
     console.log(`🗂️ Available cached dates:`, Object.keys(sleepCache.value))
-    
+
     // Check if we have cached data
     const cachedData = sleepCache.value[dateString]
-    
+
     if (!cachedData) {
       console.log(`📥 Not cached, triggering fetch for ${dateString}`)
-      
+
       // Trigger fetch but don't await it
       fetchSleepForDate(dateString).then(() => {
         console.log(`🔄 Fetch completed for ${dateString}, data should now be available`)
       })
-      
+
       // Return empty data while loading
       return {
         nightHours: 0,
@@ -225,7 +225,7 @@ const allSleepRecords = response.data || []
         sleepSessions: 0
       }
     }
-    
+
     console.log(`📤 Returning cached sleep data for ${dateString}:`, cachedData)
     return cachedData
   })

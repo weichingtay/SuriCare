@@ -26,16 +26,19 @@ def get_sleep_by_child(child_id: int, days: Optional[int] = 30):
     with engine.connect() as conn, conn.begin():
         sql_text = f"""
             SELECT
-                id,
-                child_id,
-                check_in,
-                start_time,
-                end_time,
-                note
-            FROM sleep_time
-            WHERE child_id = {child_id} 
-            AND check_in >= NOW() - INTERVAL '{days} DAY'
-            ORDER BY check_in DESC
+                s.id,
+                s.child_id,
+                s.check_in,
+                s.start_time,
+                s.end_time,
+                s.note,
+                s.account_id,
+                COALESCE(a.name, 'Unknown') as account_name
+            FROM sleep_time s
+            LEFT JOIN accounts a ON s.account_id = a.id
+            WHERE s.child_id = {child_id} 
+            AND s.check_in >= NOW() - INTERVAL '{days} DAY'
+            ORDER BY s.check_in DESC
         """
         sleep_data = pd.read_sql_query(sql_text, parse_dates=['check_in', 'start_time', 'end_time'], con=conn)
         
