@@ -2123,19 +2123,99 @@ const setPoopView = (mode) => {
   fetchPoopAnalytics(selectedDate.value)
 }
 
+// Add this watcher to your existing watchers in the dashboard component
+
+// Watch for child ID changes (matching your guidance page pattern)
+watch(
+  () => childrenStore.currentChild?.id,
+  async (newChildId, oldChildId) => {
+    console.log('👶 Current child ID changed:', oldChildId, '→', newChildId)
+    
+    // Skip if no child ID or component is unmounting
+    if (!newChildId) {
+      console.log('⚠️ No child selected, clearing dashboard data')
+      dataError.value = 'Please select a child to view dashboard data'
+      // Clear all chart data
+      weightSeries.value = [{ name: 'Actual', data: [] }, { name: 'Benchmark', data: [] }]
+      heightSeries.value = [{ name: 'Actual', data: [] }, { name: 'Benchmark', data: [] }]
+      headSeries.value = [{ name: 'Actual', data: [] }, { name: 'Benchmark', data: [] }]
+      sleepSeries.value = [{ name: 'Nap', data: [] }, { name: 'Night', data: [] }]
+      poopFrequencySeries.value = [{ name: 'Daily Frequency', data: [] }]
+      mealDistributionSeries.value = []
+      healthSymptoms.value = []
+      return
+    }
+    
+    // Only reload if the child ID actually changed
+    if (oldChildId && newChildId !== oldChildId) {
+      console.log('🔄 Refreshing dashboard data for child ID:', newChildId)
+      
+      // Clear any previous errors
+      dataError.value = null
+      isLoadingData.value = true
+      
+      try {
+        // Refresh all data for the new child (same as guidance pattern)
+        await Promise.all([
+          fetchGrowth(selectedDate.value),
+          fetchSleep(selectedDate.value),
+          fetchMealAnalytics(selectedDate.value),
+          fetchPoopAnalytics(selectedDate.value),
+          updateHealthSymptomsForDate(selectedDate.value)
+        ])
+        
+        console.log('✅ Dashboard data refreshed for child:', childrenStore.currentChild?.name)
+      } catch (error) {
+        console.error('❌ Error refreshing dashboard data for child:', error)
+        dataError.value = 'Failed to load data for selected child'
+      } finally {
+        isLoadingData.value = false
+      }
+    }
+  },
+  { immediate: false } // Don't run immediately since onMounted handles initial load
+)
+
 // Watch for selectedDate changes to refresh all data
-watch(selectedDate, async (newDate) => {
-  console.log('📅 Date changed to:', newDate)
+watch(selectedDate, async (newDate, oldDate) => {
+  console.log('📅 Selected date changed:', oldDate?.toISOString().split('T')[0], '→', newDate?.toISOString().split('T')[0])
   
-  // Refresh all data for the new date
-  await Promise.all([
-    fetchGrowth(newDate),
-    fetchSleep(newDate),
-    fetchMealAnalytics(newDate),
-    fetchPoopAnalytics(newDate),
-    updateHealthSymptomsForDate(newDate)
-  ])
-}, { deep: true })
+  // Skip if no current child selected
+  if (!childrenStore.currentChild?.id) {
+    console.log('⚠️ No child selected, skipping date change refresh')
+    return
+  }
+  
+  // Only refresh if date actually changed
+  if (oldDate && newDate.getTime() !== oldDate.getTime()) {
+    console.log('🔄 Refreshing dashboard data for date change')
+    
+    // Clear any previous errors
+    dataError.value = null
+    isLoadingData.value = true
+    
+    try {
+      // Refresh all data for the new date
+      await Promise.all([
+        fetchGrowth(newDate),
+        fetchSleep(newDate),
+        fetchMealAnalytics(newDate),
+        fetchPoopAnalytics(newDate),
+        updateHealthSymptomsForDate(newDate)
+      ])
+      
+      console.log('✅ Dashboard data refreshed for date:', newDate.toISOString().split('T')[0])
+    } catch (error) {
+      console.error('❌ Error refreshing dashboard data for date change:', error)
+      dataError.value = 'Failed to load data for selected date'
+    } finally {
+      isLoadingData.value = false
+    }
+  }
+}, { 
+  immediate: false, // Don't run immediately since onMounted handles initial load
+  deep: false // Watch only the date reference change
+})
 
 // Initialize data on component mount
 onMounted(async () => {
