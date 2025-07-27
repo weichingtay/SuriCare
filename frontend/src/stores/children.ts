@@ -52,7 +52,7 @@ export const useChildrenStore = defineStore('children', () => {
   const calcAge = (birthDateStr: string): string => {
     const birthDate = new Date(birthDateStr)
 
-    console.log(birthDate)
+    // console.log(birthDate)
     // Guard: if the date is invalid, return 0 so the UI doesn't break
     if (isNaN(birthDate.getTime())) {
       console.warn('Invalid birth_date received:', birthDateStr)
@@ -82,7 +82,7 @@ export const useChildrenStore = defineStore('children', () => {
       return ageMonths === 1 ? '1 month old' : `${ageMonths} months old`
     }
 
-    console.log(ageYears)
+    // console.log(ageYears)
     return ageYears === 1 ? '1 year old' : `${ageYears} years old`
   }
 
@@ -170,7 +170,7 @@ export const useChildrenStore = defineStore('children', () => {
 
       children.value = childrenWithGrowth
 
-      console.log(`Loaded ${children.value.length} children for user`)
+      // console.log(`Loaded ${children.value.length} children for user`)
 
       // Auto-select first child if none selected
       if (children.value.length > 0 && !currentChild.value) {

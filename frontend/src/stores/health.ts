@@ -56,7 +56,7 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
 
   // Process symptom data into health summary (following your poop/sleep pattern)
   const processHealthData = (symptomRecords: any[]): HealthData => {
-    console.log(`🔄 Processing ${symptomRecords.length} symptom records...`)
+    // console.log(`🔄 Processing ${symptomRecords.length} symptom records...`)
 
     if (symptomRecords.length === 0) {
       return {
@@ -70,7 +70,7 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
     // Extract symptoms from records
     const symptoms = symptomRecords.map(record => record.symptom)
 
-    console.log(`📋 Extracted symptoms:`, symptoms)
+    // console.log(`📋 Extracted symptoms:`, symptoms)
 
     // Determine health status based on symptoms
     let status = 'Healthy'
@@ -128,7 +128,7 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
       lastUpdated: new Date().toISOString(),
     }
 
-    console.log(`🎯 Final health data:`, result)
+    // console.log(`🎯 Final health data:`, result)
     return result
   }
 
@@ -195,15 +195,15 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
         const matches = symptomDate === targetDate
 
         if (!matches) {
-          console.log(`❌ Symptom ${symptom.id}: ${symptom.check_in} → ${symptomDate} ≠ ${targetDate}`)
+          // console.log(`❌ Symptom ${symptom.id}: ${symptom.check_in} → ${symptomDate} ≠ ${targetDate}`)
         } else {
-          console.log(`✅ Symptom ${symptom.id}: ${symptom.check_in} → ${symptomDate} = ${targetDate}`)
+          // console.log(`✅ Symptom ${symptom.id}: ${symptom.check_in} → ${symptomDate} = ${targetDate}`)
         }
 
         return matches
       })
 
-      console.log(`📅 Found ${symptomsForDate.length} symptom records for ${targetDate}`)
+      // console.log(`📅 Found ${symptomsForDate.length} symptom records for ${targetDate}`)
 
       // Process the data
       const processedData = processHealthData(symptomsForDate)
@@ -211,7 +211,7 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
       // Cache the result
       healthCache.value[targetDate] = processedData
 
-      console.log(`✅ Cached health data for ${targetDate}:`, healthCache.value[targetDate])
+      // console.log(`✅ Cached health data for ${targetDate}:`, healthCache.value[targetDate])
 
       // Force reactivity update
       healthCache.value = { ...healthCache.value }
@@ -236,8 +236,8 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
   const getHealthForDate = computed(() => (dateInput: string | Date): HealthData => {
     const dateString = dateInput instanceof Date ? dateToString(dateInput) : dateInput
 
-    console.log(`🔍 Getting health for ${dateString}`)
-    console.log(`🗂️ Available cached dates:`, Object.keys(healthCache.value))
+    // console.log(`🔍 Getting health for ${dateString}`)
+    // console.log(`🗂️ Available cached dates:`, Object.keys(healthCache.value))
 
     // Check if we have cached data
     const cachedData = healthCache.value[dateString]

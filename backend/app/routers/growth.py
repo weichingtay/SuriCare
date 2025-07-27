@@ -26,17 +26,20 @@ def get_growth_by_child(child_id: int, days: Optional[int] = 30):
     with engine.connect() as conn, conn.begin():
         sql_text = f"""
             SELECT
-                id,
-                child_id,
-                check_in,
-                weight,
-                height,
-                head_circumference,
-                note
-            FROM growth
-            WHERE child_id = {child_id} 
-            AND check_in >= NOW() - INTERVAL '{days} DAY'
-            ORDER BY check_in DESC
+                g.id,
+                g.child_id,
+                g.check_in,
+                g.weight,
+                g.height,
+                g.head_circumference,
+                g.note,
+                g.account_id,
+                COALESCE(a.name, 'Unknown') as account_name
+            FROM growth g
+            LEFT JOIN accounts a ON g.account_id = a.id
+            WHERE g.child_id = {child_id} 
+            AND g.check_in >= NOW() - INTERVAL '{days} DAY'
+            ORDER BY g.check_in DESC
         """
         growth_data = pd.read_sql_query(sql_text, parse_dates=['check_in'], con=conn)
         

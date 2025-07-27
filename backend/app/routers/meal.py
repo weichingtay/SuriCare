@@ -28,10 +28,12 @@ def get_meals_by_child(child_id: int, days: Optional[int] = 30):
                             SELECT 
                                 m.*,
                                 mtc.time_category,
-                                mc.category as meal_category_name
+                                mc.category as meal_category_name,
+                                COALESCE(a.name, 'Unknown') as account_name
                             FROM meal m
                             JOIN meal_time_category mtc ON m.meal_time_category = mtc.id
                             JOIN meal_category mc ON m.meal_category = mc.id
+                            LEFT JOIN accounts a ON m.account_id = a.id
                             WHERE m.child_id = {child_id} AND
                                   m.check_in >= NOW() - INTERVAL '{days} DAY'
                             ORDER BY m.check_in DESC

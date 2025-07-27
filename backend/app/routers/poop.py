@@ -30,10 +30,12 @@ def get_poops_by_child(child_id: int, days: Optional[int] = 90):
                             SELECT 
                                 p.*,
                                 pc.category as color_name,
-                                pt.category as texture_name
+                                pt.category as texture_name,
+                                COALESCE(a.name, 'Unknown') as account_name
                             FROM poop p
                             JOIN poop_color pc ON p.color = pc.id
                             JOIN poop_texture pt ON p.texture = pt.id
+                            LEFT JOIN accounts a ON p.account_id = a.id
                             WHERE p.child_id = {child_id} AND
                                 p.check_in >= NOW() - INTERVAL '{days} DAY'
                             ORDER BY p.check_in DESC
