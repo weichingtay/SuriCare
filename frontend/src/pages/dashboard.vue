@@ -817,8 +817,11 @@ const sleepOptions = ref({
       show: true,
       rotate: -45,
       datetimeUTC: false,
-      formatter (_, timestamp, opts) {
-        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
+        formatter (_, timestamp, opts) {
+        const date = new Date(timestamp)
+        const day = date.getDate()
+        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
+        return `${day} ${weekday}`
       },
     },
     tickPlacement: 'on',
@@ -874,9 +877,12 @@ const poopFrequencyOptions = ref({
       show: true,
       rotate: -45,
       datetimeUTC: false,
-      formatter: (_, timestamp, opts) => {
-        return opts.dateFormatter(new Date(timestamp), 'dd MMM yy')
-      }
+      formatter (_, timestamp, opts) {
+        const date = new Date(timestamp)
+        const day = date.getDate()
+        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
+        return `${day} ${weekday}`
+      },
     },
     tickPlacement: 'on',
     tickAmount: 'dataPoints',
