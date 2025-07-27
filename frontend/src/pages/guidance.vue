@@ -30,10 +30,15 @@
         </div>
 
         <!-- <AppHeader /> -->
-        <NavigationTabs @tab-changed="handleTabChange" />
+        <NavigationTabs 
+        @tab-changed="handleTabChange"
+          @child-changed="handleChildChange" 
+ />
         <ArticleGrid v-if="currentTab === 'guidance'" />
-        <AlertsView v-if="currentTab === 'alert'" />
+        <AlertsView v-if="currentTab === 'alert'"
+        :key="forceRefreshAlerts"  />
         <SavedView v-if="currentTab === 'saved'" />
+        
       </v-container>
 
       <!-- Refresh Confirmation Dialog -->
@@ -116,6 +121,7 @@
   const currentTab = ref('guidance')
   const guidanceStore = useGuidanceStore()
   const showLoadingAlert = ref(false)
+  const forceRefreshAlerts = ref(0) // ADD THIS LINE
 
   // Get reactive references from guidance store
   const { isArticleSaved, savedArticles, isLoading, refreshPromptVisible, refreshPromptChild } = storeToRefs(guidanceStore)
@@ -131,6 +137,11 @@
   const handleTabChange = (tab: string): void => {
     currentTab.value = tab
   }
+
+const handleChildChange = (): void => {
+  forceRefreshAlerts.value += 1
+}
+
 
   const handleRefresh = async (): Promise<void> => {
     const { useChildrenStore } = await import('@/stores/children')
