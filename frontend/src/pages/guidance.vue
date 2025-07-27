@@ -31,7 +31,30 @@
 
         <!-- <AppHeader /> -->
         <NavigationTabs @tab-changed="handleTabChange" />
-        <ArticleGrid v-if="currentTab === 'guidance'" />
+        
+        <!-- Loading Alert -->
+        <v-alert
+          v-if="currentTab === 'guidance' && (showInitialLoading || showLoadingAlert)"
+          color="#d87179"
+          variant="tonal"
+          class="mb-4"
+        >
+          <div class="d-flex align-center">
+            <v-progress-circular
+              indeterminate
+              size="20"
+              width="2"
+              color="#d87179"
+              class="mr-3"
+            ></v-progress-circular>
+            <div>
+              <div class="font-weight-medium">SuriAI is finding the best articles for {{ childrenStore.currentChild?.name || 'your child' }}</div>
+              <div class="text-caption">Please wait while we personalize your content</div>
+            </div>
+          </div>
+        </v-alert>
+        
+        <ArticleGrid v-if="currentTab === 'guidance' && !showInitialLoading && !showLoadingAlert" />
         <AlertsView v-if="currentTab === 'alert'" />
         <SavedView v-if="currentTab === 'saved'" />
       </v-container>
@@ -76,27 +99,7 @@
         </v-card>
       </v-dialog>
 
-      <!-- Loading Snackbar -->
-      <v-snackbar
-        v-model="showLoadingAlert"
-        :timeout="-1"
-        color="primary"
-        location="top"
-        class="loading-snackbar"
-      >
-        <div class="d-flex align-center">
-          <v-progress-circular
-            indeterminate
-            size="20"
-            width="2"
-            class="mr-3"
-          ></v-progress-circular>
-          <div>
-            <div class="font-weight-medium">SuriAI is working...</div>
-            <div class="text-caption">Analyzing your child's info and generating personalized articles</div>
-          </div>
-        </div>
-      </v-snackbar>
+
     </v-main>
   </v-app>
 </template>
@@ -106,6 +109,7 @@
   import { useRoute } from 'vue-router'
   import { storeToRefs } from 'pinia'
   import { useGuidanceStore } from '@/stores/guidance'
+  import { useChildrenStore } from '@/stores/children'
   import DEV_MODE from '@/utils/devMode'
   import NavigationTabs from '../components/guidance/NavigationTabs.vue'
   import ArticleGrid from '../components/guidance/ArticleGrid.vue'
@@ -115,17 +119,24 @@
   const route = useRoute()
   const currentTab = ref('guidance')
   const guidanceStore = useGuidanceStore()
+  const childrenStore = useChildrenStore()
   const showLoadingAlert = ref(false)
+  const showInitialLoading = ref(true)
 
   // Get reactive references from guidance store
   const { isArticleSaved, savedArticles, isLoading, refreshPromptVisible, refreshPromptChild } = storeToRefs(guidanceStore)
 
   // Initialize tab based on route query parameter
-  onMounted(() => {
+  onMounted(async () => {
     const tabFromQuery = route.query.tab as string
     if (tabFromQuery && ['guidance', 'alert', 'saved'].includes(tabFromQuery)) {
       currentTab.value = tabFromQuery
     }
+    
+    // Show loading for 2 seconds before displaying content
+    setTimeout(() => {
+      showInitialLoading.value = false
+    }, 2000)
   })
 
   const handleTabChange = (tab: string): void => {
@@ -142,6 +153,8 @@
       
       try {
         await guidanceStore.refreshArticles(childrenStore.currentChild.id, true)
+        // Add minimum display time of 2 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000))
       } finally {
         // Hide loading alert when done
         showLoadingAlert.value = false
