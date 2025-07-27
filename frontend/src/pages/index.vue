@@ -19,22 +19,22 @@
       >
         <h1 class="welcome-text mt-1 mb-1">
           Welcome,
-          {{ userProfile.role === 'Guardian' ? 'Wei Ching' : 'Yoshi' }}
+          {{ currentAccount.name }}
         </h1>
         <v-chip
-          :color="userProfile.role === 'Guardian' ? '#D87179' : '#FFC107'"
+          :color="currentAccount.role === 'Guardian' ? '#D87179' : '#FFC107'"
           size="small"
           variant="flat"
           style="display: flex; align-items: center; height: 28px"
           ><span
             :class="
-              userProfile.role === 'Guardian'
+              currentAccount.role === 'Guardian'
                 ? 'mdi mdi-human-male-female-child'
                 : 'mdi mdi-mother-heart'
             "
             style="font-size: 18px; line-height: 1"
           ></span
-          >&nbsp {{ userProfile.role }}</v-chip
+          >&nbsp {{ currentAccount.role }}</v-chip
         >
       </div>
       <p class="welcome-subtitle">Let's check on your little one today</p>
@@ -75,11 +75,13 @@
       </v-container>
     </v-main>
     <!-- Dialog Components -->
+    <!-- TEMPORARY MVP: Passing current account name as carer-name to tie check-ins to selected account -->
     <MealDialog
       v-model="dialogs.meal"
       @close="dialogs.meal = false"
       @save="handleMealSaved"
       :current-child="childrenStore.currentChild"
+      :carer-name="currentAccount.name"
     />
 
     <SleepDialog
@@ -87,6 +89,7 @@
       @close="dialogs.sleep = false"
       @save="handleSleepSaved"
       :current-child="childrenStore.currentChild"
+      :carer-name="currentAccount.name"
     />
 
     <PoopDialog
@@ -94,6 +97,7 @@
       @close="dialogs.poop = false"
       @save="handlePoopSaved"
       :current-child="childrenStore.currentChild"
+      :carer-name="currentAccount.name"
     />
 
     <SymptomDialog
@@ -101,6 +105,7 @@
       @close="dialogs.health = false"
       @save="handleHealthSaved"
       :current-child="childrenStore.currentChild"
+      :carer-name="currentAccount.name"
     />
   </v-app>
 </template>
@@ -137,7 +142,7 @@
   const sleepStore = useSleepStore()
   const poopStore = usePoopStore()
   const healthStore = useHealthStore()
-  const { userProfile } = useUserProfile()
+  const { userProfile, currentAccount } = useUserProfile()
 
   const router = useRouter()
 
