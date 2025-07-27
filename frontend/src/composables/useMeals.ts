@@ -176,6 +176,14 @@ export function useMeals (mealsData: ComputedRef<MealsData | undefined>): UseMea
     const refusedItems = mealsData.value?.refusedItems || []
     const breakdown = mealBreakdown.value
 
+
+    // ADD THIS: Check if we have any data at all (matching your statusNote logic)
+  const hasAnyData = breakdown.some(meal => meal.hasData)
+  
+  if (!hasAnyData) {
+    return 'status-neutral' // Gray for "No meal data for this date"
+  }
+
     // Check for refused items
     if (refusedItems.length > 0) {
       return 'status-negative'
