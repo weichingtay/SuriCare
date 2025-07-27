@@ -824,7 +824,7 @@ const poopFrequencyOptions = ref({
   },
   stroke: {
     curve: 'straight',
-    width: 3,
+    width: 0,
   },
   legend: {
     show: false,
@@ -1420,12 +1420,12 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
       {
         name: 'Normal',
         data: normalData,
-        color: '#22c55e' // Green for normal
+        color: '#81c5f7' // Green for normal
       },
       {
         name: 'Unusual',
         data: unusualData, 
-        color: '#f97316' // Orange for unusual
+        color: '#d87179' // Orange for unusual
       }
     ]
 
