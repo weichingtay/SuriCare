@@ -26,8 +26,9 @@ export function useHealthAlert() {
   const poopStore = usePoopStore()
   const healthStore = useHealthStore()
 
-  // STABLE: Single source of truth for alerts
-  const alerts = ref<SimpleAlert[]>([])
+  // STABLE: Single source of truth for alerts - start as null to indicate not loaded
+  const alerts = ref<SimpleAlert[] | null>(null)
+  const isAnalyzing = ref(false)
 
   // STABLE: Safe access to current child
   const currentChild = computed(() => childrenStore.currentChild)
@@ -756,8 +757,8 @@ const deleteAlert = async (alertId: string): Promise<void> => {
 
     console.log(`🔍 Starting analysis for: ${dateString}`)
     
-    // STABLE: Clear previous alerts
-    alerts.value = []
+    // STABLE: Set analyzing state instead of clearing alerts immediately
+    isAnalyzing.value = true
     
     try {
       // ENHANCED: Check all four patterns
@@ -801,12 +802,15 @@ const deleteAlert = async (alertId: string): Promise<void> => {
    } catch (error) {
      console.error('❌ Analysis error:', error)
      alerts.value = []
+   } finally {
+     isAnalyzing.value = false
    }
  }
 
  // 🚨 FIXED: Added deleteAlert to the return statement
  return {
    alerts: computed(() => alerts.value),
+   isAnalyzing: computed(() => isAnalyzing.value),
    analyzeForDate,
    saveAlertToAPI,
    loadAlertsForTab,

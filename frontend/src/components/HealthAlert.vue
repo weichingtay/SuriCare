@@ -43,7 +43,7 @@
     </div>
 
     <!-- Case 2: Loading -->
-    <div v-else-if="isLoading">
+    <div v-else-if="isLoading || !hasFinishedLoading">
       <v-alert class="health-alert" color="#F5F5F5" variant="tonal">
         <div class="d-flex align-center">
           <v-progress-circular class="mr-3" color="primary" indeterminate size="20" />
@@ -108,15 +108,16 @@ const currentDateString = computed(() => {
   return `${year}-${month}-${day}`
 })
 
-// STABLE: Simple loading state
-const isLoading = ref(false)
-
 // STABLE: Initialize composable
-const { alerts, analyzeForDate } = useHealthAlert()
+const { alerts, isAnalyzing, analyzeForDate } = useHealthAlert()
+
+// STABLE: Use composable's loading state
+const isLoading = computed(() => isAnalyzing.value)
 
 // STABLE: Simple computed properties
-const hasAlert = computed(() => alerts.value && alerts.value.length > 0)
-const topAlert = computed(() => hasAlert.value ? alerts.value[0] : null)
+const hasAlert = computed(() => alerts.value !== null && alerts.value.length > 0)
+const topAlert = computed(() => hasAlert.value && alerts.value ? alerts.value[0] : null)
+const hasFinishedLoading = computed(() => alerts.value !== null)
 
 // NEW: Dynamic alert styling using your design system colors
 const alertBackgroundColor = computed(() => {
@@ -198,18 +199,11 @@ const alertButtonColor = computed(() => {
 const triggerAnalysis = async () => {
   console.log(`🎯 Triggering analysis for: ${currentDateString.value}`)
   
-  isLoading.value = true
-  
   try {
     await analyzeForDate(currentDateString.value)
     console.log(`✅ Analysis completed for: ${currentDateString.value}`)
   } catch (error) {
     console.error('❌ Analysis failed:', error)
-  } finally {
-    // Always stop loading after 1 second minimum
-    setTimeout(() => {
-      isLoading.value = false
-    }, 1000)
   }
 }
 
