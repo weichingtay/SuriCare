@@ -40,6 +40,70 @@
         </v-text-field>
       </template>
     </VueDatePicker>
+    
+    <!-- Quick time adjustment buttons -->
+    <div class="time-controls">
+      <!-- Left buttons (backward) -->
+      <div class="time-controls-left">
+        <v-btn
+          size="x-small"
+          variant="text"
+          color="#D87179"
+          @click="adjustTime(-60)"
+          :disabled="disabled || !modelValue"
+          class="adjust-btn"
+        >
+          -1h
+        </v-btn>
+        <v-btn
+          size="x-small"
+          variant="text"
+          color="#D87179"
+          @click="adjustTime(-30)"
+          :disabled="disabled || !modelValue"
+          class="adjust-btn"
+        >
+          -30m
+        </v-btn>
+      </div>
+
+      <!-- Center "Now" button -->
+      <v-btn
+        size="large"
+        variant="outlined"
+        color="#D87179"
+        @click="setCurrentTime"
+        :disabled="disabled"
+        class="now-btn-center"
+      >
+        Now
+      </v-btn>
+
+      <!-- Right buttons (forward) -->
+      <div class="time-controls-right">
+        <v-btn
+          size="x-small"
+          variant="text"
+          color="#D87179"
+          @click="adjustTime(30)"
+          :disabled="disabled || !modelValue"
+          class="adjust-btn"
+        >
+          +30m
+        </v-btn>
+        <v-btn
+          size="x-small"
+          variant="text"
+          color="#D87179"
+          @click="adjustTime(60)"
+          :disabled="disabled || !modelValue"
+          class="adjust-btn"
+        >
+          +1h
+        </v-btn>
+      </div>
+    </div>
+    
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>
@@ -95,6 +159,40 @@ const clearError = () => {
   emit('clear-error')
 }
 
+const setCurrentTime = () => {
+  const now = new Date()
+  emit('update:modelValue', now)
+  emit('clear-error')
+}
+
+const adjustTime = (minutes: number) => {
+  if (!props.modelValue) return
+  
+  const newTime = new Date(props.modelValue.getTime())
+  newTime.setMinutes(newTime.getMinutes() + minutes)
+  
+  // For awake time field, prevent going backwards in time if it would be before bed time
+  if (props.label === 'Awake Time' && minutes < 0) {
+    // We can't directly access bed time here, so we'll emit the time and let parent handle validation
+    // For now, just ensure we don't go to negative hours
+    if (newTime.getHours() < 0 || newTime < new Date(newTime.getFullYear(), newTime.getMonth(), newTime.getDate())) {
+      return // Don't allow going to previous day
+    }
+  }
+  
+  // Ensure time stays within 24-hour format
+  if (newTime.getHours() >= 24) {
+    newTime.setHours(newTime.getHours() - 24)
+    newTime.setDate(newTime.getDate() + 1)
+  } else if (newTime.getHours() < 0) {
+    newTime.setHours(newTime.getHours() + 24)
+    newTime.setDate(newTime.getDate() - 1)
+  }
+  
+  emit('update:modelValue', newTime)
+  emit('clear-error')
+}
+
 // Prevent scroll events from bubbling up to the page
 onMounted(() => {
   nextTick(() => {
@@ -135,7 +233,9 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use '@/styles/variables' as *;
+
 .time-field {
   flex: 1;
   width: 288px;
@@ -147,13 +247,63 @@ onMounted(() => {
 .section-label {
   font-size: 12px;
   font-weight: 500;
-  color: #333;
-  margin-bottom: 8px;
+  color: $app-text-secondary;
+  margin-bottom: $spacing-sm;
 }
 
 .custom-date-picker {
   width: 100%;
   z-index: 9999;
+}
+
+.time-controls {
+  margin-top: $spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.time-controls-left,
+.time-controls-right {
+  display: flex;
+  gap: $spacing-xs;
+  min-width: 80px;
+}
+
+.time-controls-left {
+  justify-content: flex-end;
+}
+
+.time-controls-right {
+  justify-content: flex-start;
+}
+
+.now-btn-center {
+  min-width: 80px;
+  height: 40px;
+  border-color: $app-primary !important;
+  color: $app-primary !important;
+  font-weight: 600;
+  flex-shrink: 0;
+  
+  &:hover {
+    background-color: rgba($app-primary, 0.1) !important;
+  }
+}
+
+.adjust-btn {
+  min-width: 45px;
+  font-size: 11px;
+  color: $app-primary !important;
+  
+  &:hover {
+    background-color: rgba($app-primary, 0.1) !important;
+  }
+  
+  &:disabled {
+    color: rgba($app-primary, 0.4) !important;
+  }
 }
 
 :deep(.dp__menu) {
@@ -207,8 +357,8 @@ onMounted(() => {
 }
 
 .error-message {
-  color: #d32f2f;
+  color: $status-negative;
   font-size: 12px;
-  margin-top: 8px;
+  margin-top: $spacing-sm;
 }
 </style>
