@@ -2,14 +2,25 @@
 <template>
   <!-- Main application container with light theme -->
   <v-app theme="light">
-    <!-- Show alert if needed -->
-    <v-alert
-      v-if="alert.show"
-      :type="alert.type"
-      :text="alert.message"
-      class="mb-4 centered-alert"
-      closable
-    ></v-alert>
+    <!-- Success snackbar that doesn't push content -->
+    <v-snackbar
+      v-model="alert.show"
+      :color="alert.type"
+      location="top"
+      timeout="3000"
+      class="mt-16"
+    >
+      {{ alert.message }}
+      <template v-slot:actions>
+        <v-btn
+          color="white"
+          variant="text"
+          @click="alert.show = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
 
     <!-- Welcome text -->
     <div class="welcome-content">
@@ -168,9 +179,9 @@
     alert.type = type
     alert.show = true
 
-    setTimeout(() => {
-      alert.show = false
-    }, 3000)
+    // setTimeout(() => {
+    //   alert.show = false
+    // }, 3000)
   }
 
   // ===== SAVE HANDLERS =====
