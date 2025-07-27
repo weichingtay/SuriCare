@@ -1435,6 +1435,8 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
         type: 'bar',
         stacked: true, // Enable stacking
         toolbar: { show: false },
+           offsetX: -15,  // ADD THIS LINE - shifts chart left to show last label
+
         animations: {
           enabled: true,
           easing: 'easeinout',
@@ -1478,28 +1480,7 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
           }
         }
       },
-      xaxis: {
-        type: 'datetime',
-        labels: {
-          show: true,
-          rotate: -45,
-          rotateAlways: true,
-          datetimeUTC: false,
-          formatter: (_, timestamp, opts) => {
-            const date = new Date(timestamp)
-            if (poopViewMode.value === 'weekly') {
-              return opts.dateFormatter(date, 'dd MMM')
-            } else {
-              return opts.dateFormatter(date, 'dd')
-            }
-          },
-          maxHeight: 60,
-          trim: true,
-          showDuplicates: false,
-        },
-        tickAmount: Math.min(days, poopViewMode.value === 'weekly' ? 7 : 10),
-        tickPlacement: 'between',
-      },
+      
       yaxis: {
         title: {
           text: 'Movements per Day'
@@ -1598,8 +1579,8 @@ const fetchPoopAnalytics = async (selectedDateParam) => {
       // Add subtle grid
       grid: {
         show: true,
-        borderColor: '#bdbdbd',
-        strokeDashArray: 2,
+        borderColor: '#e0e0e0',
+        strokeDashArray: 0,
         xaxis: {
           lines: {
             show: false
