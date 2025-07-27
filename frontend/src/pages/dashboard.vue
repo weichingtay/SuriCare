@@ -381,7 +381,7 @@ const weightOptions = computed(() => ({
     mode: 'light',
     palette: 'palette5',
   },
-  colors: ['#9C7FF7', '#94a3b8'], // Purple for actual, Gray for benchmark
+  colors: ['#9C7FF7', '#94a3b8'],
   xaxis: {
     type: 'datetime',
     labels: {
@@ -391,26 +391,47 @@ const weightOptions = computed(() => ({
       formatter: function(val) {
         const date = new Date(val)
         if (growthViewMode.value === 'weekly') {
-          return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+          return date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            day: 'numeric' 
+          })
         } else {
-          return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+          return date.toLocaleDateString('en-US', { 
+            day: 'numeric', 
+            month: 'short' 
+          })
         }
       },
+      hideOverlappingLabels: false,
+      showDuplicates: false,
     },
-    tickAmount: 7, // FIXED: Exactly 7 ticks for 7 days
-    tickPlacement: 'between', // CHANGED: From 'on' to 'between' for better alignment
-
+    // Force exact range for weekly view
+    ...(growthViewMode.value === 'weekly' ? {
+      min: function() {
+        const startDate = new Date(selectedDate.value)
+        startDate.setDate(selectedDate.value.getDate() - 6)
+        startDate.setHours(0, 0, 0, 0)
+        return startDate.getTime()
+      },
+      max: function() {
+        const endDate = new Date(selectedDate.value)
+        endDate.setHours(23, 59, 59, 999)
+        return endDate.getTime()
+      },
+      tickAmount: 6
+    } : {
+      tickAmount: undefined
+    })
   },
   yaxis: {
     title: {
       text: 'Weight, kg',
     },
-    // ADD: Same logic as height - force a better range
     min: function(min) {
-      return min - 1 // 0.5kg breathing room below
+      return min - 1
     },
     max: function(max) {
-      return max + 1 // 0.5kg breathing room above
+      return max + 1
     },
     forceNiceScale: true,
     labels: {
@@ -420,15 +441,18 @@ const weightOptions = computed(() => ({
     }
   },
   stroke: {
-    curve: 'smooth',
+    curve: 'stepline', // MEDICAL CHART: Use stepline to show plateaus between measurements
     width: [3, 2],
     dashArray: [0, 5] // Solid for actual, dashed for benchmark
   },
   markers: {
-    size: [2, 0], // Show markers on actual measurements only
-    colors: ['#9C7FF7', '#9ca3af'], // Purple for actual, Grey for benchmark
-    strokeColors: '#9ca3af',
-    strokeWidth: 1,
+    size: [3, 0], // Only show on actual series
+colors: ['#9ca3af', 'transparent'],
+    strokeColors: '#fff',
+    strokeWidth: 2,
+    hover: {
+      sizeOffset: 2
+    }
   },
   legend: {
     show: true,
@@ -437,19 +461,24 @@ const weightOptions = computed(() => ({
   tooltip: {
     shared: false,
     intersect: true,
-     enabled: true,
-    shared: false,
-    followCursor: true, // ADD: Makes tooltip follow mouse
-    intersect: true,
+    followCursor: true,
     custom: function({ series, seriesIndex, dataPointIndex, w }) {
       const value = series[seriesIndex][dataPointIndex]
       const date = new Date(w.globals.seriesX[seriesIndex][dataPointIndex])
       const seriesName = w.globals.seriesNames[seriesIndex]
       
+      if (value === null || value === undefined) {
+        return `
+          <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;">
+            <div style="font-weight: 600; color: #6b7280;">No measurement yet</div>
+          </div>
+        `
+      }
+      
       return `
         <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; font-family: Inter, sans-serif;">
           <div style="font-weight: 600; margin-bottom: 6px; color: #374151;">${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
-          <div style="color: ${seriesIndex === 0 ? '#3b82f6' : '#94a3b8'};">
+          <div style="color: ${seriesIndex === 0 ? '#9C7FF7' : '#94a3b8'};">
             ${seriesName}: <strong>${value.toFixed(2)} kg</strong>
           </div>
         </div>
@@ -457,7 +486,6 @@ const weightOptions = computed(() => ({
     }
   }
 }))
-
 // Chart series for meal distribution (pie chart showing Milk, Solid, Mixed, Others)
 const mealDistributionSeries = ref([])
 
@@ -527,28 +555,48 @@ const heightOptions = computed(() => ({
       formatter: function(val) {
         const date = new Date(val)
         if (heightViewMode.value === 'weekly') {
-          return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+          return date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            day: 'numeric' 
+          })
         } else {
-          return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+          return date.toLocaleDateString('en-US', { 
+            day: 'numeric', 
+            month: 'short' 
+          })
         }
       },
+      hideOverlappingLabels: false,
+      showDuplicates: false,
     },
-   tickAmount: 7, // FIXED: Exactly 7 ticks for 7 days
-    tickPlacement: 'between', // CHANGED: From 'on' to 'between' for better alignment
-
+    // Force exact range for weekly view
+    ...(heightViewMode.value === 'weekly' ? {
+      min: function() {
+        const startDate = new Date(selectedDate.value)
+        startDate.setDate(selectedDate.value.getDate() - 6)
+        startDate.setHours(0, 0, 0, 0)
+        return startDate.getTime()
+      },
+      max: function() {
+        const endDate = new Date(selectedDate.value)
+        endDate.setHours(23, 59, 59, 999)
+        return endDate.getTime()
+      },
+      tickAmount: 6
+    } : {
+      tickAmount: undefined
+    })
   },
   yaxis: {
     title: {
       text: 'Height, cm',
     },
-      // Remove forceNiceScale for height
-  min: function(min) {
-    return min - 2 // Add 2cm breathing room below
-  },
-  max: function(max) {
-    return max + 2 // Add 2cm breathing room above
-  },
-  tickAmount: 5, // Use 5 ticks instead of 6
+    min: function(min) {
+      return min - 2 // Add 2cm breathing room below
+    },
+    max: function(max) {
+      return max + 2 // Add 2cm breathing room above
+    },
     forceNiceScale: true,
     labels: {
       formatter: function(val) {
@@ -557,15 +605,18 @@ const heightOptions = computed(() => ({
     }
   },
   stroke: {
-    curve: 'stepline', // CHANGED: Use stepline for growth charts
+    curve: 'stepline', // MEDICAL CHART: Use stepline for growth progression
     width: [3, 2],
-    dashArray: [0, 5]
+    dashArray: [0, 5] // Solid for actual, dashed for benchmark
   },
   markers: {
-    size: [2, 0], // Show markers on actual measurements only
-    colors: ['#9C7FF7', '#9ca3af'], // Purple for actual, Grey for benchmark
-    strokeColors: '#9ca3af',
-    strokeWidth: 1,
+    size: [3, 0], // Only show on actual series
+colors: ['#9ca3af', 'transparent'],
+    strokeColors: '#fff',
+    strokeWidth: 2,
+    hover: {
+      sizeOffset: 2
+    }
   },
   legend: {
     show: true,
@@ -574,19 +625,24 @@ const heightOptions = computed(() => ({
   tooltip: {
     shared: false,
     intersect: true,
-     enabled: true,
-    shared: false,
-    followCursor: true, // ADD: Makes tooltip follow mouse
-    intersect: true,
+    followCursor: true,
     custom: function({ series, seriesIndex, dataPointIndex, w }) {
       const value = series[seriesIndex][dataPointIndex]
       const date = new Date(w.globals.seriesX[seriesIndex][dataPointIndex])
       const seriesName = w.globals.seriesNames[seriesIndex]
       
+      if (value === null || value === undefined) {
+        return `
+          <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;">
+            <div style="font-weight: 600; color: #6b7280;">No measurement yet</div>
+          </div>
+        `
+      }
+      
       return `
         <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; font-family: Inter, sans-serif;">
           <div style="font-weight: 600; margin-bottom: 6px; color: #374151;">${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
-          <div style="color: ${seriesIndex === 0 ? '#10b981' : '#94a3b8'};">
+          <div style="color: ${seriesIndex === 0 ? '#81c5f7' : '#94a3b8'};">
             ${seriesName}: <strong>${value.toFixed(1)} cm</strong>
           </div>
         </div>
@@ -594,6 +650,7 @@ const heightOptions = computed(() => ({
     }
   }
 }))
+
 
 // Chart data for Head Circumference
 const headSeries = ref([
@@ -627,21 +684,43 @@ const headOptions = computed(() => ({
       formatter: function(val) {
         const date = new Date(val)
         if (headViewMode.value === 'weekly') {
-          return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+          return date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            day: 'numeric' 
+          })
         } else {
-          return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+          return date.toLocaleDateString('en-US', { 
+            day: 'numeric', 
+            month: 'short' 
+          })
         }
       },
+      hideOverlappingLabels: false,
+      showDuplicates: false,
     },
-    tickAmount: 7, // FIXED: Exactly 7 ticks for 7 days
-    tickPlacement: 'between', // CHANGED: From 'on' to 'between' for better alignment
-
+    // Force exact range for weekly view
+    ...(headViewMode.value === 'weekly' ? {
+      min: function() {
+        const startDate = new Date(selectedDate.value)
+        startDate.setDate(selectedDate.value.getDate() - 6)
+        startDate.setHours(0, 0, 0, 0)
+        return startDate.getTime()
+      },
+      max: function() {
+        const endDate = new Date(selectedDate.value)
+        endDate.setHours(23, 59, 59, 999)
+        return endDate.getTime()
+      },
+      tickAmount: 6
+    } : {
+      tickAmount: undefined
+    })
   },
   yaxis: {
     title: {
       text: 'Head circumference, cm',
     },
-    // CUSTOM: Create consistent 0.5cm intervals
+    // Create consistent 0.5cm intervals
     min: function(min) {
       // Round down to nearest 0.5cm and subtract 1cm for breathing room
       return Math.floor((min - 1) * 2) / 2
@@ -650,14 +729,8 @@ const headOptions = computed(() => ({
       // Round up to nearest 0.5cm and add 1cm for breathing room
       return Math.ceil((max + 1) * 2) / 2
     },
-    tickAmount: undefined, // Let ApexCharts auto-calculate based on our 0.5cm intervals
-    decimalsInFloat: 1, // Show 1 decimal place
-    labels: {
-      formatter: function(val) {
-        return val.toFixed(1) + ' cm'
-      }
-    },
     forceNiceScale: true,
+    decimalsInFloat: 1, // Show 1 decimal place
     labels: {
       formatter: function(val) {
         return val.toFixed(1) + ' cm'
@@ -665,15 +738,18 @@ const headOptions = computed(() => ({
     }
   },
   stroke: {
-    curve: 'stepline', // CHANGED: Use stepline for growth charts
+    curve: 'stepline', // MEDICAL CHART: Use stepline for head circumference
     width: [3, 2],
-    dashArray: [0, 5]
+    dashArray: [0, 5] // Solid for actual, dashed for benchmark
   },
   markers: {
-    size: [2, 0], // Show markers on actual measurements only
-    colors: ['#9C7FF7', '#9ca3af'], // Purple for actual, Grey for benchmark
-    strokeColors: '#9ca3af',
-    strokeWidth: 1,
+    size: [3, 0], // Only show on actual series
+colors: ['#9ca3af', 'transparent'],
+    strokeColors: '#fff',
+    strokeWidth: 2,
+    hover: {
+      sizeOffset: 2
+    }
   },
   dataLabels: {
     enabled: false,
@@ -685,19 +761,24 @@ const headOptions = computed(() => ({
   tooltip: {
     shared: false,
     intersect: true,
-     enabled: true,
-    shared: false,
-    followCursor: true, // ADD: Makes tooltip follow mouse
-    intersect: true,
+    followCursor: true,
     custom: function({ series, seriesIndex, dataPointIndex, w }) {
       const value = series[seriesIndex][dataPointIndex]
       const date = new Date(w.globals.seriesX[seriesIndex][dataPointIndex])
       const seriesName = w.globals.seriesNames[seriesIndex]
       
+      if (value === null || value === undefined) {
+        return `
+          <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;">
+            <div style="font-weight: 600; color: #6b7280;">No measurement yet</div>
+          </div>
+        `
+      }
+      
       return `
         <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; font-family: Inter, sans-serif;">
           <div style="font-weight: 600; margin-bottom: 6px; color: #374151;">${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</div>
-          <div style="color: ${seriesIndex === 0 ? '#8b5cf6' : '#94a3b8'};">
+          <div style="color: ${seriesIndex === 0 ? '#fb9bec' : '#94a3b8'};">
             ${seriesName}: <strong>${value.toFixed(1)} cm</strong>
           </div>
         </div>
@@ -1027,8 +1108,8 @@ const enhanceGrowthChartOptions = () => {
       dashArray: [0, 5] // Solid for actual, dashed for benchmark
     },
     markers: {
-      size: [5, 0], // Show markers on actual measurements only
-      colors: ['#3b82f6', '#94a3b8'],
+      size: [3, 0], // Only show on actual series
+colors: ['#9ca3af', 'transparent'],
       strokeColors: '#fff',
       strokeWidth: 2,
       hover: {
@@ -1769,9 +1850,9 @@ const updateHealthSymptomsForDate = async (targetDate) => {
 
 // CORRECTED updateChartsForDate function - Medical growth chart with steplines and carry-forward
 const updateChartsForDate = () => {
-  const createMedicalGrowthTimeline = (actualData, benchmarkData, viewMode) => {
+  const createMedicalGrowthTimeline = (actualData, benchmarkData, viewMode, selectedDate) => {
     if (viewMode === 'weekly') {
-      // Create 7-day timeline with carry-forward logic for actual measurements
+      // Create exactly 7 consecutive days ending on selectedDate
       const weeklyActual = []
       const weeklyBenchmark = []
       
@@ -1780,36 +1861,38 @@ const updateChartsForDate = () => {
       const sortedBenchmark = [...benchmarkData].sort((a, b) => new Date(a.x) - new Date(b.x))
       
       for (let i = 6; i >= 0; i--) {
-        const date = new Date(selectedDate.value)
-        date.setDate(selectedDate.value.getDate() - i)
-        date.setHours(12, 0, 0, 0) // Set to noon to avoid timezone issues
+        const currentDate = new Date(selectedDate)
+        currentDate.setDate(selectedDate.getDate() - i)
+        currentDate.setHours(12, 0, 0, 0) // Noon to avoid timezone issues
+        
+        const timestamp = currentDate.getTime()
         
         // CARRY-FORWARD LOGIC: Find the most recent actual measurement up to this date
-        let carryForwardActual = null
+        let carryForwardValue = null
         for (const dataPoint of sortedActual) {
           const dataDate = new Date(dataPoint.x)
-          if (dataDate <= date && dataPoint.y !== null && dataPoint.y !== undefined) {
-            carryForwardActual = dataPoint.y
+          if (dataDate <= currentDate && dataPoint.y !== null && dataPoint.y !== undefined) {
+            carryForwardValue = dataPoint.y // Keep updating with the latest value
           }
         }
         
-        // BENCHMARK: Find the benchmark value for this specific date or closest
+        // BENCHMARK: Find the benchmark value for this date (benchmarks are usually continuous)
         let benchmarkValue = null
         for (const dataPoint of sortedBenchmark) {
           const dataDate = new Date(dataPoint.x)
-          if (dataDate <= date && dataPoint.y !== null && dataPoint.y !== undefined) {
+          if (dataDate <= currentDate && dataPoint.y !== null && dataPoint.y !== undefined) {
             benchmarkValue = dataPoint.y
           }
         }
         
-        // Add to timeline - actual uses carry-forward, benchmark is more continuous
+        // Add to timeline with carry-forward behavior
         weeklyActual.push({
-          x: date.getTime(),
-          y: carryForwardActual // Will be null if no measurements exist yet
+          x: timestamp,
+          y: carryForwardValue // Will be null only if no measurements exist yet
         })
         
         weeklyBenchmark.push({
-          x: date.getTime(),
+          x: timestamp,
           y: benchmarkValue
         })
       }
@@ -1818,40 +1901,41 @@ const updateChartsForDate = () => {
         actual: weeklyActual,
         benchmark: weeklyBenchmark
       }
-    }
-    
-    // Monthly view: show only actual check-in dates (no carry-forward for monthly)
-    return {
-      actual: actualData.filter(item => item.y !== null && item.y !== undefined),
-      benchmark: benchmarkData.filter(item => item.y !== null && item.y !== undefined)
+    } else {
+      // Monthly view: show all actual data points (no carry-forward needed for monthly)
+      return {
+        actual: actualData.filter(item => item.y !== null && item.y !== undefined),
+        benchmark: benchmarkData.filter(item => item.y !== null && item.y !== undefined)
+      }
     }
   }
 
-  // Update weight chart with medical growth behavior
-  const weightTimeline = createMedicalGrowthTimeline(actual.weight, benchmark.weight, growthViewMode.value)
+  // Create medical growth timelines for each chart
+  const weightTimeline = createMedicalGrowthTimeline(actual.weight, benchmark.weight, growthViewMode.value, selectedDate.value)
+  const heightTimeline = createMedicalGrowthTimeline(actual.height, benchmark.height, heightViewMode.value, selectedDate.value)
+  const headTimeline = createMedicalGrowthTimeline(actual.head_circumference, benchmark.head_circumference, headViewMode.value, selectedDate.value)
+  
+  // Update chart series
   weightSeries.value = [
     { name: 'Actual', data: weightTimeline.actual },
     { name: 'Benchmark', data: weightTimeline.benchmark }
   ]
   
-  // Update height chart with medical growth behavior  
-  const heightTimeline = createMedicalGrowthTimeline(actual.height, benchmark.height, heightViewMode.value)
   heightSeries.value = [
     { name: 'Actual', data: heightTimeline.actual },
     { name: 'Benchmark', data: heightTimeline.benchmark }
   ]
   
-  // Update head circumference chart with medical growth behavior
-  const headTimeline = createMedicalGrowthTimeline(actual.head_circumference, benchmark.head_circumference, headViewMode.value)
   headSeries.value = [
     { name: 'Actual', data: headTimeline.actual },
     { name: 'Benchmark', data: headTimeline.benchmark }
   ]
 
-  console.log('📊 Medical growth charts updated with stepline and carry-forward logic')
-  console.log('Weight points:', weightTimeline.actual.filter(d => d.y !== null).length)
-  console.log('Height points:', heightTimeline.actual.filter(d => d.y !== null).length)
-  console.log('Head points:', headTimeline.actual.filter(d => d.y !== null).length)
+  console.log('📊 Medical growth charts updated with carry-forward logic')
+  console.log('Weight timeline example:', weightTimeline.actual.map(d => ({ 
+    date: new Date(d.x).toLocaleDateString(), 
+    value: d.y 
+  })))
 }
 
 // ENHANCED chart options for medical growth charts
@@ -1887,7 +1971,7 @@ const updateGrowthChartOptions = () => {
           }
         },
       },
-      tickAmount: undefined,
+      tickAmount: growthViewMode.value === 'weekly' ? 6 : undefined, 
       tickPlacement: 'on',
     },
     yaxis: {
@@ -1901,6 +1985,8 @@ const updateGrowthChartOptions = () => {
       },
       forceNiceScale: true,
       labels: {
+        hideOverlappingLabels: true, // ADD THIS
+    showDuplicates: false, // ADD THIS
         formatter: function(val) {
           return val !== null ? val.toFixed(1) + ' kg' : ''
         }
