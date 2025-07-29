@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-6">
+  <div class="mb-6" v-if="hasSignificantAlerts || isLoading || !hasFinishedLoading">
     <h2 class="text-body-1 font-weight-medium mb-3">
       {{ currentChild.name }}'s Smart Alert
     </h2>
@@ -59,23 +59,7 @@
       </v-alert>
     </div>
 
-  <!-- Case 3: All Normal -->
-<div v-else>
-  <v-alert 
-    class="health-alert normal-alert" 
-    color="rgba(76, 175, 80, 0.04)" 
-    variant="tonal"
-    style="border: 2px solid #4CAF50 !important; background: rgba(76, 175, 80, 0.04) !important;"
-  >
-    <div class="d-flex align-center">
-      <v-icon class="mr-3" color="#4CAF50">mdi-check-circle</v-icon>
-      <div>
-        <div class="text-body-1 font-weight-medium mb-1" style="color: #2c1810;">All Patterns Normal</div>
-        <div class="text-body-2" style="color: #5d4037;">No concerning patterns detected for {{ currentDateString }}</div>
-      </div>
-    </div>
-  </v-alert>
-</div>
+    <!-- Case 3: All Normal - This case is now handled by v-if on the parent div -->
   </div>
 </template>
 
@@ -109,7 +93,7 @@ const currentDateString = computed(() => {
 })
 
 // STABLE: Initialize composable
-const { alerts, isAnalyzing, analyzeForDate } = useHealthAlert()
+const { alerts, hasSignificantAlerts, isAnalyzing, analyzeForDate } = useHealthAlert()
 
 // STABLE: Use composable's loading state
 const isLoading = computed(() => isAnalyzing.value)

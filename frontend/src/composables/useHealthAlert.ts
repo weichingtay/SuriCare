@@ -807,15 +807,35 @@ const deleteAlert = async (alertId: string): Promise<void> => {
    }
  }
 
+ // ENHANCED: Filter alerts and provide visibility control
+ const filteredAlerts = computed(() => {
+   // Return null during loading to show loading state
+   if (alerts.value === null) return null
+   
+   // Filter out empty arrays and only show warning/error alerts
+   return alerts.value?.filter(alert => 
+     alert.type === 'warning' || alert.type === 'error'
+   ) || []
+ })
+
+ const hasSignificantAlerts = computed(() => {
+   // Don't show during loading (null state)
+   if (alerts.value === null) return false
+   
+   // Show if we have any warning or error alerts
+   return filteredAlerts.value && filteredAlerts.value.length > 0
+ })
+
  // 🚨 FIXED: Added deleteAlert to the return statement
  return {
-   alerts: computed(() => alerts.value),
+   alerts: filteredAlerts,
+   hasSignificantAlerts,
    isAnalyzing: computed(() => isAnalyzing.value),
    analyzeForDate,
    saveAlertToAPI,
    loadAlertsForTab,
    getBadgeCount,
    markAlertRead,
-   deleteAlert  // ⭐ THIS WAS MISSING!
+   deleteAlert
  }
 }
