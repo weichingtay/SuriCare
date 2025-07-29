@@ -54,7 +54,7 @@ const statusNote = computed(() => {
     return 'No symptoms today'
   }
 
-  // Show temperature if available (for fever cases)
+  // Show temperature if available (for high temperature cases)
   if (data.temperature) {
     return `Temperature: ${data.temperature}°C`
   }
@@ -80,12 +80,12 @@ const statusClass = computed(() => {
 
   const status = data.status || 'Healthy'
 
-  // Red: High fever or critical conditions
-  if (status.includes('High Fever') || status.includes('Critical')) {
+  // Red: High temperature or critical conditions
+  if (status.includes('High Temperature') || status.includes('Critical')) {
     return 'status-negative'
   }
-  // Yellow: Low fever, cold symptoms, allergies
-  else if (status.includes('Low Fever') || status.includes('Cold') || status.includes('Allergies')) {
+  // Yellow: Low temperature, sneezing symptoms, allergies
+  else if (status.includes('Low Temperature') || status.includes('Sneezing') || status.includes('Allergies')) {
     return 'status-warning'
   }
   // Green: Healthy

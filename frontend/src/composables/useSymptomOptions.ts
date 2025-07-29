@@ -4,8 +4,8 @@ import { useLookupData } from './useLookupData'
 // Fallback data for symptom options
 const fallbackSymptomOptions = [
   { id: 1, value: 'cough', label: 'Cough', icon: 'mdi-account-voice' },
-  { id: 2, value: 'fever', label: 'Fever', icon: 'mdi-thermometer' },
-  { id: 3, value: 'cold', label: 'Cold', icon: 'mdi-weather-snowy' },
+  { id: 2, value: 'high_temperature', label: 'High Temperature', icon: 'mdi-thermometer' },
+  { id: 3, value: 'sneezing', label: 'Sneezing', icon: 'mdi-weather-snowy' },
   { id: 4, value: 'rash', label: 'Rash', icon: 'mdi-circle-outline' },
   { id: 5, value: 'other', label: 'Other', icon: 'mdi-dots-horizontal' },
 ]

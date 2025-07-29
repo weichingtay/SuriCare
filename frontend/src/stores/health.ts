@@ -77,21 +77,21 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
     let message = 'No symptoms today'
     let temperature: number | undefined
 
-    // Check for fever-related symptoms
-    const hasFever = symptoms.some(symptom =>
-      symptom?.toLowerCase().includes('fever')
+    // Check for temperature-related symptoms
+    const hasTemperature = symptoms.some(symptom =>
+      symptom?.toLowerCase().includes('temperature')
     )
 
-    // Check for high fever
-    const hasHighFever = symptoms.some(symptom =>
-      symptom?.toLowerCase().includes('high fever') ||
-      symptom?.toLowerCase().includes('critical fever')
+    // Check for high temperature
+    const hasHighTemperature = symptoms.some(symptom =>
+      symptom?.toLowerCase().includes('high temperature') ||
+      symptom?.toLowerCase().includes('critical temperature')
     )
 
-    // Check for cold symptoms
-    const hasCold = symptoms.some(symptom =>
+    // Check for sneezing symptoms
+    const hasSneezing = symptoms.some(symptom =>
       symptom?.toLowerCase().includes('cough') ||
-      symptom?.toLowerCase().includes('cold')
+      symptom?.toLowerCase().includes('sneezing')
     )
 
     // Check for allergy symptoms
@@ -100,18 +100,18 @@ export const useHealthStore = defineStore('health', (): HealthStoreInterface => 
       symptom?.toLowerCase().includes('allerg')
     )
 
-    // Determine status (priority: high fever > low fever > cold > allergies > other)
-    if (hasHighFever) {
-      status = 'High Fever'
-      message = 'High fever detected'
+    // Determine status (priority: high temperature > low temperature > sneezing > allergies > other)
+    if (hasHighTemperature) {
+      status = 'High Temperature'
+      message = 'High temperature detected'
       temperature = Number((38.0 + Math.random() * 1.5).toFixed(1))
-    } else if (hasFever) {
-      status = 'Low Fever'
-      message = 'Mild fever detected'
+    } else if (hasTemperature) {
+      status = 'Low Temperature'
+      message = 'Mild temperature detected'
       temperature = Number((37.0 + Math.random() * 1).toFixed(1))
-    } else if (hasCold) {
-      status = 'Cold Symptoms'
-      message = 'Showing signs of cold'
+    } else if (hasSneezing) {
+      status = 'Sneezing Symptoms'
+      message = 'Showing signs of sneezing'
     } else if (hasAllergy) {
       status = 'Allergies'
       message = 'Allergic reaction detected'

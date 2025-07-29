@@ -53,8 +53,8 @@ def populate_lookup_tables():
         # NEW: Symptom Types Data (matching your useSymptomOptions fallback)
         symptom_data = [
             {"value": "cough", "label": "Cough", "icon": "mdi-account-voice"},
-            {"value": "fever", "label": "Fever", "icon": "mdi-thermometer"},
-            {"value": "cold", "label": "Cold", "icon": "mdi-weather-snowy"},
+            {"value": "high_temperature", "label": "High Temperature", "icon": "mdi-thermometer"},
+            {"value": "sneezing", "label": "Sneezing", "icon": "mdi-weather-snowy"},
             {"value": "rash", "label": "Rash", "icon": "mdi-circle-outline"},
             {"value": "other", "label": "Other", "icon": "mdi-dots-horizontal"},
         ]
