@@ -185,6 +185,11 @@
   const messagesContainer = ref(null)
 
   const renderMarkdown = (text: string): string => {
+    // Configure marked to handle line breaks properly
+    marked.setOptions({
+      breaks: true, // Convert single line breaks to <br>
+      gfm: true     // GitHub Flavored Markdown
+    })
     return marked(text)
   }
 
@@ -433,6 +438,12 @@
   .markdown-content {
     text-align: justify;
     line-height: 1.6;
+  }
+
+  .markdown-content :deep(p) {
+    margin-top: 0 !important;
+    margin-bottom: 14px !important;
+    line-height: 1.6 !important;
   }
 
 

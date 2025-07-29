@@ -779,6 +779,7 @@ Please provide observations about the child's data based on the context provided
 
 FORMATTING INSTRUCTIONS:
 - Use clear paragraph breaks (double line breaks) between different topics or ideas
+- Add a clear line break between paragraphs, dont make the response too tight
 - Structure your response with proper spacing for readability  
 - Separate key points into distinct paragraphs
 - Use bullet points or numbered lists when appropriate
