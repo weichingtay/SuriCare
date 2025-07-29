@@ -472,7 +472,6 @@
 
   .disclaimer-text {
     font-size: 12px;
-    color: #5f5f5f;
     text-align: center;
     margin-top: 8px;
     margin-bottom: 0;
