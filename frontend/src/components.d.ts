@@ -11,6 +11,7 @@ declare module 'vue' {
     AccountDialog: typeof import('./components/AccountDialog.vue')['default']
     AccountTypeSelector: typeof import('./components/signup/AccountTypeSelector.vue')['default']
     AddChildForm: typeof import('./components/addChild/AddChildForm.vue')['default']
+    AdminDialog: typeof import('./components/AdminDialog.vue')['default']
     AIAssistant: typeof import('./components/chatbot/AIAssistant.vue')['default']
     AlertCard: typeof import('./components/guidance/AlertCard.vue')['default']
     AlertsView: typeof import('./components/guidance/AlertsView.vue')['default']

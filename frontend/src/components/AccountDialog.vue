@@ -171,6 +171,21 @@
           </div>
         </div>
 
+        <!-- Admin Panel Section -->
+        <div class="content-section">
+          <h3 class="section-title">Admin Panel</h3>
+          <v-btn
+            block
+            class="admin-btn"
+            color="#9C27B0"
+            prepend-icon="mdi-shield-crown"
+            variant="flat"
+            @click="openAdminDialog"
+          >
+            Admin Tools
+          </v-btn>
+        </div>
+
         <!-- Action Buttons -->
         <div class="action-buttons">
           <v-btn
@@ -207,11 +222,15 @@
       </div>
     </v-card>
   </v-dialog>
+
+  <!-- Admin Tools Dialog -->
+  <AdminDialog v-model="adminDialog" />
 </template>
 
 <script setup lang="ts">
   import { computed, ref } from 'vue'
   import { useUserProfile } from '@/composables/useUserProfile'
+  import AdminDialog from './AdminDialog.vue'
 
   const { userProfile, availableAccounts, setAccount, currentAccount } = useUserProfile()
 
@@ -230,6 +249,13 @@
   }
 
   const emit = defineEmits(['update:modelValue'])
+
+  // Admin functionality
+  const adminDialog = ref(false)
+
+  const openAdminDialog = () => {
+    adminDialog.value = true
+  }
 
   const accessLevels = [
     { title: 'Full', value: 'full' },

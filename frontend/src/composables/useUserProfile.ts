@@ -36,8 +36,8 @@ const getPersistedAccount = () => {
 
 // Create a shared reactive state
 const state = reactive({
-  name: 'Sarah Johnson',
-  email: 'sarah.johnson@example.com',
+  name: 'Wei Ching',
+  email: 'weiching@suricare.com',
   role: 'Guardian', // Default role
   selectedAccountId: getPersistedAccount() // Persisted account
 })
