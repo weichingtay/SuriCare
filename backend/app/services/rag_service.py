@@ -9,6 +9,7 @@ import json
 from datetime import datetime, timedelta
 from sqlmodel import Session, select
 from app.models import Symptom, Sleep_Time, Meal, Growth
+from app.services.chatbot_guardrails import ChatbotGuardrails
 import statistics
 
 GEMINI_MODEL = "gemini-2.0-flash"
@@ -35,6 +36,9 @@ class RAGService:
         self.vectorstore = None
         self.qa_chain = None
         self.session = session
+        
+        # Initialize guardrails system
+        self.guardrails = ChatbotGuardrails()
 
     def initialize_knowledge_base(self, knowledge_file_path: str):
         """
@@ -512,16 +516,18 @@ class RAGService:
             # Fall back to general AI if knowledge base not available
             return self._get_general_ai_response(query, child_context)
 
-        # Enhanced prompt with child context
+        # Enhanced prompt with child context and guardrails system prompt
         enhanced_query = f"""
+                        {self.guardrails.get_system_prompt()}
+
                         Based on the following child information:
                         {child_context}
 
                         Please answer this question: {query}
 
-                        Provide advice specific to this child's age, developmental stage, current health status, and recent patterns/trends.
+                        Provide observations about data trends specific to this child's age, developmental stage, current health status, and recent patterns/trends.
                         Pay special attention to any patterns or trends mentioned in the weekly data.
-                        Always include a disclaimer to consult healthcare professionals for serious concerns.
+                        Focus on describing what the data shows rather than making medical interpretations.
 
                         FORMATTING INSTRUCTIONS: 
                         - Use clear paragraph breaks (double line breaks) between different topics or ideas
@@ -531,7 +537,10 @@ class RAGService:
 
         # Get response from RAG chain
         result = self.qa_chain({"query": enhanced_query})
-
+        
+        # Apply guardrails to the response
+        guardrail_result = self.guardrails.apply_guardrails(result["result"], query)
+        
         # Extract source information
         sources = []
         if "source_documents" in result:
@@ -548,44 +557,66 @@ class RAGService:
                     }
                 )
 
-        return {
-            "response": result["result"],
+        response_data = {
+            "response": guardrail_result["fixed_response"],
             "sources": sources,
             "context_used": child_context,
             "response_type": "knowledge_based",
         }
+        
+        # Add guardrail information for debugging/monitoring
+        if guardrail_result["violations"]:
+            response_data["guardrail_info"] = {
+                "violations_detected": guardrail_result["violation_count"],
+                "response_modified": guardrail_result["response_modified"],
+                "high_severity_violations": guardrail_result["high_severity_violations"]
+            }
+        
+        return response_data
 
     def _get_general_ai_response(self, query: str, child_context: str) -> Dict:
         """Get general AI response when knowledge base doesn't have relevant information"""
         try:
-            # Create a comprehensive prompt for general AI
+            # Create a comprehensive prompt for general AI with guardrails
             prompt = f"""
-                    You are SuriAI, a helpful pediatric health assistant. You have access to general medical knowledge but should always remind users to consult healthcare professionals for medical concerns.
+                    {self.guardrails.get_system_prompt()}
 
                     Child Context:
                     {child_context}
 
                     User Question: {query}
 
-                    Please provide a helpful response based on general pediatric knowledge. Be sure to:
-                    1. Consider the child's age and any provided context
-                    2. Provide practical, safe advice
-                    3. Always recommend consulting a healthcare professional for medical concerns
-                    4. Be empathetic and supportive
-                    5. If the question is outside medical/childcare topics, politely acknowledge and try to help if appropriate
+                    Please provide observations about the child's data trends based on the context provided. Focus on:
+                    1. Describing patterns you observe in the data
+                    2. Noting trends without making medical interpretations
+                    3. Providing general information about child development when relevant
+                    4. Being empathetic and supportive while maintaining appropriate boundaries
 
                     Response:
                     """
 
             # Use the LLM directly for general response
-            response = self.llm.invoke(prompt)
+            raw_response = self.llm.invoke(prompt)
+            
+            # Apply guardrails to the response
+            guardrail_result = self.guardrails.apply_guardrails(raw_response, query)
 
-            return {
-                "response": response,
+            response_data = {
+                "response": guardrail_result["fixed_response"],
                 "sources": [],
                 "context_used": child_context,
                 "response_type": "general_ai",
             }
+            
+            # Add guardrail information for debugging/monitoring
+            if guardrail_result["violations"]:
+                response_data["guardrail_info"] = {
+                    "violations_detected": guardrail_result["violation_count"],
+                    "response_modified": guardrail_result["response_modified"],
+                    "high_severity_violations": guardrail_result["high_severity_violations"]
+                }
+            
+            return response_data
 
         except Exception as e:
             print(f"Error getting general AI response: {e}")
@@ -634,7 +665,7 @@ class RAGService:
                             )
 
                             prompt = f"""
-                            You are SuriAI, a helpful pediatric health assistant. Use the following relevant information from your knowledge base along with your general medical knowledge.
+                            {self.guardrails.get_system_prompt()}
 
                             Relevant Knowledge:
                             {context_info}
@@ -644,12 +675,11 @@ class RAGService:
 
                             User Question: {query}
 
-                            Please provide a helpful response considering both the specific knowledge provided and general pediatric knowledge. Be sure to:
-                            1. Use the relevant information if it applies to the question
-                            2. Consider the child's age and any provided context
-                            3. Provide practical, safe advice
-                            4. Always recommend consulting a healthcare professional for medical concerns
-                            5. Be empathetic and supportive
+                            Please provide observations based on the data trends and relevant information. Focus on:
+                            1. Describing what the data shows without medical interpretation
+                            2. Using relevant knowledge when applicable
+                            3. Noting patterns and trends objectively
+                            4. Providing general developmental information when appropriate
 
                             Response:
                             """
@@ -662,8 +692,12 @@ class RAGService:
             else:
                 prompt = self._create_general_prompt(query, enhanced_context)
 
+            # Collect the full response for guardrail validation
+            full_response = ""
+            
             # Stream the response
             for chunk in self.llm.stream(prompt):
+                full_response += chunk
                 yield {
                     "content": chunk,
                     "sources": sources if sources else [],
@@ -672,14 +706,48 @@ class RAGService:
                     "done": False,
                 }
 
-            # Send final message
-            yield {
+            # Apply guardrails to the complete response
+            guardrail_result = self.guardrails.apply_guardrails(full_response, query)
+            
+            # If the response was modified by guardrails, send the corrected version
+            if guardrail_result["response_modified"]:
+                # Send a separator and the corrected response
+                yield {
+                    "content": "",
+                    "sources": sources,
+                    "response_type": response_type,
+                    "context_used": enhanced_context,
+                    "done": False,
+                }
+                
+                # Send the fixed response
+                yield {
+                    "content": guardrail_result["fixed_response"],
+                    "sources": sources,
+                    "response_type": response_type,
+                    "context_used": enhanced_context,
+                    "done": False,
+                    "guardrail_modified": True,
+                }
+            
+            # Send final message with guardrail info
+            final_message = {
                 "content": "",
                 "sources": sources,
                 "response_type": response_type,
                 "context_used": enhanced_context,
                 "done": True,
             }
+            
+            # Add guardrail information if there were violations
+            if guardrail_result["violations"]:
+                final_message["guardrail_info"] = {
+                    "violations_detected": guardrail_result["violation_count"],
+                    "response_modified": guardrail_result["response_modified"],
+                    "high_severity_violations": guardrail_result["high_severity_violations"]
+                }
+            
+            yield final_message
 
         except Exception as e:
             print(f"Error in streaming response: {e}")
@@ -695,20 +763,19 @@ class RAGService:
     def _create_general_prompt(self, query: str, child_context: str) -> str:
         """Create a general AI prompt"""
         return f"""
-You are SuriAI, a helpful pediatric health assistant. You have access to general medical knowledge but should always remind users to consult healthcare professionals for medical concerns.
+{self.guardrails.get_system_prompt()}
 
 Child Context:
 {child_context}
 
 User Question: {query}
 
-Please provide a helpful response based on general pediatric knowledge. Be sure to:
-1. Consider the child's age, current context, and any weekly patterns/trends mentioned
-2. Reference specific patterns or trends when relevant to the question
-3. Provide practical, safe advice that takes recent patterns into account
-4. Always recommend consulting a healthcare professional for medical concerns
-5. Be empathetic and supportive
-6. If the question is outside medical/childcare topics, politely acknowledge and try to help if appropriate
+Please provide observations about the child's data based on the context provided. Focus on:
+1. Describing patterns and trends you observe in the data
+2. Referencing specific patterns or trends when relevant to the question
+3. Providing general developmental information when appropriate
+4. Being empathetic and supportive while maintaining proper boundaries
+5. If the question is outside childcare topics, politely acknowledge and try to help if appropriate
 
 FORMATTING INSTRUCTIONS:
 - Use clear paragraph breaks (double line breaks) between different topics or ideas
