@@ -1,23 +1,23 @@
 <template>
   <v-navigation-drawer
+    app
+    class="navigation-drawer"
+    color="transparent"
+    elevation="0"
     permanent
     rail
     rail-width="100"
-    color="transparent"
-    elevation="0"
-    app
-    class="navigation-drawer"
   >
     <!-- Glassmorphism background -->
-    <div class="nav-background"></div>
+    <div class="nav-background" />
 
     <!-- Logo section at top of sidebar -->
-    <template v-slot:prepend>
+    <template #prepend>
       <div class="logo-section">
-        <div class="logo-container" @click="goHome" style="cursor: pointer;">
-          <v-avatar  rounded="lg" class="logo-avatar">
+        <div class="logo-container" style="cursor: pointer;" @click="goHome">
+          <v-avatar class="logo-avatar" rounded="lg">
             <v-img src="@/assets/logo.jpg" />
-            <div class="logo-glow"></div>
+            <div class="logo-glow" />
           </v-avatar>
           <!-- <div class="brand-text">
             <span class="brand-name">SuriCare</span>
@@ -27,21 +27,21 @@
     </template>
 
     <!-- Navigation menu items -->
-    <v-list density="compact" nav class="navigation-list">
+    <v-list class="navigation-list" density="compact" nav>
       <v-list-item
         v-for="item in navigationItems"
         :key="item.value"
-        :value="item.value"
         class="nav-item"
         :class="{ 'nav-item-active': activeTab === item.value }"
+        :value="item.value"
         @click="handleNavClick(item.value)"
       >
-        <template v-slot:default>
+        <template #default>
           <div class="nav-content">
             <div class="nav-icon-wrapper" :class="{ 'nav-icon-active': activeTab === item.value }">
               <v-icon
-                :size="navIconSize"
                 :color="activeTab === item.value ? navIconActiveColor : navIconInactiveColor"
+                :size="navIconSize"
               >
                 {{ item.icon }}
               </v-icon>
@@ -56,114 +56,114 @@
 
     <!-- Account section at bottom -->
     <!-- Account section at bottom -->
-<template v-slot:append>
-  <div class="account-section">
-    <AccountDialog v-model="showAccountDialog" />
-    
-    <v-list-item 
-      class="nav-item account-item"
-      @click="showAccountDialog = true"
-    >
-      <template v-slot:default>
-        <div class="nav-content">
-          <div class="nav-icon-wrapper account-icon">
-            <v-icon :size="navIconSize" :color="navIconInactiveColor">mdi-account</v-icon>
-          </div>
-          <div class="nav-label nav-label-inactive">Account</div>
-        </div>
-      </template>
-    </v-list-item>
-  </div>
-</template>
+    <template #append>
+      <div class="account-section">
+        <AccountDialog v-model="showAccountDialog" />
+
+        <v-list-item
+          class="nav-item account-item"
+          @click="showAccountDialog = true"
+        >
+          <template #default>
+            <div class="nav-content">
+              <div class="nav-icon-wrapper account-icon">
+                <v-icon :color="navIconInactiveColor" :size="navIconSize">mdi-account</v-icon>
+              </div>
+              <div class="nav-label nav-label-inactive">Account</div>
+            </div>
+          </template>
+        </v-list-item>
+      </div>
+    </template>
   </v-navigation-drawer>
 </template>
 
-<script setup>
-import { computed } from 'vue'
-import { useCssVar } from '@vueuse/core'
-import { useRouter } from 'vue-router'
-import { useRoute } from 'vue-router'
-import { ref } from 'vue'
-import AccountDialog from './AccountDialog.vue'
+<script setup lang="ts">
+  import { computed } from 'vue'
+  import { useCssVar } from '@vueuse/core'
+  import { useRouter } from 'vue-router'
+  import { useRoute } from 'vue-router'
+  import { ref } from 'vue'
+  import AccountDialog from './AccountDialog.vue'
 
-const showAccountDialog = ref(false)
+  const showAccountDialog = ref(false)
 
-// Router
-const router = useRouter()
-const route = useRoute()
+  // Router
+  const router = useRouter()
+  const route = useRoute()
 
-// Props
-const props = defineProps({
-  activeTab: {
-    type: String,
-    default: 'home'
+  // Props
+  const props = defineProps({
+    activeTab: {
+      type: String,
+      default: 'home',
+    },
+  })
+
+  // Emits
+  const emit = defineEmits(['nav-change'])
+
+  // Get CSS variables
+  const navIconSize = useCssVar('--nav-icon-size')
+  const navIconActiveColor = useCssVar('--nav-icon-active-color')
+  const navIconInactiveColor = useCssVar('--nav-icon-inactive-color')
+
+  // Navigation items configuration
+  const navigationItems = [
+    {
+      value: 'home',
+      label: 'Home',
+      icon: 'mdi-home',
+      route: '/',
+    },
+    {
+      value: 'checkin',
+      label: 'History',
+      icon: 'mdi-clipboard-check',
+      route: '/checkin',
+    },
+    {
+      value: 'dashboard',
+      label: 'Dashboard',
+      icon: 'mdi-chart-line',
+      route: '/dashboard',
+    },
+    {
+      value: 'chatbot',
+      label: 'SuriAI',
+      icon: 'mdi-chat',
+      route: '/chatbot',
+    },
+    {
+      value: 'guidance',
+      label: 'Guidance',
+      icon: 'mdi-book-open-variant',
+      route: '/guidance',
+    },
+  ]
+
+  const currentPage = computed(() => {
+    const match = navigationItems.find(item => item.route === route.path)
+    return match?.value ?? ''
+  })
+
+  const activeTab = computed(() => {
+    return props.activeTab || currentPage.value
+  })
+
+  // Methods
+  const handleNavClick = tabName => {
+    const selectedItem = navigationItems.find(item => item.value === tabName)
+    if (selectedItem) {
+      router.push(selectedItem.route)
+    }
+    emit('nav-change', tabName)
   }
-})
 
-// Emits
-const emit = defineEmits(['nav-change'])
-
-// Get CSS variables
-const navIconSize = useCssVar('--nav-icon-size')
-const navIconActiveColor = useCssVar('--nav-icon-active-color')
-const navIconInactiveColor = useCssVar('--nav-icon-inactive-color')
-
-// Navigation items configuration
-const navigationItems = [
-  {
-    value: 'home',
-    label: 'Home',
-    icon: 'mdi-home',
-    route: '/'
-  },
-  {
-    value: 'checkin',
-    label: 'Check-in',
-    icon: 'mdi-clipboard-check',
-    route: '/checkin'
-  },
-  {
-    value: 'dashboard',
-    label: 'Dashboard',
-    icon: 'mdi-chart-line',
-    route: '/dashboard'
-  },
-  {
-    value: 'chatbot',
-    label: 'Chatbot',
-    icon: 'mdi-chat',
-    route: '/chatbot'
-  },
-  {
-    value: 'guidance',
-    label: 'Guidance',
-    icon: 'mdi-book-open-variant',
-    route: '/guidance'
+  const goHome = () => {
+    router.push('/')
+    emit('nav-change', 'home')
   }
-]
-
-const currentPage = computed(() => {
-  const match = navigationItems.find(item => item.route === route.path)
-  return match.value
-})
-
-const activeTab = computed(() => {
-  return props.activeTab || currentPage.value
-})
-
-// Methods
-const handleNavClick = (tabName) => {
-  const selectedItem = navigationItems.find(item => item.value === tabName)
-  if (selectedItem) {
-    router.push(selectedItem.route)
-  }
-  emit('nav-change', tabName)
-}
-
-const goHome = () => {
-  router.push('/')
-  emit('nav-change', 'home')
-}
 </script>
 
 <style lang="css" scoped>
@@ -171,4 +171,3 @@ const goHome = () => {
   opacity: 0 !important;
 }
 </style>
-

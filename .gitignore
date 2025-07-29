@@ -3,3 +3,13 @@ node_modules/
 .env
 .vscode/
 src/typed-router.d.ts
+# Python cache
+__pycache__/
+venv/
+*.py[cod]
+*.so
+.env.*
+.backend_schema
+errors.txt
+error.txt
+.opencode

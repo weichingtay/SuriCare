@@ -1,70 +1,169 @@
 <template>
-  <v-dialog v-model="dialog" max-width="400">
-    <v-card>
-      <!-- Header -->
-      <div class="header">
-        <v-icon class="header-icon">mdi-account</v-icon>
-        <h2 class="header-title">My Account</h2>
+  <v-dialog
+    v-model="dialog"
+    max-width="480"
+    persistent
+    scrollable
+  >
+    <v-card
+      class="dialog-card"
+      style="border-radius: 16px; overflow: hidden"
+    >
+      <!-- Header with close button -->
+      <div class="dialog-header">
+        <div class="header-left">
+          <v-icon
+            class="header-icon"
+            size="24"
+            >mdi-account</v-icon
+          >
+          <div class="header-text">
+            <h2 class="header-title">My Account</h2>
+            <p class="header-subtitle">Manage your profile and settings</p>
+          </div>
+        </div>
+        <v-btn
+          class="close-btn"
+          icon
+          size="small"
+          variant="text"
+          @click="dialog = false"
+        >
+          <v-icon size="20">mdi-close</v-icon>
+        </v-btn>
       </div>
 
       <!-- Content -->
-      <div class="content">
+      <div class="dialog-content">
         <!-- Profile Section -->
-        <div class="section">
-          <div class="field">
-            <label>Name</label>
-            <div class="field-content">
-              <v-icon class="field-icon">mdi-account</v-icon>
-              <span>{{ userProfile.name }}</span>
+        <div class="content-section">
+          <div class="profile-fields">
+            <div class="profile-field">
+              <label class="field-label">Name</label>
+              <div class="field-display">
+                <v-icon
+                  class="field-icon"
+                  size="18"
+                  >mdi-account</v-icon
+                >
+                <span class="field-value">{{ userProfile.name }}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label>Email</label>
-            <div class="field-content">
-              <v-icon class="field-icon">mdi-email</v-icon>
-              <span>{{ userProfile.email }}</span>
+            <div class="profile-field">
+              <label class="field-label">Email</label>
+              <div class="field-display">
+                <v-icon
+                  class="field-icon"
+                  size="18"
+                  >mdi-email</v-icon
+                >
+                <span class="field-value">{{ userProfile.email }}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label>Role</label>
-            <div class="field-content">
-              <v-icon class="field-icon">mdi-shield-account</v-icon>
-              <v-chip size="small" color="primary">{{ userProfile.role }}</v-chip>
+            <div class="profile-field">
+              <label class="field-label">Account</label>
+              <div class="field-display">
+                <v-icon
+                  class="field-icon"
+                  size="18"
+                  >mdi-shield-account</v-icon
+                >
+                <v-select
+                  v-model="dropdownSelection"
+                  :items="availableAccounts"
+                  item-title="name"
+                  item-value="id"
+                  variant="plain"
+                  density="compact"
+                  hide-details
+                  class="account-selector"
+                  placeholder="Switch to..."
+                  @update:modelValue="handleAccountChange"
+                >
+                  <template #selection="{ item }">
+                    <div style="display: flex; align-items: center; gap: 8px">
+                      <span>{{ currentAccount.name }}</span>
+                      <v-chip
+                        :color="currentAccount.role === 'Guardian' ? '#D87179' : '#FFC107'"
+                        size="small"
+                        variant="flat"
+                        style="display: flex; align-items: center; height: 24px"
+                      >
+                        <span
+                          :class="currentAccount.role === 'Guardian' 
+                            ? 'mdi mdi-human-male-female-child' 
+                            : 'mdi mdi-mother-heart'"
+                          style="font-size: 14px; line-height: 1"
+                        ></span>
+                        &nbsp;{{ currentAccount.role }}
+                      </v-chip>
+                    </div>
+                  </template>
+                  <template #item="{ item, props }">
+                    <v-list-item v-bind="props" :title="null">
+                      <div style="display: flex; align-items: center; gap: 8px; width: 100%">
+                        <span>{{ item.raw.name }}</span>
+                        <v-chip
+                          :color="item.raw.role === 'Guardian' ? '#D87179' : '#FFC107'"
+                          size="small"
+                          variant="flat"
+                          style="display: flex; align-items: center; height: 24px"
+                        >
+                          <span
+                            :class="item.raw.role === 'Guardian' 
+                              ? 'mdi mdi-human-male-female-child' 
+                              : 'mdi mdi-mother-heart'"
+                            style="font-size: 14px; line-height: 1"
+                          ></span>
+                          &nbsp;{{ item.raw.role }}
+                        </v-chip>
+                      </div>
+                    </v-list-item>
+                  </template>
+                </v-select>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Caregivers Section -->
-        <div class="section">
+        <div class="content-section">
           <h3 class="section-title">My Caregivers</h3>
           <div class="caregiver-list">
-            <div class="caregiver" v-for="caregiver in caregivers" :key="caregiver.id">
+            <div
+              v-for="caregiver in caregivers"
+              :key="caregiver.id"
+              class="caregiver-item"
+            >
               <div class="caregiver-info">
-                <div class="avatar">
-                  <v-icon class="avatar-icon">mdi-account</v-icon>
+                <div class="caregiver-avatar">
+                  <v-icon size="18">mdi-account</v-icon>
                 </div>
-                <div class="details">
-                  <div class="name">{{ caregiver.name }}</div>
-                  <div class="email">{{ caregiver.email }}</div>
+                <div class="caregiver-details">
+                  <div class="caregiver-name">{{ caregiver.name }}</div>
+                  <div class="caregiver-email">{{ caregiver.email }}</div>
                 </div>
               </div>
               <v-select
                 v-model="caregiver.accessLevel"
-                :items="accessLevels"
-                variant="outlined"
+                class="access-selector"
                 density="compact"
                 hide-details
-                class="access-select"
+                :items="accessLevels"
+                variant="outlined"
               />
             </div>
           </div>
-          <div class="caregiver-actions" v-if="hasAccessChanges">
-            <v-btn 
-              color="$app-primary" 
-              variant="flat" 
+          <div
+            v-if="hasAccessChanges"
+            class="save-changes"
+          >
+            <v-btn
+              color="black"
               size="small"
+              variant="flat"
               @click="saveAccessLevels"
             >
               Save Changes
@@ -72,261 +171,347 @@
           </div>
         </div>
 
-        <!-- Actions -->
-        <div class="actions">
-          <v-btn color="$app-primary" variant="flat" prepend-icon="mdi-pencil" block @click="editProfile">
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <v-btn
+            block
+            class="action-btn"
+            color="#c85862"
+            prepend-icon="mdi-pencil"
+            variant="flat"
+            @click="editProfile"
+          >
             Edit Profile
           </v-btn>
-          <v-btn color="$app-primary" variant="flat" prepend-icon="mdi-key" block @click="changePassword">
+          <v-btn
+            block
+            class="action-btn"
+            color="#c85862"
+            prepend-icon="mdi-key"
+            variant="flat"
+            @click="changePassword"
+          >
             Change Password
           </v-btn>
+          <v-btn
+            block
+            class="action-btn"
+            color="#c85862"
+            prepend-icon="mdi-logout"
+            variant="flat"
+            @click="signOut"
+          >
+            Sign Out
+          </v-btn>
         </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="footer">
-        <v-btn variant="text" @click="dialog = false">Close</v-btn>
       </div>
     </v-card>
   </v-dialog>
 </template>
 
-<script setup>
-import { computed, ref } from 'vue'
+<script setup lang="ts">
+  import { computed, ref } from 'vue'
+  import { useUserProfile } from '@/composables/useUserProfile'
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false }
-})
+  const { userProfile, availableAccounts, setAccount, currentAccount } = useUserProfile()
 
-const emit = defineEmits(['update:modelValue'])
-
-const userProfile = {
-  name: 'Sarah Johnson',
-  email: 'sarah.johnson@example.com',
-  role: 'Guardian'
-}
-
-const accessLevels = [
-  { title: 'Full', value: 'full' },
-  { title: 'Limited', value: 'limited' },
-  { title: 'View', value: 'view' }
-]
-
-const caregivers = ref([
-  { id: 1, name: 'Maria Garcia', email: 'maria.garcia@example.com', accessLevel: 'full', originalAccess: 'full' },
-  { id: 2, name: 'John Smith', email: 'john.smith@example.com', accessLevel: 'partial', originalAccess: 'partial' },
-  { id: 3, name: 'Lisa Chen', email: 'lisa.chen@example.com', accessLevel: 'full', originalAccess: 'full' }
-])
-
-const hasAccessChanges = computed(() => {
-  return caregivers.value.some(caregiver => caregiver.accessLevel !== caregiver.originalAccess)
-})
-
-const dialog = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
-})
-
-const saveAccessLevels = () => {
-  const changes = caregivers.value
-    .filter(caregiver => caregiver.accessLevel !== caregiver.originalAccess)
-    .map(caregiver => ({
-      id: caregiver.id,
-      name: caregiver.name,
-      newAccess: caregiver.accessLevel,
-      oldAccess: caregiver.originalAccess
-    }))
-  
-  console.log('Saving access level changes:', changes)
-  
-  // Update original access levels after save
-  caregivers.value.forEach(caregiver => {
-    caregiver.originalAccess = caregiver.accessLevel
+  const props = defineProps({
+    modelValue: { type: Boolean, default: false },
   })
-}
 
-const editProfile = () => console.log('Edit profile clicked')
-const changePassword = () => console.log('Change password clicked')
+  // Separate reactive value for dropdown selection
+  const dropdownSelection = ref('')
+
+  const handleAccountChange = (accountId: string) => {
+    if (accountId) {
+      setAccount(accountId)
+      dropdownSelection.value = '' // Reset dropdown after selection
+    }
+  }
+
+  const emit = defineEmits(['update:modelValue'])
+
+  const accessLevels = [
+    { title: 'Full', value: 'full' },
+    { title: 'Partial', value: 'partial' },
+  ]
+
+  const caregivers = ref([
+    {
+      id: 1,
+      name: 'Maria Garcia',
+      email: 'maria.garcia@example.com',
+      accessLevel: 'full',
+      originalAccess: 'full',
+    },
+    {
+      id: 2,
+      name: 'John Smith',
+      email: 'john.smith@example.com',
+      accessLevel: 'partial',
+      originalAccess: 'partial',
+    },
+    {
+      id: 3,
+      name: 'Lisa Chen',
+      email: 'lisa.chen@example.com',
+      accessLevel: 'full',
+      originalAccess: 'full',
+    },
+  ])
+
+  const hasAccessChanges = computed(() => {
+    return caregivers.value.some(
+      (caregiver) => caregiver.accessLevel !== caregiver.originalAccess
+    )
+  })
+
+  const dialog = computed({
+    get: () => props.modelValue,
+    set: (value) => emit('update:modelValue', value),
+  })
+
+  const saveAccessLevels = () => {
+    const changes = caregivers.value
+      .filter((caregiver) => caregiver.accessLevel !== caregiver.originalAccess)
+      .map((caregiver) => ({
+        id: caregiver.id,
+        name: caregiver.name,
+        newAccess: caregiver.accessLevel,
+        oldAccess: caregiver.originalAccess,
+      }))
+
+    console.log('Saving access level changes:', changes)
+
+    // Update original access levels after save
+    caregivers.value.forEach((caregiver) => {
+      caregiver.originalAccess = caregiver.accessLevel
+    })
+  }
+
+  const editProfile = () => console.log('Edit profile clicked')
+  const changePassword = () => console.log('Change password clicked')
+  const signOut = () => console.log('Sign out clicked')
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/variables' as *;
+  .dialog-card {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-/* Header */
-.header {
-  display: flex;
-  align-items: center;
-  padding: $spacing-xl;
-  border-bottom: 1px solid $dialog-border;
-  gap: $spacing-md;
-}
+  .dialog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 24px 24px 16px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    flex-shrink: 0;
+  }
 
-.header-icon {
-  color: $nav-icon-inactive-color !important;
-}
+  .header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
 
-.header-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: $dialog-text;
-}
+  .header-icon {
+    color: #666 !important;
+    margin-top: 2px;
+  }
 
-/* Content */
-.content {
-  padding: $spacing-xl;
-}
+  .header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-.section {
-  margin-bottom: $spacing-2xl;
-}
+  .header-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+    line-height: 1.2;
+  }
 
-.section:last-child {
-  margin-bottom: 0;
-}
+  .header-subtitle {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.2;
+  }
 
-.section-title {
-  margin: 0 0 $spacing-lg 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: $dialog-text;
-}
+  .close-btn {
+    margin-top: -4px;
+    margin-right: -4px;
+  }
 
-/* Profile Fields */
-.field {
-  margin-bottom: $spacing-lg;
-}
+  .dialog-content {
+    padding: 20px 24px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
 
-.field:last-child {
-  margin-bottom: 0;
-}
+  .content-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
 
-.field label {
-  display: block;
-  margin-bottom: $spacing-sm;
-  font-size: 14px;
-  font-weight: 500;
-  color: $field-label;
-}
+  .profile-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
 
-.field-content {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-md;
-  border: 1px solid $app-grey;
-  border-radius: $border-radius-md;
-  background: $field-background;
-  font-size: 14px;
-  color: $field-text;
-}
+  .profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
 
-.field-icon {
-  color: $nav-icon-inactive-color !important;
-}
+  .field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #333;
+  }
 
-/* Caregivers */
-.caregiver-list {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
+  .field-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+  }
 
-.caregiver {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $spacing-md;
-  border: 1px solid $app-grey;
-  border-radius: $border-radius-md;
-  background: $field-background;
-  gap: $spacing-md;
-}
+  .field-icon {
+    color: #666 !important;
+  }
 
-.caregiver-info {
-  display: flex;
-  align-items: center;
-  gap: $spacing-md;
-  flex: 1;
-}
+  .field-value {
+    font-size: 14px;
+    color: #333;
+  }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .section-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+  }
 
-.avatar-icon {
-  color: $nav-icon-inactive-color !important;
-}
+  .caregiver-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-.details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+  .caregiver-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+    gap: 16px;
+  }
 
-.name {
-  font-size: 14px;
-  font-weight: 500;
-  color: $field-text;
-}
+  .caregiver-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
 
-.email {
-  font-size: 12px;
-  color: $dialog-text-secondary;
-}
+  .caregiver-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.access-select {
-  width: 60px;
-}
+  .caregiver-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-/* Override dropdown field styling */
-:deep(.access-select .v-field) {
-  min-height: 32px !important;
-}
+  .caregiver-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+  }
 
-:deep(.access-select .v-field__input) {
-  min-height: 32px !important;
-  padding: 4px 8px !important;
-  font-size: 12px !important;
-}
+  .caregiver-email {
+    font-size: 12px;
+    color: #666;
+  }
 
-:deep(.access-select .v-field__append-inner) {
-  padding-top: 4px !important;
-}
+  .access-selector {
+    width: 100px;
+  }
 
-/* Caregiver Actions */
-.caregiver-actions {
-  margin-top: $spacing-md;
-  display: flex;
-  justify-content: flex-end;
-}
+  :deep(.access-selector .v-field) {
+    min-height: 36px !important;
+  }
 
-/* Actions */
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
+  :deep(.access-selector .v-field__input) {
+    min-height: 36px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
 
-/* Footer */
-.footer {
-  padding: $spacing-lg $spacing-xl;
-  display: flex;
-  justify-content: flex-end;
-  border-top: 1px solid $dialog-border;
-}
+  .save-changes {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
 
-/* Button overrides */
-:deep(.v-btn--variant-flat) {
-  color: white !important;
-}
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-:deep(.v-btn--variant-flat .v-icon) {
-  color: white !important;
-}
+  .action-btn {
+    height: 44px !important;
+  }
+
+  :deep(.v-btn--variant-flat) {
+    color: white !important;
+  }
+
+  :deep(.v-btn--variant-flat .v-icon) {
+    color: white !important;
+  }
+
+  .account-selector {
+    flex: 1;
+  }
+
+  :deep(.account-selector .v-field) {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  :deep(.account-selector .v-field__input) {
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+
+  :deep(.account-selector .v-field__append-inner) {
+    padding-top: 0 !important;
+    align-items: center !important;
+  }
 </style>

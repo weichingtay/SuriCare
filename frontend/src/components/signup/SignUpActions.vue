@@ -9,22 +9,22 @@
 
     <!-- Google Sign Up Button -->
     <v-btn
-      variant="outlined"
-      size="large"
-      class="mb-5 google-btn"
       block
+      class="mb-5 google-btn"
+      size="large"
+      variant="outlined"
       @click="$emit('google-sign-up')"
     >
-      <div class="google-icon mr-3"></div>
+      <div class="google-icon mr-3" />
       Sign up with Google
     </v-btn>
 
     <!-- Sign Up Button -->
     <v-btn
+      block
+      class="signup-btn"
       color="primary"
       size="large"
-      class="signup-btn"
-      block
       @click="$emit('sign-up')"
     >
       Sign Up
@@ -32,7 +32,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   defineEmits(['sign-up', 'google-sign-up'])
 </script>
 

@@ -44,8 +44,8 @@ body, .v-application {
     $glass-white-lighter 50%,
     $glass-white 100%
   );
-  backdrop-filter: blur($glass-blur-md);
-  -webkit-backdrop-filter: blur($glass-blur-md);
+  // backdrop-filter: blur($glass-blur-md);
+  // -webkit-backdrop-filter: blur($glass-blur-md);
   border-right: 1px solid $glass-pink-border;
 
   // &::before {

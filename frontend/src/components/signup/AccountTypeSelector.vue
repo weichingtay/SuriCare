@@ -3,21 +3,22 @@
     <h3 class="text-h5 font-weight-medium mb-4">Create an Account</h3>
     <v-tabs
       v-model="selectedType"
-      color="black"
-      align-tabs="left"
+      align-tabs="center"
       class="mb-9"
+      color="black"
+      grow
     >
       <v-tab
-        value="Legal Guardian"
         class="text-capitalize"
         :class="{ 'tab-active': selectedType === 'Legal Guardian', 'tab-inactive': selectedType !== 'Legal Guardian' }"
+        value="Legal Guardian"
       >
         Legal Guardian
       </v-tab>
       <v-tab
-        value="Caregiver"
         class="text-capitalize"
         :class="{ 'tab-active': selectedType === 'Caregiver', 'tab-inactive': selectedType !== 'Caregiver' }"
+        value="Caregiver"
       >
         Caregiver
       </v-tab>
@@ -25,7 +26,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { computed } from 'vue'
 
   const props = defineProps({
@@ -39,7 +40,7 @@
 
   const selectedType = computed({
     get: () => props.modelValue,
-    set: (value) => emit('update:modelValue', value),
+    set: value => emit('update:modelValue', value),
   })
 </script>
 

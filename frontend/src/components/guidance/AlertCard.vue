@@ -2,19 +2,23 @@
   <v-card
     class="alert-card"
     :class="{ 'alert-card-border': !isExpanded }"
+    color="white"
     elevation="0"
     rounded="lg"
-    color="white"
   >
     <!-- Alert Header Section -->
     <v-card-text
       class="pt-3 pb-3 ps-4 alert-header"
       :class="{ 'header-border': isExpanded }"
-      style="background-color: #FFEBEB"
+      style="background-color: #FFF2F0"
     >
       <div class="d-flex justify-space-between align-center">
         <div class="d-flex align-start">
-          <v-icon color="#FF5252" size="20" class="mt-1 mr-3">
+          <v-icon
+            class="mt-1 mr-3"
+            color="#FF5252"
+            size="20"
+          >
             mdi-alert
           </v-icon>
           <div>
@@ -26,11 +30,16 @@
             </p>
           </div>
         </div>
-        <v-btn icon variant="text" size="small" @click="toggleExpanded">
+        <v-btn
+          icon
+          size="small"
+          variant="text"
+          @click="toggleExpanded"
+        >
           <v-icon
+            :class="{ 'rotate-180': isExpanded }"
             color="grey-darken-2"
             size="20"
-            :class="{ 'rotate-180': isExpanded }"
             style="transition: transform 0.2s ease"
           >
             mdi-chevron-down
@@ -41,7 +50,20 @@
 
     <!-- Expandable Suggestions Section -->
     <v-expand-transition>
-      <div v-if="isExpanded" class="suggestions-section">
+      <div
+        v-if="isExpanded"
+        class="suggestions-section"
+        style="position: relative"
+      >
+        <v-btn
+          class="close-btn"
+          density="comfortable"
+          icon="$close"
+          style="position: absolute; top: 12px; right: 12px; z-index: 1"
+          variant="plain"
+          @click="handleDeleteClick"
+        />
+
         <div class="pa-6">
           <div
             v-for="suggestion in alert.suggestions"
@@ -49,7 +71,10 @@
             class="suggestion-item mb-6"
           >
             <div class="d-flex align-center mb-3">
-              <v-icon size="28" class="mr-1">
+              <v-icon
+                class="mr-1"
+                size="28"
+              >
                 mdi-lightbulb-variant
               </v-icon>
               <h4 class="text-subtitle-2 font-weight-bold">
@@ -69,61 +94,69 @@
   </v-card>
 </template>
 
-<script setup>
-import { ref } from "vue";
+<script setup lang="ts">
+  import { ref } from 'vue'
 
-const props = defineProps({
-  alert: {
-    type: Object,
-    required: true,
-  },
-});
+  const props = defineProps({
+    alert: {
+      type: Object,
+      required: true,
+    },
+  })
 
-const isExpanded = ref(false);
-const toggleExpanded = () => {
-  isExpanded.value = !isExpanded.value;
-};
+  const isExpanded = ref(false)
+  const toggleExpanded = () => {
+    isExpanded.value = !isExpanded.value
+  }
+
+  // 🎯 Fixed: Get emit function and properly handle delete click
+  const emit = defineEmits(['read-alert'])
+  
+  const handleDeleteClick = () => {
+    console.log('🗑️ Delete clicked for alert:', props.alert.id);
+    emit('read-alert', props.alert.id);
+  }
 </script>
 
 <style scoped>
-.alert-card {
-  transition: all 0.2s ease-in-out;
-}
+  .alert-card {
+    transition: all 0.2s ease-in-out;
+  }
 
-.alert-card-border {
-  border: 1.5px solid #FF5252;
-}
+  .alert-card-border {
+    border: 1.5px solid #ff5252;
+  }
 
-.alert-card:hover {
-  transform: translateY(-1px);
-}
+  .alert-card:hover {
+    transform: translateY(-1px);
+  }
 
-.rotate-180 {
-  transform: rotate(180deg);
-}
+  .rotate-180 {
+    transform: rotate(180deg);
+  }
 
-.suggestion-item:last-child {
-  margin-bottom: 0 !important;
-}
+  .suggestion-item:last-child {
+    margin-bottom: 0 !important;
+  }
 
-.suggestion-content {
-  padding-left: 0.25rem;
-}
+  .suggestion-content {
+    padding-left: 0.25rem;
+  }
 
-.line-height-relaxed {
-  line-height: 1.6;
-}
+  .line-height-relaxed {
+    line-height: 1.6;
+  }
 
-.alert-header {
-  border-radius: 8px 8px 0 0;
-}
+  .alert-header {
+    border-radius: 8px 8px 0 0;
+  }
 
-.alert-header.header-border {
-  border: 1.5px solid #FF5252;
-}
+  .alert-header.header-border {
+    border: 1.5px solid #ff5252;
+  }
 
-.suggestions-section {
-  background-color: white;
-  border-radius: 0 0 8px 8px;
-}
+  .suggestions-section {
+    background-color: white;
+    border-radius: 0 0 8px 8px;
+  }
 </style>

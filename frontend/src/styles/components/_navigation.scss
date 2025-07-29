@@ -172,7 +172,7 @@
   margin-bottom: 2px;
   transition: $transition-base;
   // background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(10px);
+  // backdrop-filter: blur(10px);
 
   &.nav-icon-active {
     // background: rgba(255, 255, 255, 0.9);
@@ -330,3 +330,27 @@
   color: $app-text-primary;
   letter-spacing: 0.5px;
 } 
+
+// Child selector button styling
+.child-selector-btn {
+  min-width: 180px !important;
+  width: 180px !important;
+}
+
+// Target the specific v-btn__content span
+.v-btn.child-selector-btn .v-btn__content {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+// Ensure child-info takes available space
+.child-selector-btn .child-info {
+  flex: 1 !important;
+}
+
+// Push dropdown icon to the right
+.child-selector-btn .dropdown-icon {
+  margin-left: auto !important;
+}

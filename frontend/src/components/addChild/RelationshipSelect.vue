@@ -5,18 +5,20 @@
     </v-label>
     <v-select
       v-model="selectedRelationship"
-      :items="relationshipOptions"
-      placeholder="Select a relationship"
-      variant="outlined"
-      :rules="rules"
+      :disabled="isRelationshipLoading"
       hide-details="auto"
-      @update:modelValue="handleSelection"
+      :items="relationshipOptions"
+      :loading="isRelationshipLoading"
+      placeholder="Select a relationship"
+      :rules="rules"
+      variant="outlined"
+      @update:model-value="handleSelection"
     />
   </div>
 </template>
 
-<script setup>
-  import { ref, watch } from 'vue'
+<script setup lang="ts">
+  import { computed, ref, watch } from 'vue'
 
   const props = defineProps({
     modelValue: {
@@ -33,21 +35,25 @@
 
   const selectedRelationship = ref(props.modelValue)
 
-  const relationshipOptions = [
-    { title: 'Mother', value: 'mother' },
-    { title: 'Father', value: 'father' },
-    { title: 'Grandfather', value: 'grandfather' },
-    { title: 'Grandmother', value: 'grandmother' },
-    { title: 'Nanny/Babysitter', value: 'nanny_babysitter' },
-    { title: 'Aunt', value: 'aunt' },
-    { title: 'Uncle', value: 'uncle' },
-    { title: 'Guardian', value: 'guardian' },
-    { title: 'Other', value: 'other' },
-  ]
+  // Use dynamic options from database
+  import { useFormOptions } from '@/composables/useFormOptions'
+
+  const {
+    relationshipOptions: relationshipOptionsData,
+    isLoading: isRelationshipLoading,
+  } = useFormOptions()
+
+  // Transform to match expected format for VSelect
+  const relationshipOptions = computed(() =>
+    relationshipOptionsData.value.map(option => ({
+      title: option.label,
+      value: option.value,
+    }))
+  )
 
   watch(
     () => props.modelValue,
-    (newValue) => {
+    newValue => {
       selectedRelationship.value = newValue
     }
   )

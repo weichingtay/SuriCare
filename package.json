@@ -1,0 +1,42 @@
+{
+    "name": "suricare",
+    "version": "1.0.0",
+    "description": "SuriCare - Child Health Monitoring Application",
+    "private": true,
+    "scripts": {
+        "dev": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"blue,green\" \"npm run backend\" \"npm run frontend\"",
+        "backend:unix": "cd backend && ./venv/bin/python -m uvicorn main:app --reload",
+        "backend:win": "cd backend && .\\venv\\Scripts\\python.exe -m uvicorn main:app --reload",
+        "backend": "npm run backend:unix || npm run backend:win",
+        "frontend": "cd frontend && npm run dev",
+        "install-all": "npm install && cd frontend && npm install",
+        "build": "cd frontend && npm run build",
+        "admin": "cd frontend && npm run admin",
+        "setup": "npm run install-all && npm run setup:venv && npm run admin setup",
+        "setup:venv": "cd backend && (test -d venv || python -m venv venv) && echo 'Virtual environment ready at backend/venv'",
+        "setup:python": "cd backend && pip install -r requirements.txt",
+        "demo": "npm run demo:info && npm run dev",
+        "demo:info": "node -e \"console.log('\\n🚀 Starting SuriCare Demo...\\n\\n📦 Backend: http://localhost:8000\\n🌐 Frontend: http://localhost:3000\\n📚 API Docs: http://localhost:8000/docs\\n\\n👤 Demo Login:\\n   Email: admin@suricare.com\\n   Password: admin123!\\n\\nPress Ctrl+C to stop both servers\\n----------------------------------------\\n')\""
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/weichingtay/SuriCare.git"
+    },
+    "keywords": [
+        "healthcare",
+        "children",
+        "monitoring",
+        "vue",
+        "fastapi",
+        "supabase"
+    ],
+    "author": "SuriCare Team",
+    "license": "MIT",
+    "dependencies": {
+        "@vuepic/vue-datepicker": "^11.0.2",
+        "@vueuse/core": "^13.4.0"
+    }
+}

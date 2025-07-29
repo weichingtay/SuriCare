@@ -6,10 +6,10 @@
       <div class="d-flex mb-4">
         <div class="logo-container mr-3">
           <img
-            src="@/assets/logo.svg"
             alt="SuriAI Logo"
+            src="@/assets/logo.svg"
             style="width: 70px; height: 70px; overflow: hidden; border-radius: 15px; cover"
-          />
+          >
         </div>
         <div class="d-flex flex-column flex-grow-1">
           <div class="text-body-1 font-weight-medium mb-1">SuriAI</div>
@@ -17,50 +17,58 @@
             Powered by AI for childcare guidance. SuriAI can help with sleep
             patterns, meal suggestions, development milestones, and more.
           </div>
-          <div class="suriai-input-container">
-  <v-card
-    class="input-card"
-    variant="outlined"
-  >
-    <div class="d-flex align-center px-4 py-2">
-      <v-text-field
-        v-model="message"
-        placeholder="Type your questions here"
-        variant="plain"
-        hide-details
-        class="flex-grow-1 centered-input"
-        @keyup.enter="sendMessage"
-      />
-      <v-btn
-        icon
-        variant="text"
-        color="#D87179"
-        @click="sendMessage"
-        :disabled="!message.trim()"
-        class="ml-2"
-      >
-        <v-icon>mdi-send</v-icon>
-      </v-btn>
+          <div class="suriai-input-container d-flex align-center">
+            <v-card
+              class="input-card flex-grow-1"
+              variant="outlined"
+            >
+              <div class="d-flex align-center px-4 py-2">
+                <v-text-field
+                  v-model="message"
+                  class="flex-grow-1 centered-input"
+                  hide-details
+                  placeholder="Type your questions here"
+                  variant="plain"
+                  @keyup.enter="sendMessage"
+                />
+              </div>
+            </v-card>
+            <v-btn
+              class="ml-3"
+              color="#D87179"
+              :disabled="!message.trim()"
+              icon
+              variant="flat"
+              @click="sendMessage"
+            >
+              <v-icon>mdi-send</v-icon>
+            </v-btn>
+          </div>
+        </div>
+      </div>
     </div>
-  </v-card>
-</div>
-</div>
-</div>
-</div>
-</div>
+  </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { ref } from 'vue'
+  import { useRouter } from 'vue-router'
+  import { useChatbotStore } from '@/stores/chatbot'
 
   const message = ref('')
+  const router = useRouter()
+  const chatbotStore = useChatbotStore()
 
-  const emit = defineEmits(['send-message'])
-
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (message.value.trim()) {
-      emit('send-message', message.value)
+      const query = message.value
       message.value = ''
+      
+      // Navigate to chatbot page with the query
+      await router.push({
+        path: '/chatbot',
+        query: { message: query }
+      })
     }
   }
 </script>

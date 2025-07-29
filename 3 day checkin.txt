@@ -1,0 +1,98 @@
+
+DELETE FROM meal 
+WHERE child_id = 1 
+AND check_in >= '2025-07-22 00:00:00+08:00' 
+AND check_in < '2025-07-27 00:00:00+08:00';
+
+DELETE FROM sleep_time 
+WHERE child_id = 1 
+AND check_in >= '2025-07-22 00:00:00+08:00' 
+AND check_in < '2025-07-27 00:00:00+08:00';
+
+DELETE FROM poop 
+WHERE child_id = 1 
+AND check_in >= '2025-07-22 00:00:00+08:00' 
+AND check_in < '2025-07-27 00:00:00+08:00';
+
+DELETE FROM symptom 
+WHERE child_id = 1 
+AND check_in >= '2025-07-22 00:00:00+08:00' 
+AND check_in < '2025-07-27 00:00:00+08:00';
+
+-- ================================================================
+-- CHILD 1 DATA - JULY 22-25, 2025
+-- Pattern: Normal (22-24) → Slight disruption (25) → [Your input on 26]
+-- ================================================================
+
+-- MEALS: Using only valid consumption levels (0%, 25%, 50%, 75%, 100%)
+-- July 22: Add one mild concerning day to build pattern
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-22 07:30:00+08:00', 75.0, NULL, 'Good breakfast but slightly less than usual', 1, 1, 1);
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-22 12:30:00+08:00', 75.0, NULL, 'Decent lunch consumption', 2, 1, 1);
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-22 18:00:00+08:00', 75.0, 'Mashed vegetables', 'Good dinner appetite', 3, 1, 1);
+
+-- July 23: Another mild concerning day
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-23 07:45:00+08:00', 75.0, NULL, 'Slower eating than normal', 1, 1, 1);
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-23 12:45:00+08:00', 75.0, NULL, 'Adequate lunch consumption', 2, 1, 1);
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-23 18:15:00+08:00', 75.0, 'Soft rice porridge', 'Finished most of dinner', 3, 1, 1);
+
+-- July 24: Slightly improved eating
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-24 08:00:00+08:00', 100.0, NULL, 'Full breakfast appetite', 1, 1, 1);
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-24 13:00:00+08:00', 75.0, NULL, 'Good lunch consumption', 2, 1, 1);
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-24 18:30:00+08:00', 50.0, 'Chicken puree', 'Ate half of dinner, seemed tired', 3, 1, 1);
+
+-- July 25: SLIGHT meal disruption begins
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-25 08:15:00+08:00', 50.0, NULL, 'Ate half of breakfast, seemed distracted', 1, 1, 1);
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-25 13:15:00+08:00', 50.0, NULL, 'Partial lunch consumption', 2, 1, 1);
+INSERT INTO meal (check_in, consumption_level, others, note, meal_time_category, meal_category, child_id) VALUES ('2025-07-25 19:00:00+08:00', 25.0, 'Soft soup', 'Poor dinner appetite', 3, 1, 1);
+
+-- SLEEP: Normal (22-24) → Slight disruption (25)
+-- July 22: Concerning sleep levels (6-9h range)
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-22 09:00:00+08:00', '2025-07-22 09:00:00+08:00', '2025-07-22 10:00:00+08:00', 'Shorter morning nap', 1);
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-22 14:30:00+08:00', '2025-07-22 14:30:00+08:00', '2025-07-22 15:30:00+08:00', 'Reduced afternoon nap', 1);
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-22 20:00:00+08:00', '2025-07-22 20:00:00+08:00', '2025-07-23 03:00:00+08:00', 'Shortened night sleep', 1);
+
+-- July 23: Concerning sleep levels  
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-23 09:30:00+08:00', '2025-07-23 09:30:00+08:00', '2025-07-23 10:15:00+08:00', 'Brief morning nap', 1);
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-23 15:00:00+08:00', '2025-07-23 15:00:00+08:00', '2025-07-23 16:00:00+08:00', 'Short afternoon rest', 1);
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-23 20:30:00+08:00', '2025-07-23 20:30:00+08:00', '2025-07-24 02:30:00+08:00', 'Very disrupted night', 1);
+
+-- July 24: Concerning sleep levels
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-24 09:15:00+08:00', '2025-07-24 09:15:00+08:00', '2025-07-24 10:00:00+08:00', 'Very short morning nap', 1);
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-24 14:45:00+08:00', '2025-07-24 14:45:00+08:00', '2025-07-24 15:30:00+08:00', 'Brief afternoon nap', 1);
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-24 20:15:00+08:00', '2025-07-24 20:15:00+08:00', '2025-07-25 01:45:00+08:00', 'Severely reduced night sleep', 1);
+
+-- July 25: Poor sleep levels (<6h)
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-25 09:30:00+08:00', '2025-07-25 09:30:00+08:00', '2025-07-25 09:45:00+08:00', 'Extremely brief nap', 1);
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-25 15:00:00+08:00', '2025-07-25 15:00:00+08:00', '2025-07-25 15:30:00+08:00', 'Could barely nap', 1);
+INSERT INTO sleep_time (check_in, start_time, end_time, note, child_id) VALUES ('2025-07-25 21:00:00+08:00', '2025-07-25 21:00:00+08:00', '2025-07-26 01:30:00+08:00', 'Very short disrupted night', 1);
+
+-- POOP: ALL NORMAL throughout (using correct database IDs)
+-- July 22: Normal movements
+INSERT INTO poop (check_in, note, color, texture, child_id) VALUES ('2025-07-22 08:00:00+08:00', 'Normal morning movement', 3, 5, 1);  -- brown + soft
+INSERT INTO poop (check_in, note, color, texture, child_id) VALUES ('2025-07-22 16:00:00+08:00', 'Regular bowel movement', 1, 4, 1);   -- yellow + smooth
+
+-- July 23: Normal movements
+INSERT INTO poop (check_in, note, color, texture, child_id) VALUES ('2025-07-23 09:00:00+08:00', 'Normal consistency and color', 1, 5, 1);  -- yellow + soft
+INSERT INTO poop (check_in, note, color, texture, child_id) VALUES ('2025-07-23 17:00:00+08:00', 'Healthy movement', 3, 4, 1);            -- brown + smooth
+
+-- July 24: Normal movements
+INSERT INTO poop (check_in, note, color, texture, child_id) VALUES ('2025-07-24 10:30:00+08:00', 'Normal bowel movement', 3, 5, 1);  -- brown + soft
+INSERT INTO poop (check_in, note, color, texture, child_id) VALUES ('2025-07-24 19:00:00+08:00', 'Regular movement', 1, 4, 1);       -- yellow + smooth
+
+-- July 25: STILL NORMAL movements (despite meal/sleep issues)
+INSERT INTO poop (check_in, note, color, texture, child_id) VALUES ('2025-07-25 11:00:00+08:00', 'Good consistency', 3, 4, 1);    -- brown + smooth
+INSERT INTO poop (check_in, note, color, texture, child_id) VALUES ('2025-07-25 18:30:00+08:00', 'Normal stool', 1, 5, 1);        -- yellow + soft
+
+-- HEALTH/SYMPTOMS: Focus on irritability and fussy crying
+-- July 22: No symptoms (completely healthy)
+-- No symptom records = healthy status
+
+-- July 23: Very mild irritability starts
+INSERT INTO symptom (check_in, symptom, photo_url, note, child_id) VALUES ('2025-07-23 16:00:00+08:00', 'irritability', 'https://example.com/placeholder_photo.jpg', 'Slightly more irritable during evening', 1);
+
+-- July 24: Continued mild symptoms
+INSERT INTO symptom (check_in, symptom, photo_url, note, child_id) VALUES ('2025-07-24 14:00:00+08:00', 'fussy crying', 'https://example.com/placeholder_photo.jpg', 'More fussy and crying episodes today', 1);
+
+-- July 25: Increased irritability
+INSERT INTO symptom (check_in, symptom, photo_url, note, child_id) VALUES ('2025-07-25 10:00:00+08:00', 'irritability', 'https://example.com/placeholder_photo.jpg', 'Increased irritability and fussiness', 1);
+INSERT INTO symptom (check_in, symptom, photo_url, note, child_id) VALUES ('2025-07-25 17:00:00+08:00', 'fussy crying', 'https://example.com/placeholder_photo.jpg', 'More frequent crying episodes', 1);

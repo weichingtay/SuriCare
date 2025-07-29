@@ -1,67 +1,234 @@
-<!--TODO: USE AI HERE INSTEAD OF HEALTH!!-->
-
 <template>
-  <div class="mb-6" v-if="hasHealthAlert">
+  <div class="mb-6">
     <h2 class="text-body-1 font-weight-medium mb-3">
       {{ currentChild.name }}'s Smart Alert
     </h2>
+    
+    <!-- DEBUG: Show current state
+    <div class="mb-2 p-2 bg-yellow-lighten-4 rounded">
+      <p><strong>DEBUG:</strong> isLoading={{ isLoading }}, hasAlert={{ hasAlert }}, alerts.length={{ alerts.length }}</p>
+      <p><strong>Current Date:</strong> {{ currentDateString }}</p>
+      <p><strong>Alert Title:</strong> {{ topAlert?.title || 'NULL' }}</p>
+      <p><strong>Alert Type:</strong> {{ topAlert?.type || 'NULL' }}</p>
+      <v-btn size="small" @click="triggerAnalysis" class="mr-2">Force Analysis</v-btn>
+    </div> -->
+    
+    <!-- Case 1: Has Alert -->
+    <div v-if="hasAlert && topAlert">
+      <v-alert 
+        class="health-alert" 
+        :color="alertBackgroundColor" 
+        variant="tonal" 
+        :style="`border: 2px solid ${alertBorderColor} !important;`"
+      >
+        <div class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <v-icon class="mr-3" :color="alertIconColor">{{ alertIcon }}</v-icon>
+            <div>
+              <div class="text-body-1 font-weight-medium mb-1">{{ topAlert.title }}</div>
+              <div class="text-body-2 text-grey-darken-1">{{ topAlert.description }}</div>
+            </div>
+          </div>
+          <v-btn 
+            class="text-white" 
+            :color="alertButtonColor" 
+            size="small" 
+            variant="flat" 
+            @click="navigateToAlerts"
+          >
+            View More
+          </v-btn>
+        </div>
+      </v-alert>
+    </div>
 
-    <v-alert
-      color="error"
-      variant="tonal"
-      class="health-alert"
-    >
-      <div class="d-flex align-center justify-space-between">
+    <!-- Case 2: Loading -->
+    <div v-else-if="isLoading || !hasFinishedLoading">
+      <v-alert class="health-alert" color="#F5F5F5" variant="tonal">
         <div class="d-flex align-center">
-          <v-icon
-            color="error"
-            class="mr-3 ml-1"
-          >mdi-alert-circle</v-icon>
+          <v-progress-circular class="mr-3" color="primary" indeterminate size="20" />
           <div>
             <div class="text-body-1 font-weight-medium mb-1">
-              {{ healthData.status }}
+              AI Analyzing Health Patterns...
             </div>
             <div class="text-body-2 text-grey-darken-1">
-              {{ healthData.message }}
-              <div v-if="healthData.symptoms?.length" class="mt-1">
-                Symptoms: {{ healthData.symptoms.join(', ') }}
-              </div>
-              <div v-if="healthData.temperature" class="mt-1">
-                Temperature: {{ healthData.temperature }}°C
-              </div>
+              Checking data for {{ currentDateString }}
             </div>
           </div>
         </div>
-        <v-btn
-          size="small"
-          variant="flat"
-          color="error"
-          class="text-white mr-3"
-          @click="handleViewMore"
-        >
-          View More
-        </v-btn>
+      </v-alert>
+    </div>
+
+  <!-- Case 3: All Normal -->
+<div v-else>
+  <v-alert 
+    class="health-alert normal-alert" 
+    color="rgba(76, 175, 80, 0.04)" 
+    variant="tonal"
+    style="border: 2px solid #4CAF50 !important; background: rgba(76, 175, 80, 0.04) !important;"
+  >
+    <div class="d-flex align-center">
+      <v-icon class="mr-3" color="#4CAF50">mdi-check-circle</v-icon>
+      <div>
+        <div class="text-body-1 font-weight-medium mb-1" style="color: #2c1810;">All Patterns Normal</div>
+        <div class="text-body-2" style="color: #5d4037;">No concerning patterns detected for {{ currentDateString }}</div>
       </div>
-    </v-alert>
+    </div>
+  </v-alert>
+</div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { computed, ref, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useHealthAlert } from '@/composables/useHealthAlert'
 
 const props = defineProps({
-  currentChild: {
-    type: Object,
-    required: true
+  currentChild: { type: Object, required: true },
+  currentDate: { type: Date, required: false, default: () => new Date() },
+})
+
+const router = useRouter()
+
+// STABLE: Consistent date format (Shanghai timezone)
+const currentDateString = computed(() => {
+  const date = props.currentDate || new Date()
+  
+  // Convert to Shanghai timezone for display
+  const shanghaiOffset = 8 * 60 // Shanghai is UTC+8
+  const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
+  const shanghaiTime = new Date(utc + (shanghaiOffset * 60000))
+  
+  // Return YYYY-MM-DD format in Shanghai time
+  const year = shanghaiTime.getFullYear()
+  const month = String(shanghaiTime.getMonth() + 1).padStart(2, '0')
+  const day = String(shanghaiTime.getDate()).padStart(2, '0')
+  
+  return `${year}-${month}-${day}`
+})
+
+// STABLE: Initialize composable
+const { alerts, isAnalyzing, analyzeForDate } = useHealthAlert()
+
+// STABLE: Use composable's loading state
+const isLoading = computed(() => isAnalyzing.value)
+
+// STABLE: Simple computed properties
+const hasAlert = computed(() => alerts.value !== null && alerts.value.length > 0)
+const topAlert = computed(() => hasAlert.value && alerts.value ? alerts.value[0] : null)
+const hasFinishedLoading = computed(() => alerts.value !== null)
+
+// NEW: Dynamic alert styling using your design system colors
+const alertBackgroundColor = computed(() => {
+  if (!topAlert.value) return 'rgba(255, 152, 0, 0.08)' // Light orange using your opacity pattern
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return 'rgba(244, 67, 54, 0.08)' // Light red background using your app's opacity style
+    case 'warning':
+      return 'rgba(255, 152, 0, 0.08)' // Light orange background
+    case 'info':
+      return 'rgba(216, 113, 121, 0.08)' // Light pink using your $app-primary
+    default:
+      return 'rgba(255, 152, 0, 0.08)'
   }
 })
 
-const emit = defineEmits(['view-more'])
+const alertBorderColor = computed(() => {
+  if (!topAlert.value) return '#ff9800' // Your $status-warning
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return '#f44336' // Your $status-negative
+    case 'warning':
+      return '#ff9800' // Your $status-warning
+    case 'info':
+      return '#d87179' // Your $app-primary
+    default:
+      return '#ff9800'
+  }
+})
 
-const { healthData, hasHealthAlert } = useHealthAlert()
+const alertIconColor = computed(() => {
+  if (!topAlert.value) return '#ff9800'
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return '#f44336' // Your $status-negative
+    case 'warning':
+      return '#ff9800' // Your $status-warning
+    case 'info':
+      return '#d87179' // Your $app-primary
+    default:
+      return '#ff9800'
+  }
+})
 
-const handleViewMore = () => {
-  emit('view-more', healthData.value)
+const alertIcon = computed(() => {
+  if (!topAlert.value) return 'mdi-alert'
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return 'mdi-alert-circle' // More severe icon for errors
+    case 'warning':
+      return 'mdi-alert' // Standard warning icon
+    case 'info':
+      return 'mdi-information' // Info icon
+    default:
+      return 'mdi-alert'
+  }
+})
+
+const alertButtonColor = computed(() => {
+  if (!topAlert.value) return '#ff9800'
+  
+  switch (topAlert.value.type) {
+    case 'error':
+      return '#f44336' // Your $status-negative
+    case 'warning':
+      return '#ff9800' // Your $status-warning
+    case 'info':
+      return '#d87179' // Your $app-primary
+    default:
+      return '#ff9800'
+  }
+})
+
+// STABLE: Manual analysis trigger
+const triggerAnalysis = async () => {
+  console.log(`🎯 Triggering analysis for: ${currentDateString.value}`)
+  
+  try {
+    await analyzeForDate(currentDateString.value)
+    console.log(`✅ Analysis completed for: ${currentDateString.value}`)
+  } catch (error) {
+    console.error('❌ Analysis failed:', error)
+  }
+}
+
+// STABLE: Watch for date changes (no race conditions)
+watch(currentDateString, (newDate, oldDate) => {
+  if (oldDate && newDate !== oldDate) {
+    console.log(`📅 Date changed from ${oldDate} to ${newDate}`)
+    triggerAnalysis()
+  }
+}, { immediate: false })
+
+// STABLE: Initialize on mount
+onMounted(() => {
+  console.log(`🚀 HealthAlert mounted for: ${currentDateString.value}`)
+  // Trigger initial analysis after 500ms
+  setTimeout(triggerAnalysis, 500)
+})
+
+const navigateToAlerts = () => {
+  router.push('/guidance?tab=alert')
 }
 </script>
 
+<style scoped>
+.health-alert {
+  border: 1px solid currentColor !important;
+}
+</style>

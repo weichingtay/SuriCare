@@ -1,50 +1,49 @@
 <template>
   <v-app-bar
     app
+    class="app-header"
     color="transparent"
     elevation="0"
     height="72"
-    class="app-header"
   >
     <!-- Glassmorphism background overlay -->
-    <div class="header-background"></div>
+    <div class="header-background" :class="{ 'header-background-caregiver': userProfile.role === 'Caregiver' }" />
 
     <v-container
-      fluid
       class="header-container"
+      fluid
     >
       <!-- Left section: Welcome message and child selector in one row -->
       <div class="left-section">
         <!-- Child selector -->
         <div>
           <v-menu class="dropdown-menu">
-            <template v-slot:activator="{ props }">
+            <!-- NOTE: menuProps here is to bind the btns below to the v-menu -->
+            <template #activator="{ props: menuProps }">
               <v-btn
-                v-bind="props"
-                variant="elevated"
+                v-bind="menuProps"
                 class="child-selector-btn"
                 height="48"
                 style="justify-content: flex-start"
+                variant="elevated"
               >
                 <v-avatar
-                  size="32"
                   class="child-avatar"
+                  size="32"
                   style="margin-right: 12px"
                 >
-                  <v-img :src="currentChild.avatar"></v-img>
+                  <v-img :src="currentChild.avatar" />
                 </v-avatar>
                 <div
                   class="child-info"
                   style="flex: 1; text-align: left"
                 >
                   <span class="child-name">{{ currentChild.name }}</span>
-                  <span class="child-age"
-                    >{{ currentChild.age }} years old</span
-                  >
+                  <span class="child-age">{{ currentChild.age }}</span>
                 </div>
                 <v-icon
-                  size="16"
                   class="dropdown-icon"
+                  size="16"
                   >mdi-chevron-down</v-icon
                 >
               </v-btn>
@@ -54,35 +53,70 @@
               <v-list-item
                 v-for="child in children"
                 :key="child.id"
-                @click="selectChild(child)"
                 :active="child.id === currentChild.id"
                 class="child-dropdown-item"
+                @click="selectChild(child)"
               >
-                <template v-slot:prepend>
+                <template #prepend>
                   <v-avatar
-                    size="32"
                     class="dropdown-avatar"
+                    size="32"
                   >
-                    <v-img :src="child.avatar"></v-img>
+                    <v-img :src="child.avatar" />
                   </v-avatar>
                 </template>
                 <v-list-item-title class="dropdown-name">{{
                   child.name
                 }}</v-list-item-title>
-                <v-list-item-subtitle class="dropdown-age"
-                  >{{ child.age }} years old</v-list-item-subtitle
-                >
+                <v-list-item-subtitle class="dropdown-age">{{
+                  child.age
+                }}</v-list-item-subtitle>
+              </v-list-item>
+
+              <!-- Single Add Child at bottom -->
+              <v-list-item
+                class="add-child-item"
+                style="
+                  border-top: 1px solid rgba(255, 255, 255, 0.2);
+                  margin-top: 8px;
+                "
+                @click="addNewChild"
+              >
+                <template #prepend>
+                  <div
+                    style="
+                      width: 32px;
+                      height: 32px;
+                      border-radius: 50%;
+                      background: #f0c6c9;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      margin-right: 16px;
+                    "
+                  >
+                    <v-icon
+                      size="16"
+                      style="color: #d87179"
+                      >mdi-plus</v-icon
+                    >
+                  </div>
+                </template>
+                <v-list-item-title style="color: #d87179; font-weight: 500">
+                  Add Child
+                </v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
         </div>
 
         <!-- Growth data cards -->
-         <!-- TODO: THE HOVER HERE LOOKS ABIT DIFFERENT ADJUST IT -->
+        <!-- TODO: THE HOVER HERE LOOKS ABIT DIFFERENT ADJUST IT -->
         <div class="growth-cards">
           <div
             class="growth-card combined-card"
             @click="openGrowthDialog"
+            
           >
             <!-- Metric Pairs: icon + (label+value) -->
             <div class="metric-pair height-pair">
@@ -116,15 +150,15 @@
             </div>
 
             <v-btn
+              class="growth-edit-btn"
               icon
               size="x-small"
               variant="text"
-              class="growth-edit-btn"
               @click.stop="openGrowthDialog"
             >
               <v-icon
-                size="14"
                 color="rgba(0,0,0,0.6)"
+                size="14"
                 >mdi-pencil</v-icon
               >
             </v-btn>
@@ -135,13 +169,13 @@
       <!-- Right section: Share functionality -->
       <div
         class="right-section"
-        style="display: flex; align-items: center; gap: 8px"
+        style="display: flex; align-items: center"
       >
         <!-- Share button -->
         <v-btn
-          variant="elevated"
           class="share-child-btn"
-          height="40"
+          height="48"
+          variant="elevated"
           @click="openShareDialog"
         >
           Share Child Info
@@ -150,168 +184,82 @@
     </v-container>
 
     <!-- Growth Data Dialog -->
-    <v-dialog
+    <GrowthDialog
       v-model="growthDialog"
-      max-width="500"
-      class="modern-dialog"
-    >
-      <v-card class="dialog-card">
-        <v-card-title class="dialog-title">
-          <div class="dialog-title-content">
-            <h3>Update Growth Details</h3>
-            <v-chip
-              size="small"
-              class="child-chip"
-              color="pink"
-              variant="tonal"
-              >{{ currentChild.name }}</v-chip
-            >
-          </div>
-        </v-card-title>
-
-        <v-card-text class="dialog-content">
-          <v-form ref="growthForm">
-            <v-row>
-              <v-col
-                cols="12"
-                sm="4"
-              >
-                <v-text-field
-                  v-model="growthFormData.height"
-                  label="Height (cm)"
-                  type="number"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-human-male-height"
-                  class="dialog-field"
-                  base-color="pink"
-                  color="pink"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-              >
-                <v-text-field
-                  v-model="growthFormData.weight"
-                  label="Weight (kg)"
-                  type="number"
-                  step="0.1"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-weight-kilogram"
-                  class="dialog-field"
-                  base-color="pink"
-                  color="pink"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-              >
-                <v-text-field
-                  v-model="growthFormData.headCircumference"
-                  label="Head Circ. (cm)"
-                  type="number"
-                  step="0.1"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-head"
-                  class="dialog-field"
-                  base-color="pink"
-                  color="pink"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <v-alert
-              type="info"
-              variant="tonal"
-              density="compact"
-            >
-              <div class="alert-content">
-                <div class="alert-line">
-                  <strong>Last updated:</strong>
-                  {{ formatGrowthUpdate(currentChild.growth?.lastUpdated) }}
-                </div>
-                <div class="alert-line">
-                  <strong>Previous:</strong>
-                  {{ currentChild.growth?.height || '--' }}cm,
-                  {{ currentChild.growth?.weight || '--' }}kg,
-                  {{ currentChild.growth?.headCircumference || '--' }}cm
-                </div>
-              </div>
-            </v-alert>
-          </v-form>
-        </v-card-text>
-
-        <v-card-actions class="dialog-actions">
-          <v-spacer></v-spacer>
-          <v-btn
-            variant="text"
-            @click="growthDialog = false"
-            class="cancel-btn"
-            >Cancel</v-btn
-          >
-          <v-btn
-            color="pink"
-            variant="flat"
-            @click="saveGrowthData"
-            class="save-btn"
-            >Save Changes</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      :head-circumference="growthFormData.headCircumference"
+      :height="growthFormData.height"
+      :loading="false"
+      :notes="growthFormData.notes"
+      :weight="growthFormData.weight"
+      :current-child="currentChild"
+      @close="growthDialog = false"
+      @save="saveGrowthData"
+      @update:head-circumference="growthFormData.headCircumference = $event"
+      @update:height="growthFormData.height = $event"
+      @update:notes="growthFormData.notes = $event"
+      @update:weight="growthFormData.weight = $event"
+    />
 
     <!-- Share dialog -->
     <v-dialog
       v-model="showShareDialog"
       width="420"
     >
-      <v-card style="background-color: #fdf9f7; color: #000">
+      <v-card
+        style="background-color: #fdf9f7; color: #000; border-radius: 12px"
+      >
         <v-card-title class="headline">Share Child Info</v-card-title>
         <v-card-text>
           <!-- Access type selector inside dialog -->
           <v-select
             v-model="shareAccessType"
+            density="comfortable"
             :items="accessOptions"
             label="Access Level"
-            density="comfortable"
             variant="outlined"
-            style="margin-bottom: 16px"
-          ></v-select>
+          />
+
+          <!-- Share code instruction -->
+          <p
+            style="
+              margin-bottom: 16px;
+              color: rgba(0, 0, 0, 0.7);
+              font-size: 14px;
+            "
+          >
+            Share this code to invite caregivers to SuriCare
+          </p>
 
           <!-- Modern code field -->
           <v-text-field
-            :model-value="shareCode"
-            label="Share Code"
-            prepend-inner-icon="mdi-account-key"
             append-inner-icon="mdi-content-copy"
-            readonly
-            hide-details
             density="comfortable"
-            variant="outlined"
+            hide-details
+            label="Invitation Code"
+            :model-value="shareCode"
+            prepend-inner-icon="mdi-account-key"
+            readonly
             style="margin-bottom: 16px"
+            variant="outlined"
             @click:append-inner="copyToClipboard(shareCode)"
-          ></v-text-field>
+          />
 
           <!-- Modern URL field -->
           <v-text-field
-            :model-value="shareUrl"
-            label="Share URL"
-            prepend-inner-icon="mdi-link"
             append-inner-icon="mdi-content-copy"
-            readonly
-            hide-details
             density="comfortable"
-            variant="outlined"
+            hide-details
+            label="Share URL"
+            :model-value="shareUrl"
+            prepend-inner-icon="mdi-link"
+            readonly
             style="margin-bottom: 8px"
+            variant="outlined"
             @click:append-inner="copyToClipboard(shareUrl)"
-          ></v-text-field>
+          />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             variant="text"
             @click="closeDialog"
@@ -332,35 +280,85 @@
   </v-app-bar>
 </template>
 
-<script setup>
+<script setup lang="ts">
+  import { useRouter } from 'vue-router'
   import { useShareChild } from '@/composables/useShareChild'
   import { useGrowthDialog } from '@/composables/useGrowthDialog'
+  import { useUserProfile } from '@/composables/useUserProfile'
+  import GrowthDialog from '../components/dialog/GrowthDialog.vue'
+  
+  // ADD THESE STORE IMPORTS
+  import { useMealsStore } from '@/stores/meals'
+  import { useSleepStore } from '@/stores/sleep'
+  import { usePoopStore } from '@/stores/poop'
+  import { useHealthStore } from '@/stores/health'
+
+  import type { Child } from '@/stores/children'
+
+  const { userProfile } = useUserProfile()
+
+  // Router
+  const router = useRouter()
+
+  // ADD THESE STORE INSTANCES
+  const mealsStore = useMealsStore()
+  const sleepStore = useSleepStore()
+  const poopStore = usePoopStore()
+  const healthStore = useHealthStore()
 
   // Props
-  const props = defineProps({
-    currentChild: {
-      type: Object,
-      required: true,
-    },
-    children: {
-      type: Array,
-      required: true,
-    },
-  })
+  const props = defineProps<{
+    currentChild: Child
+    children: Child[]
+  }>()
 
-  // Emits (no longer need open-growth-dialog)
-  const emit = defineEmits(['child-selected'])
+  // Emits
+  const emit = defineEmits<{
+    'child-selected': [child: Child]
+  }>()
 
-  // Methods
-  const selectChild = (child) => {
+  // FIXED selectChild function with cache clearing
+  const selectChild = async (child: Child) => {
+    console.log('🔄 Child changed to:', child.name)
+    
+    // Clear all store caches when child changes
+    console.log('🗑️ Clearing all store caches for child switch...')
+    
+    // Clear all caches
+    if (mealsStore.invalidateCache) {
+      mealsStore.invalidateCache()
+      console.log('✅ Cleared meals cache')
+    }
+    
+    if (sleepStore.invalidateCache) {
+      sleepStore.invalidateCache()
+      console.log('✅ Cleared sleep cache')
+    }
+    
+    if (poopStore.invalidateCache) {
+      poopStore.invalidateCache()
+      console.log('✅ Cleared poop cache')
+    }
+    
+    if (healthStore.invalidateCache) {
+      healthStore.invalidateCache()
+      console.log('✅ Cleared health cache')
+    }
+    
+    console.log('✅ All store caches cleared for child switch')
+    
+    // Then emit child change
     emit('child-selected', child)
+  }
+
+  const addNewChild = () => {
+    router.push('/addchild')
   }
 
   // Growth dialog logic
   const {
     growthDialog,
     growthFormData,
-    formatGrowthUpdate,
     handleOpenGrowthDialog,
     saveGrowthData,
   } = useGrowthDialog()
@@ -390,7 +388,42 @@
 </script>
 
 <style lang="scss" scoped>
-  // .v-text-field--outlined >>> fieldset {
-  //   border-color: rgba(192, 0, 250, 0.986);
-  // }
+  // Only target child selector button - leave share button alone
+  :deep(.child-selector-btn) {
+    width: 180px !important;
+    min-width: 180px !important;
+
+    .v-btn__content {
+      justify-content: space-between !important;
+    }
+
+    .dropdown-icon {
+      margin-left: auto !important;
+    }
+
+    .child-info {
+      flex: 1 !important;
+      margin-right: 8px !important;
+    }
+  }
+
+  :deep(.child-dropdown) {
+    width: 180px !important;
+    max-width: 180px !important;
+    overflow: hidden !important;
+  }
+
+  // Fix Add Child item to stay within dropdown bounds
+  :deep(.add-child-item) {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .header-background-caregiver {
+    background: #F2CBCC; /* #F2CBCC with 90% opacity */
+  }
 </style>

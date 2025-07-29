@@ -2,67 +2,181 @@
   <v-app>
     <v-main>
       <v-container
-        fluid
         class="pa-6"
+        fluid
       >
         <div class="mb-8">
-          <h1 class="text-h4 mb-2">Guidance</h1>
+          <div class="d-flex justify-space-between align-center mb-2">
+            <h1 class="text-h4">Guidance</h1>
+            <v-btn
+              v-if="currentTab === 'guidance'"
+              icon
+              size="small"
+              variant="text"
+              :loading="isLoading"
+              @click="handleRefresh"
+            >
+              <v-icon>mdi-refresh</v-icon>
+            </v-btn>
+          </div>
           <p class="text-body-1">Gain info here</p>
         </div>
 
+        <!-- Debug info -->
+        <div v-if="DEV_MODE" style="background: lightblue; padding: 10px; margin: 10px; border: 2px solid blue;">
+            <h3>DEBUG: Guidance Page</h3>
+            <p>currentTab: {{ currentTab }}</p>
+            <p>Should show ArticleGrid: {{ currentTab === 'guidance' }}</p>
+        </div>
+
         <!-- <AppHeader /> -->
-        <NavigationTabs @tab-changed="handleTabChange" />
-        <ArticleGrid v-if="currentTab === 'guidance'" />
-        <AlertsView v-if="currentTab === 'alert'" />
+        <NavigationTabs 
+        @tab-changed="handleTabChange"
+          @child-changed="handleChildChange" 
+ />
+        
+        <!-- Loading Alert -->
+        <v-alert
+          v-if="currentTab === 'guidance' && (showInitialLoading || showLoadingAlert)"
+          color="#d87179"
+          variant="tonal"
+          class="mb-4"
+        >
+          <div class="d-flex align-center">
+            <v-progress-circular
+              indeterminate
+              size="20"
+              width="2"
+              color="#d87179"
+              class="mr-3"
+            ></v-progress-circular>
+            <div>
+              <div class="font-weight-medium">SuriAI is finding the best articles for {{ childrenStore.currentChild?.name || 'your child' }}</div>
+              <div class="text-caption">Please wait while we personalize your content</div>
+            </div>
+          </div>
+        </v-alert>
+        
+        <ArticleGrid v-if="currentTab === 'guidance' && !showInitialLoading && !showLoadingAlert" />
+        <AlertsView v-if="currentTab === 'alert'"
+        :key="forceRefreshAlerts"  />
         <SavedView v-if="currentTab === 'saved'" />
+        
       </v-container>
+
+      <!-- Refresh Confirmation Dialog -->
+      <v-dialog
+        v-model="refreshPromptVisible"
+        max-width="500"
+        persistent
+      >
+        <v-card>
+          <v-card-title class="text-h6">
+            Refresh Articles?
+          </v-card-title>
+          <v-card-text>
+            <p class="mb-3">
+              Your child's profile has changed. Refresh articles for <strong>{{ refreshPromptChild }}</strong>?
+            </p>
+            <v-alert
+              type="warning"
+              variant="tonal"
+              density="compact"
+            >
+              This will replace current articles with new recommendations.
+            </v-alert>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              variant="text"
+              @click="guidanceStore.cancelRefresh"
+            >
+              Keep Current Articles
+            </v-btn>
+            <v-btn
+              color="primary"
+              @click="guidanceStore.confirmRefresh"
+            >
+              Refresh Articles
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+
     </v-main>
   </v-app>
 </template>
 
-<script setup>
-  import { ref } from 'vue'
-  import AppHeader from '../components/AppHeader.vue'
+<script setup lang="ts">
+  import { onMounted, provide, ref } from 'vue'
+  import { useRoute } from 'vue-router'
+  import { storeToRefs } from 'pinia'
+  import { useGuidanceStore } from '@/stores/guidance'
+  import { useChildrenStore } from '@/stores/children'
+  import DEV_MODE from '@/utils/devMode'
   import NavigationTabs from '../components/guidance/NavigationTabs.vue'
   import ArticleGrid from '../components/guidance/ArticleGrid.vue'
   import AlertsView from '../components/guidance/AlertsView.vue'
   import SavedView from '../components/guidance/SavedView.vue'
-  import { useRouter } from 'vue-router'
 
-const router = useRouter()
+  const route = useRoute()
   const currentTab = ref('guidance')
+  const guidanceStore = useGuidanceStore()
+  const childrenStore = useChildrenStore()
+  const showLoadingAlert = ref(false)
+  const showInitialLoading = ref(true)
+  const forceRefreshAlerts = ref(0) // ADD THIS LINE
 
-  const handleTabChange = (tab) => {
+  // Get reactive references from guidance store
+  const { isArticleSaved, savedArticles, isLoading, refreshPromptVisible, refreshPromptChild } = storeToRefs(guidanceStore)
+
+  // Initialize tab based on route query parameter
+  onMounted(async () => {
+    const tabFromQuery = route.query.tab as string
+    if (tabFromQuery && ['guidance', 'alert', 'saved'].includes(tabFromQuery)) {
+      currentTab.value = tabFromQuery
+    }
+    
+    // Show loading for 2 seconds before displaying content
+    setTimeout(() => {
+      showInitialLoading.value = false
+    }, 2000)
+  })
+
+  const handleTabChange = (tab: string): void => {
     currentTab.value = tab
   }
 
-  // Global state for saved articles
-  const savedArticles = ref([])
+const handleChildChange = (): void => {
+  forceRefreshAlerts.value += 1
+}
 
-  // Provide the saved articles state to child components
-  provide('savedArticles', savedArticles)
 
-  const toggleSaveArticle = (article) => {
-    const existingIndex = savedArticles.value.findIndex(
-      (saved) => saved.id === article.id
-    )
-
-    if (existingIndex > -1) {
-      // Remove from saved
-      savedArticles.value.splice(existingIndex, 1)
-    } else {
-      // Add to saved
-      savedArticles.value.push({ ...article })
+  const handleRefresh = async (): Promise<void> => {
+    const { useChildrenStore } = await import('@/stores/children')
+    const childrenStore = useChildrenStore()
+    
+    if (childrenStore.currentChild) {
+      // Show loading alert
+      showLoadingAlert.value = true
+      
+      try {
+        await guidanceStore.refreshArticles(childrenStore.currentChild.id, true)
+        // Add minimum display time of 2 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      } finally {
+        // Hide loading alert when done
+        showLoadingAlert.value = false
+      }
     }
   }
 
-  provide('toggleSaveArticle', toggleSaveArticle)
-
-  const isArticleSaved = (articleId) => {
-    return savedArticles.value.some((saved) => saved.id === articleId)
-  }
-
-  provide('isArticleSaved', isArticleSaved)
+  // Provide store functions to child components for compatibility
+  provide('savedArticles', savedArticles)
+  provide('toggleSaveArticle', guidanceStore.toggleSaveArticle)
+  provide('isArticleSaved', (articleId: string) => isArticleSaved.value(articleId))
 </script>
 
 <style>
