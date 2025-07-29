@@ -4,6 +4,13 @@ from datetime import datetime
 from typing import Dict, Any  # Add this import
 
 
+# Account model for tracking who made check-ins
+class Account(SQLModel, table=True):
+    __tablename__ = "accounts"
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+
+
 class Primary_Care_Giver(SQLModel, table = True):
     id: int | None = Field(default=None, primary_key=True)  # Consistent style
     auth_user_id: str | None = Field(default=None, unique=True)
@@ -30,6 +37,7 @@ class Growth(SQLModel, table = True):
     head_circumference: float
     note: str | None
     child_id: int = Field(default=None, foreign_key="child.id")
+    account_id: int | None = Field(default=None, foreign_key="accounts.id")
 
 
 class Growth_Benchmark(SQLModel, table = True):
@@ -48,6 +56,7 @@ class Sleep_Time(SQLModel, table = True):
     end_time: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     note: str | None
     child_id: int = Field(default=None, foreign_key="child.id")
+    account_id: int | None = Field(default=None, foreign_key="accounts.id")
 
 
 class Meal(SQLModel, table = True):
@@ -59,6 +68,7 @@ class Meal(SQLModel, table = True):
     meal_time_category: int = Field(default=None, foreign_key="meal_time_category.id")
     meal_category: int = Field(default=None, foreign_key="meal_category.id")
     child_id: int = Field(default=None, foreign_key="child.id")
+    account_id: int | None = Field(default=None, foreign_key="accounts.id")
 
 
 class Meal_Time_Category(SQLModel, table = True):
@@ -79,6 +89,7 @@ class Poop(SQLModel, table = True):
     color: int = Field(default=None, foreign_key="poop_color.id")
     texture: int = Field(default=None, foreign_key="poop_texture.id")  # Fixed: Changed from consistency
     child_id: int = Field(default=None, foreign_key="child.id")
+    account_id: int | None = Field(default=None, foreign_key="accounts.id")
 
 
 class Poop_Color(SQLModel, table = True):
@@ -99,6 +110,7 @@ class Symptom(SQLModel, table = True):
     photo_url: str
     note: str | None
     child_id: int = Field(default=None, foreign_key="child.id")
+    account_id: int | None = Field(default=None, foreign_key="accounts.id")
 
 
 class ChatbotChat(SQLModel, table = True):
