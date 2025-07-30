@@ -31,6 +31,13 @@ def generate_timestamp_for_day(days_ago: int, hour: int = None, minute: int = No
         )
     return base_time
 
+def get_discrete_consumption(min_val: float, max_val: float) -> float:
+    """Get a random discrete consumption value (0%, 25%, 50%, 75%, or 100%) within the given range"""
+    allowed_values = [0.0, 25.0, 50.0, 75.0, 100.0]
+    # Filter values within the specified range
+    valid_values = [v for v in allowed_values if min_val <= v <= max_val]
+    return random.choice(valid_values) if valid_values else random.choice(allowed_values)
+
 @router.post("/generate-ear-infection-data")
 async def generate_ear_infection_data(request: EarInfectionRequest = None):
     """Generate ear infection progression for Pui Sim (id=1) and normal data for Pang (id=2)"""
@@ -70,14 +77,14 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                         day1_timestamp = generate_timestamp_for_day(3)
                         print(f"DEBUG: Day 1 timestamp for {child_name}: {day1_timestamp} (should be 3 days ago)")
                         
-                        # Meals - Slightly reduced appetite (90-95%)
+                        # Meals - Slightly reduced appetite (75-100%)
                         meal_times = [
                             (1, 1, 8),  # Breakfast at 8am
                             (2, 2, 13), # Lunch at 1pm  
                             (3, 3, 18)  # Dinner at 6pm
                         ]
                         for meal_time, meal_cat, hour in meal_times:
-                            consumption = random.uniform(90, 95)
+                            consumption = get_discrete_consumption(75, 100)
                             meal_timestamp = day1_timestamp.replace(hour=hour, minute=random.randint(0, 30))
                             conn.execute(text("""
                                 INSERT INTO meal (child_id, check_in, consumption_level, meal_time_category, meal_category, note, account_id)
@@ -121,9 +128,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                         day2_timestamp = generate_timestamp_for_day(2)
                         print(f"DEBUG: Day 2 timestamp for {child_name}: {day2_timestamp} (should be 2 days ago)")
                         
-                        # Meals - More reduced appetite (80-85%)
+                        # Meals - More reduced appetite (50-75%)
                         for meal_time, meal_cat, hour in meal_times:
-                            consumption = random.uniform(80, 85)
+                            consumption = get_discrete_consumption(50, 75)
                             meal_timestamp = day2_timestamp.replace(hour=hour, minute=random.randint(0, 30))
                             conn.execute(text("""
                                 INSERT INTO meal (child_id, check_in, consumption_level, meal_time_category, meal_category, note, account_id)
@@ -178,9 +185,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                         day3_timestamp = generate_timestamp_for_day(1)
                         print(f"DEBUG: Day 3 timestamp for {child_name}: {day3_timestamp} (should be 1 day ago)")
                         
-                        # Meals - Further decreased appetite (75-80%)
+                        # Meals - Further decreased appetite (25-75%)
                         for meal_time, meal_cat, hour in meal_times:
-                            consumption = random.uniform(75, 80)
+                            consumption = get_discrete_consumption(25, 75)
                             meal_timestamp = day3_timestamp.replace(hour=hour, minute=random.randint(0, 30))
                             conn.execute(text("""
                                 INSERT INTO meal (child_id, check_in, consumption_level, meal_time_category, meal_category, note, account_id)
@@ -235,14 +242,14 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                         for day_num in range(1, 4):  # Days 1, 2, 3
                             day_timestamp = generate_timestamp_for_day(4 - day_num)
                             
-                            # Meals - Excellent appetite (95-100%)
+                            # Meals - Excellent appetite (75-100%)
                             meal_times_normal = [
                                 (1, 1, 8),  # Breakfast at 8am
                                 (2, 2, 13), # Lunch at 1pm  
                                 (3, 3, 18)  # Dinner at 6pm
                             ]
                             for meal_time, meal_cat, hour in meal_times_normal:
-                                consumption = random.uniform(95, 100)
+                                consumption = get_discrete_consumption(75, 100)
                                 meal_timestamp = day_timestamp.replace(hour=hour, minute=random.randint(0, 30))
                                 conn.execute(text("""
                                     INSERT INTO meal (child_id, check_in, consumption_level, meal_time_category, meal_category, note, account_id)
