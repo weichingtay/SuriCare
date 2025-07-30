@@ -140,9 +140,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                         day2_timestamp = generate_timestamp_for_day(2)
                         print(f"DEBUG: Day 2 timestamp for {child_name}: {day2_timestamp} (should be 2 days ago)")
                         
-                        # Meals - More reduced appetite (50-75%)
+                        # Meals - More reduced appetite (75% only to avoid severe alerts)
                         for meal_time, meal_cat, hour in meal_times:
-                            consumption = get_discrete_consumption(50, 75)
+                            consumption = 75  # Fixed at 75% to stay above severe threshold
                             meal_timestamp = day2_timestamp.replace(hour=hour, minute=random.randint(0, 30))
                             conn.execute(text("""
                                 INSERT INTO meal (child_id, check_in, consumption_level, meal_time_category, meal_category, note, account_id)
@@ -156,9 +156,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                                 "note": f"Reduced appetite - {child_name}"
                             })
                         
-                        # Sleep - More restless
+                        # Sleep - More restless (but above severe threshold)
                         sleep_start = day2_timestamp.replace(hour=19, minute=45)  # 7:45 PM
-                        sleep_end = sleep_start + timedelta(hours=8, minutes=random.randint(30, 45))
+                        sleep_end = sleep_start + timedelta(hours=8, minutes=30)  # Fixed at 8.5h to avoid severe alerts
                         conn.execute(text("""
                             INSERT INTO sleep_time (child_id, check_in, start_time, end_time, note, account_id)
                             VALUES (:child_id, :check_in, :start_time, :end_time, :note, 1)
@@ -221,9 +221,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                         day3_timestamp = generate_timestamp_for_day(1)
                         print(f"DEBUG: Day 3 timestamp for {child_name}: {day3_timestamp} (should be 1 day ago)")
                         
-                        # Meals - Further decreased appetite (25-75%)
+                        # Meals - Further decreased appetite (75% only to avoid severe alerts)
                         for meal_time, meal_cat, hour in meal_times:
-                            consumption = get_discrete_consumption(25, 75)
+                            consumption = 75  # Fixed at 75% to stay above severe threshold
                             meal_timestamp = day3_timestamp.replace(hour=hour, minute=random.randint(0, 30))
                             conn.execute(text("""
                                 INSERT INTO meal (child_id, check_in, consumption_level, meal_time_category, meal_category, note, account_id)
@@ -237,9 +237,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                                 "note": f"Poor appetite - {child_name}"
                             })
                         
-                        # Sleep - Very restless
+                        # Sleep - Very restless (but above severe threshold)
                         sleep_start = day3_timestamp.replace(hour=19, minute=0)  # 7:00 PM
-                        sleep_end = sleep_start + timedelta(hours=8, minutes=random.randint(0, 30))
+                        sleep_end = sleep_start + timedelta(hours=8, minutes=15)  # Fixed at 8.25h to avoid severe alerts
                         conn.execute(text("""
                             INSERT INTO sleep_time (child_id, check_in, start_time, end_time, note, account_id)
                             VALUES (:child_id, :check_in, :start_time, :end_time, :note, 1)
@@ -365,6 +365,40 @@ async def clear_last_days_checkins(days: int = 3):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error clearing check-ins: {str(e)}")
+
+@router.delete("/clear-today")
+async def clear_today_checkins():
+    """Clear all check-in data from today only"""
+    
+    try:
+        with engine.connect() as conn:
+            with conn.begin():
+                gmt_plus_8 = timezone(timedelta(hours=8))
+                # Get start of today in GMT+8
+                today_start = datetime.now(gmt_plus_8).replace(hour=0, minute=0, second=0, microsecond=0)
+                # Get start of tomorrow in GMT+8
+                tomorrow_start = today_start + timedelta(days=1)
+                
+                # Delete from all check-in tables for today only
+                tables = ['growth', 'meal', 'sleep_time', 'symptom', 'poop']
+                total_deleted = 0
+                
+                for table in tables:
+                    result = conn.execute(text(f"DELETE FROM {table} WHERE check_in >= :today_start AND check_in < :tomorrow_start"), 
+                                        {"today_start": today_start, "tomorrow_start": tomorrow_start})
+                    deleted_count = result.rowcount
+                    total_deleted += deleted_count
+                    print(f"Deleted {deleted_count} records from {table} for today")
+        
+        return {
+            "success": True,
+            "message": f"Cleared {total_deleted} check-in records from today ({today_start.strftime('%Y-%m-%d')})",
+            "records_deleted": total_deleted,
+            "date_cleared": today_start.strftime('%Y-%m-%d')
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error clearing today's check-ins: {str(e)}")
 
 @router.delete("/clear-chats")
 async def clear_last_days_chats(days: int = 3):

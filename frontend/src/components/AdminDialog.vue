@@ -59,6 +59,17 @@
           <v-btn
             block
             class="admin-action-btn"
+            color="#E91E63"
+            prepend-icon="mdi-calendar-today"
+            variant="flat"
+            :loading="isClearingToday"
+            @click="clearTodayCheckins"
+          >
+            Clear Today's Check-ins Only
+          </v-btn>
+          <v-btn
+            block
+            class="admin-action-btn"
             color="#FF5722"
             prepend-icon="mdi-delete-sweep"
             variant="flat"
@@ -96,6 +107,7 @@
 
   // Loading states
   const isGeneratingData = ref(false)
+  const isClearingToday = ref(false)
   const isClearingCheckins = ref(false)
   const isClearingChats = ref(false)
 
@@ -124,6 +136,26 @@
       // TODO: Show error notification
     } finally {
       isGeneratingData.value = false
+    }
+  }
+
+  // Clear today's check-in data only
+  const clearTodayCheckins = async () => {
+    try {
+      isClearingToday.value = true
+      
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+      await axios.delete(`${baseUrl}/admin/clear-today`)
+      
+      console.log('✅ Cleared today\'s check-ins successfully')
+      
+      // TODO: Show success notification
+      
+    } catch (error) {
+      console.error('❌ Error clearing today\'s check-ins:', error)
+      // TODO: Show error notification
+    } finally {
+      isClearingToday.value = false
     }
   }
 
