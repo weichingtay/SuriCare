@@ -112,7 +112,7 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                             "note": f"Slightly restless - {child_name}"
                         })
                         
-                        # Symptoms - Occasional head touching
+                        # Symptoms - Head touching and early ear touching
                         conn.execute(text("""
                             INSERT INTO symptom (child_id, check_in, symptom, photo_url, note, account_id)
                             VALUES (:child_id, :check_in, :symptom, :photo_url, :note, 1)
@@ -122,6 +122,18 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                             "symptom": "Head touching",
                             "photo_url": "https://example.com/photo1.jpg",
                             "note": f"Occasional head touching - {child_name}"
+                        })
+                        
+                        # Add early ear touching
+                        conn.execute(text("""
+                            INSERT INTO symptom (child_id, check_in, symptom, photo_url, note, account_id)
+                            VALUES (:child_id, :check_in, :symptom, :photo_url, :note, 1)
+                        """), {
+                            "child_id": child_id,
+                            "check_in": day1_timestamp + timedelta(hours=14),
+                            "symptom": "Ear touching",
+                            "photo_url": "https://example.com/photo1b.jpg",
+                            "note": f"Light ear touching - {child_name}"
                         })
                         
                         # Day 2 (2 days ago, not including today): Early-middle signs
@@ -158,7 +170,7 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                             "note": f"More restless sleep - {child_name}"
                         })
                         
-                        # Symptoms - Ear touching + low temperature
+                        # Symptoms - Multiple ear touching + low temperature
                         conn.execute(text("""
                             INSERT INTO symptom (child_id, check_in, symptom, photo_url, note, account_id)
                             VALUES (:child_id, :check_in, :symptom, :photo_url, :note, 1)
@@ -170,6 +182,18 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                             "note": f"Frequent ear touching - {child_name}"
                         })
                         
+                        # More ear touching throughout the day
+                        conn.execute(text("""
+                            INSERT INTO symptom (child_id, check_in, symptom, photo_url, note, account_id)
+                            VALUES (:child_id, :check_in, :symptom, :photo_url, :note, 1)
+                        """), {
+                            "child_id": child_id,
+                            "check_in": day2_timestamp + timedelta(hours=12),
+                            "symptom": "Ear touching",
+                            "photo_url": "https://example.com/photo2b.jpg",
+                            "note": f"Persistent ear touching - {child_name}"
+                        })
+                        
                         conn.execute(text("""
                             INSERT INTO symptom (child_id, check_in, symptom, photo_url, note, account_id)
                             VALUES (:child_id, :check_in, :symptom, :photo_url, :note, 1)
@@ -179,6 +203,18 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                             "symptom": "Low temperature",
                             "photo_url": "https://example.com/photo3.jpg",
                             "note": f"Temperature 37.2°C - {child_name}"
+                        })
+                        
+                        # Evening ear touching
+                        conn.execute(text("""
+                            INSERT INTO symptom (child_id, check_in, symptom, photo_url, note, account_id)
+                            VALUES (:child_id, :check_in, :symptom, :photo_url, :note, 1)
+                        """), {
+                            "child_id": child_id,
+                            "check_in": day2_timestamp + timedelta(hours=18),
+                            "symptom": "Ear touching",
+                            "photo_url": "https://example.com/photo2c.jpg",
+                            "note": f"Evening ear touching - {child_name}"
                         })
                         
                         # Day 3 (1 day ago): More noticeable signs
@@ -277,16 +313,16 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                                 "note": f"Great sleep - {child_name}"
                             })
                             
-                            # Normal poop
+                            # Perfect normal poop - use values that won't trigger any alerts
                             conn.execute(text("""
                                 INSERT INTO poop (child_id, check_in, texture, color, note, account_id)
                                 VALUES (:child_id, :check_in, :texture, :color, :note, 1)
                             """), {
                                 "child_id": child_id,
                                 "check_in": day_timestamp + timedelta(hours=8),
-                                "texture": 3,  # Normal texture
-                                "color": 2,    # Normal color
-                                "note": f"Normal consistency - {child_name}"
+                                "texture": 4,  # Ideal normal texture (avoiding 3 which might be soft)
+                                "color": 3,    # Ideal normal color (golden brown)
+                                "note": f"Perfect consistency - {child_name}"
                             })
         
         return {

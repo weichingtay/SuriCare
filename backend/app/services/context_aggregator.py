@@ -104,10 +104,18 @@ class ChildContextAggregator:
         if health["sleep"]["status"] == "available":
             sleep = health["sleep"]
             parts.append(f"Sleep: {sleep['average_sleep_hours']} hours average ({sleep['sleep_quality']})")
+            if "recent_records" in sleep and sleep["recent_records"]:
+                sleep_notes = [f"{record['duration_hours']}h - {record['note']}" for record in sleep["recent_records"][:3] if record.get('note')]
+                if sleep_notes:
+                    parts.append(f"Recent Sleep Notes: {'; '.join(sleep_notes)}")
         
         if health["nutrition"]["status"] == "available":
             nutrition = health["nutrition"]
             parts.append(f"Nutrition: {nutrition['average_consumption']}% consumption ({nutrition['nutrition_status']})")
+            if "recent_meals" in nutrition and nutrition["recent_meals"]:
+                meal_notes = [f"{record['consumption']}% - {record['note']}" for record in nutrition["recent_meals"][:3] if record.get('note')]
+                if meal_notes:
+                    parts.append(f"Recent Meal Notes: {'; '.join(meal_notes)}")
         
         if health["symptoms"]["status"] == "has_symptoms":
             symptoms = health["symptoms"]

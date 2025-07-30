@@ -12,7 +12,10 @@ class HealthService:
 
     def get_recent_symptoms(self, child_id: int, days_back: int = 30) -> Dict:
         """Get recent symptoms"""
-        cutoff_date = datetime.now() - timedelta(days=days_back)
+        # Use timezone-aware datetime to match admin data (GMT+8)
+        from datetime import timezone
+        gmt_plus_8 = timezone(timedelta(hours=8))
+        cutoff_date = datetime.now(gmt_plus_8) - timedelta(days=days_back)
         
         symptoms = self.session.exec(
             select(Symptom)
@@ -38,7 +41,10 @@ class HealthService:
 
     def get_sleep_summary(self, child_id: int, days_back: int = 7) -> Dict:
         """Get sleep pattern summary"""
-        cutoff_date = datetime.now() - timedelta(days=days_back)
+        # Use timezone-aware datetime to match admin data (GMT+8)
+        from datetime import timezone
+        gmt_plus_8 = timezone(timedelta(hours=8))
+        cutoff_date = datetime.now(gmt_plus_8) - timedelta(days=days_back)
         
         sleep_records = self.session.exec(
             select(Sleep_Time)
@@ -65,12 +71,23 @@ class HealthService:
             "status": "available",
             "average_sleep_hours": round(avg_sleep, 1),
             "sleep_quality": "good" if avg_sleep > 8 else "needs_attention",
-            "records_count": len(sleep_records)
+            "records_count": len(sleep_records),
+            "recent_records": [
+                {
+                    "date": record.check_in.isoformat(),
+                    "duration_hours": round((record.end_time - record.start_time).total_seconds() / 3600, 1) if record.start_time and record.end_time else 0,
+                    "note": record.note
+                }
+                for record in sleep_records[:5]  # Latest 5 records
+            ]
         }
 
     def get_nutrition_summary(self, child_id: int, days_back: int = 7) -> Dict:
         """Get nutrition summary"""
-        cutoff_date = datetime.now() - timedelta(days=days_back)
+        # Use timezone-aware datetime to match admin data (GMT+8)
+        from datetime import timezone
+        gmt_plus_8 = timezone(timedelta(hours=8))
+        cutoff_date = datetime.now(gmt_plus_8) - timedelta(days=days_back)
         
         meals = self.session.exec(
             select(Meal)
@@ -91,5 +108,13 @@ class HealthService:
             "status": "available",
             "average_consumption": round(avg_consumption, 1),
             "nutrition_status": "good" if avg_consumption > 70 else "needs_attention",
-            "meals_recorded": len(meals)
+            "meals_recorded": len(meals),
+            "recent_meals": [
+                {
+                    "date": meal.check_in.isoformat(),
+                    "consumption": meal.consumption_level,
+                    "note": meal.note
+                }
+                for meal in meals[:5]  # Latest 5 meals
+            ]
         }
