@@ -58,7 +58,7 @@
           <!-- Growth Section -->
           <div class="dashboard-section">
             <div class="section-header">
-              <h2 class="section-title">Growth</h2>
+              <h2 class="section-title">Weight</h2>
               <div class="view-toggle">
                 <button
                   :class="['view-btn', { 'active': growthViewMode === 'weekly' }]"
@@ -164,7 +164,7 @@
           <!-- Height Growth Section -->
           <div class="dashboard-section">
             <div class="section-header">
-              <h2 class="section-title">Height Growth</h2>
+              <h2 class="section-title">Height</h2>
               <div class="view-toggle">
                 <button
                   :class="['view-btn', { 'active': heightViewMode === 'weekly' }]"

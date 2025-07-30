@@ -12,7 +12,7 @@ from app.models import Symptom, Sleep_Time, Meal, Growth
 from app.services.chatbot_guardrails import ChatbotGuardrails
 import statistics
 
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-2.0-flash"
 AI_TEMPERATURE = 0.3
 
 
