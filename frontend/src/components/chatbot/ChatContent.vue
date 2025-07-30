@@ -62,12 +62,21 @@
               rounded="lg"
               variant="flat"
             >
-              <div v-if="message.isStreaming && !message.text" class="typing-indicator">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
+              <!-- Custom Loading Animation for AI responses -->
+              <div v-if="message.isStreaming && !message.text && message.sender === 'ai'" class="custom-loading-animation">
+                <div class="loading-container">
+                  <img 
+                    class="loading-gif"
+                    :src="loadingAnimationSrc"
+                    alt="Loading animation"
+                  />
+                </div>
               </div>
+              
+              <!-- Message content -->
               <div v-else class="text-body-2 markdown-content" v-html="renderMarkdown(message.text)"></div>
+              
+              <!-- Streaming cursor for ongoing responses -->
               <div v-if="message.isStreaming && message.text" class="streaming-cursor">|</div>
             </v-card>
 
@@ -167,6 +176,8 @@
 <script setup lang="ts">
   import { nextTick, ref, watch } from 'vue'
   import { marked } from 'marked'
+
+  import loadingAnimationSrc from '@/assets/SURICARE-ANIMATION.gif'
 
   const props = defineProps({
     messages: {
@@ -333,6 +344,64 @@
     margin-top: 8px;
   }
 
+  /* Custom Loading Animation Styles */
+  .custom-loading-animation {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 16px;
+    width: fit-content;
+    min-width: auto;
+  }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: fit-content;
+  }
+
+  .loading-gif {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+
+  .loading-fallback {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    color: #d87179;
+    font-size: 12px;
+  }
+
+  .loading-text {
+    color: #d87179;
+    font-size: 12px;
+    font-weight: 500;
+    animation: fade 2s ease-in-out infinite;
+    align-self: flex-start;
+  }
+
+  @keyframes fade {
+    0%, 100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+
+
+
   /* Message Actions Styling */
   .message-actions {
     display: flex;
@@ -461,7 +530,7 @@
 
   .disclaimer-text {
     font-size: 12px;
-    color: #5f5f5f;
+    color: #ba5858;
     text-align: center;
     margin-top: 8px;
     margin-bottom: 0;
