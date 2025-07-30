@@ -368,7 +368,7 @@ async def clear_last_days_checkins(days: int = 3):
 
 @router.delete("/clear-today")
 async def clear_today_checkins():
-    """Clear all check-in data from today only"""
+    """Clear all check-in data from today only for child_id = 1 (Pui Sim)"""
     
     try:
         with engine.connect() as conn:
@@ -379,22 +379,23 @@ async def clear_today_checkins():
                 # Get start of tomorrow in GMT+8
                 tomorrow_start = today_start + timedelta(days=1)
                 
-                # Delete from all check-in tables for today only
+                # Delete from all check-in tables for today only for child_id = 1
                 tables = ['growth', 'meal', 'sleep_time', 'symptom', 'poop']
                 total_deleted = 0
                 
                 for table in tables:
-                    result = conn.execute(text(f"DELETE FROM {table} WHERE check_in >= :today_start AND check_in < :tomorrow_start"), 
+                    result = conn.execute(text(f"DELETE FROM {table} WHERE child_id = 1 AND check_in >= :today_start AND check_in < :tomorrow_start"), 
                                         {"today_start": today_start, "tomorrow_start": tomorrow_start})
                     deleted_count = result.rowcount
                     total_deleted += deleted_count
-                    print(f"Deleted {deleted_count} records from {table} for today")
+                    print(f"Deleted {deleted_count} records from {table} for today (child_id = 1)")
         
         return {
             "success": True,
-            "message": f"Cleared {total_deleted} check-in records from today ({today_start.strftime('%Y-%m-%d')})",
+            "message": f"Cleared {total_deleted} check-in records from today ({today_start.strftime('%Y-%m-%d')}) for child_id = 1 (Pui Sim)",
             "records_deleted": total_deleted,
-            "date_cleared": today_start.strftime('%Y-%m-%d')
+            "date_cleared": today_start.strftime('%Y-%m-%d'),
+            "child_id": 1
         }
         
     except Exception as e:
