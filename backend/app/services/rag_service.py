@@ -709,26 +709,9 @@ class RAGService:
             # Apply guardrails to the complete response
             guardrail_result = self.guardrails.apply_guardrails(full_response, query)
             
-            # If the response was modified by guardrails, send the corrected version
-            if guardrail_result["response_modified"]:
-                # Send a separator and the corrected response
-                yield {
-                    "content": "",
-                    "sources": sources,
-                    "response_type": response_type,
-                    "context_used": enhanced_context,
-                    "done": False,
-                }
-                
-                # Send the fixed response
-                yield {
-                    "content": guardrail_result["fixed_response"],
-                    "sources": sources,
-                    "response_type": response_type,
-                    "context_used": enhanced_context,
-                    "done": False,
-                    "guardrail_modified": True,
-                }
+            # If the response was modified by guardrails, we already streamed the original
+            # Don't send additional content as it creates duplicates
+            # The guardrail violations will be logged in the final message
             
             # Send final message with guardrail info
             final_message = {

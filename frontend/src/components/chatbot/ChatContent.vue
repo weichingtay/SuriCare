@@ -174,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-  import { nextTick, ref, watch } from 'vue'
+  import { nextTick, onMounted, ref, watch } from 'vue'
   import { marked } from 'marked'
 
   import loadingAnimationSrc from '@/assets/SURICARE-ANIMATION.gif'
@@ -188,12 +188,33 @@
       type: Array,
       default: () => [],
     },
+    initialMessage: {
+      type: String,
+      default: null,
+    },
+    autoSend: {
+      type: Boolean,
+      default: false,
+    },
   })
 
   const emit = defineEmits(['send-message', 'edit-message', 'copy-message'])
 
   const inputMessage = ref('')
   const messagesContainer = ref(null)
+
+  // Pre-fill input with initial message if provided
+  onMounted(async () => {
+    if (props.initialMessage) {
+      inputMessage.value = props.initialMessage
+      
+      // Auto-send if requested
+      if (props.autoSend) {
+        await nextTick() // Ensure DOM is updated
+        sendMessage()
+      }
+    }
+  })
 
   const renderMarkdown = (text: string): string => {
     // Configure marked to handle line breaks properly

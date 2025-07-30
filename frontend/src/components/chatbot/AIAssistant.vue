@@ -64,10 +64,10 @@
       const query = message.value
       message.value = ''
       
-      // Navigate to chatbot page with the query
+      // Navigate to chatbot page with the query and auto-send flag
       await router.push({
         path: '/chatbot',
-        query: { message: query }
+        query: { message: query, autoSend: 'true' }
       })
     }
   }

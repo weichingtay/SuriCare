@@ -62,6 +62,8 @@
           v-if="!isLoading"
           :messages="currentMessages"
           :suggested-prompts="suggestedPrompts"
+          :initial-message="initialMessage"
+          :auto-send="autoSend"
           @send-message="handleSendMessage"
         />
       </v-main>
@@ -91,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useRoute } from 'vue-router';
   import axios from 'axios';
   import ChatSidebar from '../components/chatbot/ChatSidebar.vue';
@@ -275,15 +277,9 @@
     }
   };
 
-  // Track if we have a pending message from route
-  const pendingMessage = ref<string | null>(null);
-
-  onMounted(async () => {
-    // Check for incoming query parameter
-    if (route.query.message && typeof route.query.message === 'string') {
-      pendingMessage.value = route.query.message;
-    }
-  });
+  // Pass the query message to ChatContent for pre-filling
+  const initialMessage = route.query.message && typeof route.query.message === 'string' ? route.query.message : null;
+  const autoSend = route.query.autoSend === 'true';
 
   // Watch for changes in global child selection and sync to chat selection
   watch(() => childrenStore.currentChild, async (newChild, oldChild) => {
@@ -306,15 +302,7 @@
       currentChatId.value = null;
     }
 
-    // Handle pending message after chat system is ready
-    if (pendingMessage.value) {
-      const messageToSend = pendingMessage.value;
-      pendingMessage.value = null; // Clear it immediately to prevent duplicate sends
-      
-      // Start a new chat and send the message
-      handleNewChat(); // This clears currentChatId
-      await handleSendMessage(messageToSend);
-    }
+    // No auto-sending logic needed anymore
   }, { immediate: true });
 
   const handleSendMessage = async (message: string) => {
