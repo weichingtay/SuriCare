@@ -40,7 +40,10 @@ def get_discrete_consumption(min_val: float, max_val: float) -> float:
 
 @router.post("/generate-ear-infection-data")
 async def generate_ear_infection_data(request: EarInfectionRequest = None):
-    """Generate ear infection progression for Pui Sim (id=1) and normal data for Pang (id=2)"""
+    """Generate ear infection progression for Pui Sim (id=1) and normal data for Pang (id=2)
+    - Past 3 days: Moderate alerts (75% meals, 8h sleep, ear touching)  
+    - Today: Critical alerts when manually inputted (0%/25% meals, poor sleep, ear touching)
+    """
     
     if request is None:
         request = EarInfectionRequest()
@@ -140,9 +143,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                         day2_timestamp = generate_timestamp_for_day(2)
                         print(f"DEBUG: Day 2 timestamp for {child_name}: {day2_timestamp} (should be 2 days ago)")
                         
-                        # Meals - More reduced appetite (75% only to avoid severe alerts)
+                        # Meals - Reduced appetite (72% to set up for critical when manual data added today)
                         for meal_time, meal_cat, hour in meal_times:
-                            consumption = 75  # Fixed at 75% to stay above severe threshold
+                            consumption = 72  # Just above severe threshold but concerning
                             meal_timestamp = day2_timestamp.replace(hour=hour, minute=random.randint(0, 30))
                             conn.execute(text("""
                                 INSERT INTO meal (child_id, check_in, consumption_level, meal_time_category, meal_category, note, account_id)
@@ -156,9 +159,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                                 "note": f"Reduced appetite - {child_name}"
                             })
                         
-                        # Sleep - More restless (but above severe threshold)
+                        # Sleep - More restless (7h to set up for critical when manual data added today)
                         sleep_start = day2_timestamp.replace(hour=19, minute=45)  # 7:45 PM
-                        sleep_end = sleep_start + timedelta(hours=8, minutes=30)  # Fixed at 8.5h to avoid severe alerts
+                        sleep_end = sleep_start + timedelta(hours=7)  # 7h - concerning but not critical yet
                         conn.execute(text("""
                             INSERT INTO sleep_time (child_id, check_in, start_time, end_time, note, account_id)
                             VALUES (:child_id, :check_in, :start_time, :end_time, :note, 1)
@@ -221,9 +224,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                         day3_timestamp = generate_timestamp_for_day(1)
                         print(f"DEBUG: Day 3 timestamp for {child_name}: {day3_timestamp} (should be 1 day ago)")
                         
-                        # Meals - Further decreased appetite (75% only to avoid severe alerts)
+                        # Meals - Further decreased appetite (68% to set up for critical when manual data added today)  
                         for meal_time, meal_cat, hour in meal_times:
-                            consumption = 75  # Fixed at 75% to stay above severe threshold
+                            consumption = 68  # Just below 70% threshold - will trigger poor appetite
                             meal_timestamp = day3_timestamp.replace(hour=hour, minute=random.randint(0, 30))
                             conn.execute(text("""
                                 INSERT INTO meal (child_id, check_in, consumption_level, meal_time_category, meal_category, note, account_id)
@@ -237,9 +240,9 @@ async def generate_ear_infection_data(request: EarInfectionRequest = None):
                                 "note": f"Poor appetite - {child_name}"
                             })
                         
-                        # Sleep - Very restless (but above severe threshold)
-                        sleep_start = day3_timestamp.replace(hour=19, minute=0)  # 7:00 PM
-                        sleep_end = sleep_start + timedelta(hours=8, minutes=15)  # Fixed at 8.25h to avoid severe alerts
+                        # Sleep - Very restless (6.5h to set up for critical when manual data added today)
+                        sleep_start = day3_timestamp.replace(hour=19, minute=0)  # 7:00 PM  
+                        sleep_end = sleep_start + timedelta(hours=6, minutes=30)  # 6.5h - concerning, near critical
                         conn.execute(text("""
                             INSERT INTO sleep_time (child_id, check_in, start_time, end_time, note, account_id)
                             VALUES (:child_id, :check_in, :start_time, :end_time, :note, 1)
