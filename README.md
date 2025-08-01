@@ -1,6 +1,7 @@
-# SuriCare - Child Health Monitoring Application
+# SuriCare - Child Health Monitoring Application (Not ready)
+**(Repository Not Yet Ready for Public Use - Under Active Development)**
 
-A comprehensive child health monitoring application for parents and caregivers.
+A comprehensive child health monitoring application for parents and caregivers. 
 
 ## 🚀 Quick Start (Demo)
 
